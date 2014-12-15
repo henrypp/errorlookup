@@ -1,0 +1,93 @@
+#include <windows.h>
+#include <commctrl.h>
+#include "errorlookup.h"
+#include "resource.h"
+
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+
+//
+// Menu resources
+//
+IDM_MAIN MENU
+{
+    POPUP "Файл"
+    {
+        MENUITEM "Выйти\tEsc", IDM_EXIT
+    }
+    POPUP "Настройки"
+    {
+        MENUITEM "Проверять обновления при запуске", IDM_CFG_CHECKUPDATES
+        MENUITEM "Получать содержимое буфера при запуске", IDM_CFG_INSERTBUFFER
+    }
+    POPUP "Помощь"
+    {
+        MENUITEM "Сайт программы", IDM_WEBSITE
+        MENUITEM "Проверить обновления", IDM_CHECK_UPDATES
+        MENUITEM "О программе", IDM_ABOUT
+    }
+}
+
+//
+// Dialog resources
+//
+IDD_MAIN DIALOG 0, 0, 293, 167
+STYLE DS_CENTER | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | WS_GROUP
+CAPTION APP_NAME
+MENU IDM_MAIN
+FONT 8, "Ms Shell Dlg"
+{
+    LTEXT           "Код ошибки:", IDC_STATIC, 8, 8, 43, 8, SS_LEFT
+    EDITTEXT        IDC_ERROR_ID, 8, 20, 75, 14, ES_AUTOHSCROLL
+
+    LTEXT           "Тип числа:", IDC_STATIC, 90, 8, 37, 8, SS_LEFT
+    COMBOBOX        IDC_ERROR_DATA, 90, 20, 51, 30, CBS_AUTOHSCROLL | CBS_DROPDOWNLIST
+
+	LTEXT           "Тип ошибки:", IDC_STATIC, 8, 40, 43, 8, SS_LEFT
+    COMBOBOX        IDC_ERROR_MODE, 8, 52, 133, 30, CBS_AUTOHSCROLL | CBS_DROPDOWNLIST
+
+    LTEXT           "Текст ошибки:", IDC_STATIC, 150, 8, 135, 8, SS_LEFT
+    EDITTEXT        IDC_ERROR_TEXT, 150, 20, 135, 120, ES_MULTILINE | ES_READONLY | WS_VSCROLL 
+
+    LTEXT           "Дополнительная информация:", IDC_STATIC, 8, 72, 133, 8, SS_LEFT
+	EDITTEXT        IDC_ERROR_ADVANCED, 8, 84, 133, 56, ES_MULTILINE | ES_READONLY | ES_AUTOHSCROLL
+
+    DEFPUSHBUTTON	"Получить", IDC_GET, 8, 147, 50, 14
+	PUSHBUTTON      "Очистить", IDC_CLEAR, 61, 147, 50, 14
+    PUSHBUTTON      "Выйти", IDC_EXIT, 236, 147, 50, 14
+}
+
+//
+// Icon resources
+//
+IDI_MAIN	       		ICON           "res\\main.ico"
+
+//
+// Version Information resources
+//
+1 VERSIONINFO
+	FILEVERSION     APP_VERSION_RES
+    PRODUCTVERSION  APP_VERSION_RES
+    FILEOS          VOS__WINDOWS32
+    FILETYPE        VFT_APP
+    FILESUBTYPE     VFT2_UNKNOWN
+    FILEFLAGSMASK   0x00000000
+    FILEFLAGS       0x00000000
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "04190025"
+        {
+            VALUE "FileVersion", APP_VERSION
+            VALUE "Comments", APP_WEBSITE
+            VALUE "LegalCopyright", "Copyright © 2012 Henry++"
+            VALUE "OriginalFilename", APP_NAME_SHORT ".exe"
+            VALUE "ProductName", APP_NAME
+            VALUE "FileDescription", APP_NAME
+            VALUE "ProductVersion", APP_VERSION
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x0419, 0x0025
+    }
+}
