@@ -1,0 +1,82 @@
+#include <windows.h>
+#include <commctrl.h>
+#include <richedit.h>
+#include "resource.h"
+#include "main.h"
+
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+
+IDM_MAIN MENU
+{
+	POPUP "Файл"
+	{
+		MENUITEM "Настройки...", IDM_SETTINGS
+		MENUITEM SEPARATOR
+		MENUITEM "Выйти\tEsc", IDM_EXIT
+	}
+	POPUP "Помощь"
+	{
+		MENUITEM "Сайт программы", IDM_WEBSITE
+		MENUITEM "Проверить обновления", IDM_CHECKUPDATES
+		MENUITEM "О программе", IDM_ABOUT
+	}
+}
+
+IDM_LISTVIEW MENU
+{
+	POPUP ""
+	{
+		MENUITEM "Очистить результат...", IDM_CLEAR
+		MENUITEM SEPARATOR
+		MENUITEM "Копировать", IDM_COPY
+	}
+}
+
+//
+// Dialog resources
+//
+IDD_MAIN DIALOGEX 0, 0, 400, 257
+STYLE DS_SHELLFONT | WS_POPUP | DS_MODALFRAME | DS_CENTER | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE
+CAPTION APP_NAME
+MENU IDM_MAIN
+FONT 8, "Ms Shell Dlg", 0, 0, 1
+{
+	LTEXT           "Код ошибки:", IDC_STATIC, 12, 10, 285, 12, SS_CENTERIMAGE
+    EDITTEXT        IDC_CODE, 12, 25, 285, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+
+	DEFPUSHBUTTON   "Получить описание!", IDC_GET, 303, 25, 85, 15, 0, WS_EX_LEFT
+
+	LTEXT           "Int код:", IDC_STATIC, 12, 50, 40, 12
+    EDITTEXT        IDC_DESCRIPTION_1, 50, 50, 60, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
+
+	LTEXT           "Hex код:", IDC_STATIC, 12, 64, 40, 12
+    EDITTEXT        IDC_DESCRIPTION_2, 50, 64, 60, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
+
+	LTEXT           "Severity:", IDC_STATIC, 124, 50, 40, 12
+    EDITTEXT        IDC_DESCRIPTION_3, 162, 50, 224, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
+
+	LTEXT           "Facility:", IDC_STATIC, 124, 64, 40, 12
+    EDITTEXT        IDC_DESCRIPTION_4, 162, 64, 224, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
+
+    CONTROL         "", IDC_LISTVIEW, WC_LISTVIEW, LVS_REPORT | LVS_ALIGNLEFT | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP | WS_VSCROLL, 12, 85, 376, 160, WS_EX_LEFT
+
+
+	COMBOBOX        IDC_MODULE, -1224, 60, 235, 30, CBS_AUTOHSCROLL | CBS_DROPDOWNLIST, WS_EX_LEFT
+}
+
+//
+// String resources
+//
+STRINGTABLE
+{
+	IDS_TRANSLATION_INFO "Русский (by <a href=""http://www.henrypp.org"">Henry++</a>)"
+
+	IDS_UPDATE_NO "Вы используете последнюю версию данной программы."
+	IDS_UPDATE_YES "Update is now available: %s\r\nDo you want to open download page?"
+
+	IDS_ABOUT "О программе"
+	IDS_COPYRIGHT "This program is redistributed under the terms of the GNU General Public License v2, see license for details.\r\n\r\nThis software is provided ""as is"" and without any express or implied warranties."
+
+	IDS_COLUMN_1 "Модуль"
+	IDS_COLUMN_2 "Описание"
+}

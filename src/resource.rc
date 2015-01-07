@@ -1,65 +1,96 @@
 #include <windows.h>
 #include <commctrl.h>
-#include "errorlookup.h"
+#include <richedit.h>
 #include "resource.h"
+#include "main.h"
 
-LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+LANGUAGE LANG_ENGLISH, SUBLANG_DEFAULT
 
-//
-// Menu resources
-//
 IDM_MAIN MENU
 {
-    POPUP "Файл"
-    {
-        MENUITEM "Выйти\tEsc", IDM_EXIT
-    }
-    POPUP "Настройки"
-    {
-        MENUITEM "Проверять обновления при запуске", IDM_CFG_CHECKUPDATES
-        MENUITEM "Получать содержимое буфера при запуске", IDM_CFG_INSERTBUFFER
-    }
-    POPUP "Помощь"
-    {
-        MENUITEM "Сайт программы", IDM_WEBSITE
-        MENUITEM "Проверить обновления", IDM_CHECK_UPDATES
-        MENUITEM "О программе", IDM_ABOUT
-    }
+	POPUP "File"
+	{
+		MENUITEM "Settings...", IDM_SETTINGS
+		MENUITEM SEPARATOR
+		MENUITEM "Exit\tEsc", IDM_EXIT
+	}
+	POPUP "Help"
+	{
+		MENUITEM "Website", IDM_WEBSITE
+		MENUITEM "Check for updates", IDM_CHECKUPDATES
+		MENUITEM "About", IDM_ABOUT
+	}
+}
+
+IDM_LISTVIEW MENU
+{
+	POPUP ""
+	{
+		MENUITEM "Clear result...", IDM_CLEAR
+		MENUITEM SEPARATOR
+		MENUITEM "Copy", IDM_COPY
+	}
 }
 
 //
 // Dialog resources
 //
-IDD_MAIN DIALOG 0, 0, 293, 167
-STYLE DS_CENTER | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | WS_GROUP
+IDD_MAIN DIALOGEX 0, 0, 400, 257
+STYLE DS_SHELLFONT | WS_POPUP | DS_MODALFRAME | DS_CENTER | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE
 CAPTION APP_NAME
 MENU IDM_MAIN
-FONT 8, "Ms Shell Dlg"
+FONT 8, "Ms Shell Dlg", 0, 0, 1
 {
-    LTEXT           "Код ошибки:", IDC_STATIC, 8, 8, 43, 8, SS_LEFT
-    EDITTEXT        IDC_ERROR_ID, 8, 20, 75, 14, ES_AUTOHSCROLL
+	LTEXT           "Error code:", IDC_STATIC, 12, 10, 285, 12, SS_CENTERIMAGE
+    EDITTEXT        IDC_CODE, 12, 25, 285, 14, ES_AUTOHSCROLL, WS_EX_LEFT
 
-    LTEXT           "Тип числа:", IDC_STATIC, 90, 8, 37, 8, SS_LEFT
-    COMBOBOX        IDC_ERROR_DATA, 90, 20, 51, 30, CBS_AUTOHSCROLL | CBS_DROPDOWNLIST
+	DEFPUSHBUTTON   "Get description!", IDC_GET, 303, 25, 85, 15, 0, WS_EX_LEFT
 
-	LTEXT           "Тип ошибки:", IDC_STATIC, 8, 40, 43, 8, SS_LEFT
-    COMBOBOX        IDC_ERROR_MODE, 8, 52, 133, 30, CBS_AUTOHSCROLL | CBS_DROPDOWNLIST
+	LTEXT           "Int code:", IDC_STATIC, 12, 50, 40, 12
+    EDITTEXT        IDC_DESCRIPTION_1, 50, 50, 60, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
 
-    LTEXT           "Текст ошибки:", IDC_STATIC, 150, 8, 135, 8, SS_LEFT
-    EDITTEXT        IDC_ERROR_TEXT, 150, 20, 135, 120, ES_MULTILINE | ES_READONLY | WS_VSCROLL 
+	LTEXT           "Hex code:", IDC_STATIC, 12, 64, 40, 12
+    EDITTEXT        IDC_DESCRIPTION_2, 50, 64, 60, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
 
-    LTEXT           "Дополнительная информация:", IDC_STATIC, 8, 72, 133, 8, SS_LEFT
-	EDITTEXT        IDC_ERROR_ADVANCED, 8, 84, 133, 56, ES_MULTILINE | ES_READONLY | ES_AUTOHSCROLL
+	LTEXT           "Severity:", IDC_STATIC, 124, 50, 40, 12
+    EDITTEXT        IDC_DESCRIPTION_3, 162, 50, 224, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
 
-    DEFPUSHBUTTON	"Получить", IDC_GET, 8, 147, 50, 14
-	PUSHBUTTON      "Очистить", IDC_CLEAR, 61, 147, 50, 14
-    PUSHBUTTON      "Выйти", IDC_EXIT, 236, 147, 50, 14
+	LTEXT           "Facility:", IDC_STATIC, 124, 64, 40, 12
+    EDITTEXT        IDC_DESCRIPTION_4, 162, 64, 224, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
+
+    CONTROL         "", IDC_LISTVIEW, WC_LISTVIEW, LVS_REPORT | LVS_ALIGNLEFT | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP | WS_VSCROLL, 12, 85, 376, 160, WS_EX_LEFT
+
+
+	COMBOBOX        IDC_MODULE, -1224, 60, 235, 30, CBS_AUTOHSCROLL | CBS_DROPDOWNLIST, WS_EX_LEFT
 }
+
+//
+// String resources
+//
+STRINGTABLE
+{
+	IDS_TRANSLATION_INFO "English (by <a href=""http://www.henrypp.org"">Henry++</a>)"
+
+	IDS_UPDATE_NO "You're using the latest version of this program."
+	IDS_UPDATE_YES "Update is now available: %s\r\nDo you want to open download page?"
+
+	IDS_ABOUT "About"
+	IDS_COPYRIGHT "This program is redistributed under the terms of the GNU General Public License v2, see license for details.\r\n\r\nThis software is provided ""as is"" and without any express or implied warranties."
+
+	IDS_COLUMN_1 "Library"
+	IDS_COLUMN_2 "Description"
+}
+
 
 //
 // Icon resources
 //
-IDI_MAIN	       		ICON           "res\\main.ico"
+IDI_MAIN	       		ICON           "res\\100.ico"
+
+//
+// Manifest resource
+//
+1	       				RT_MANIFEST    "res\\manifest.xml"
 
 //
 // Version Information resources
@@ -75,19 +106,20 @@ IDI_MAIN	       		ICON           "res\\main.ico"
 {
     BLOCK "StringFileInfo"
     {
-        BLOCK "04190025"
+        BLOCK "040904B0"
         {
-            VALUE "FileVersion", APP_VERSION
             VALUE "Comments", APP_WEBSITE
-            VALUE "LegalCopyright", "Copyright © 2012 Henry++"
+            VALUE "CompanyName", APP_AUTHOR
+            VALUE "LegalCopyright", "Copyright © 2015 " APP_AUTHOR
             VALUE "OriginalFilename", APP_NAME_SHORT ".exe"
-            VALUE "ProductName", APP_NAME
             VALUE "FileDescription", APP_NAME
+			VALUE "FileVersion", APP_VERSION
+			VALUE "ProductName", APP_NAME
             VALUE "ProductVersion", APP_VERSION
         }
     }
     BLOCK "VarFileInfo"
     {
-        VALUE "Translation", 0x0419, 0x0025
+        VALUE "Translation", 0x0409, 1200
     }
 }

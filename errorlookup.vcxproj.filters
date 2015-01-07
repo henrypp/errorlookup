@@ -1,47 +1,44 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include=".\src\errorlookup.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include=".\src\resource.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include=".\src\ini.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="src\about.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="src\extended.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Header">
-      <UniqueIdentifier>{30a8b65d-5c33-4884-a6b9-ef12b90c602a}</UniqueIdentifier>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Resource">
-      <UniqueIdentifier>{be770f1d-e7d3-4427-a92a-5da640434b9a}</UniqueIdentifier>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Source">
-      <UniqueIdentifier>{f690180a-c62f-479a-abfd-d49439802d21}</UniqueIdentifier>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include=".\src\errorlookup.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ini.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="src\maskededit.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include=".\src\resource.rc">
-      <Filter>Resource</Filter>
+    <ResourceCompile Include="src\resource.rc">
+      <Filter>Resource Files</Filter>
     </ResourceCompile>
+    <ResourceCompile Include="src\i18n\russian.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\routine.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\routine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

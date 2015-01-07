@@ -11,7 +11,7 @@
 #ifndef __EXTENDED_H__
 #define __EXTENDED_H__
 
-#include "errorlookup.h"
+#include "main.h"
 
 // DEVMGR
 ERROR_TABLE devmgr_table[] =
