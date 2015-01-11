@@ -1,5 +1,9 @@
-v2.0 (январь 2015)
-- не выпущена.
+v2.0 (xx January 2015)
++ x64 support
++ new ui
++ managing modules
++ settings
++ i18n
 
 v1.6 (3 января 2012)
 - Добавлено получение ошибок RAS

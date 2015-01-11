@@ -9,11 +9,17 @@
 
 #define APP_NAME L"Error Lookup"
 #define APP_NAME_SHORT L"errorlookup"
-#define APP_VERSION L"2.0"
-#define APP_VERSION_RES 2,0
+#define APP_VERSION L"2.0.0"
+#define APP_VERSION_RES 2,0,0,0
 #define APP_HOST L"www.henrypp.org"
 #define APP_WEBSITE L"http://" APP_HOST
 #define APP_AUTHOR L"Henry++"
+
+#ifdef _WIN64
+#define APP_MACHINE L"64"
+#else
+#define APP_MACHINE L"32"
+#endif
 
 #define STATUS_SEVERITY_SUCCESS			0x0
 #define STATUS_SEVERITY_INFORMATIONAL	0x1
@@ -33,6 +39,6 @@
 #define FACILITY_APO					0x87d
 #define FACILITY_WSAPI					0x889
 
-#define SWITCH_ROUTINE(x)  case x: StringCchPrintf(buffer, 512, L"%s (0x%02x)\0", L#x, x); break;
+#define SWITCH_ROUTINE(x)  case x: StringCchPrintf(buffer, MAX_PATH, L"%s (0x%02x)\0", L#x, x); break;
 
 #endif // __MAIN_H__

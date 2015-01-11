@@ -12,6 +12,8 @@
 // Dialogs
 #define IDD_MAIN 100
 #define IDD_SETTINGS 101
+#define IDD_SETTINGS_1 102
+#define IDD_SETTINGS_2 103
 
 // Main Dlg
 #define IDC_CODE 100
@@ -24,6 +26,17 @@
 
 #define IDC_MODULE 999
 
+// Settings Dlg
+#define IDC_NAV 100
+#define IDC_SAVE 101
+#define IDC_CANCEL 102
+
+#define IDC_INSERTBUFFER_CHK 1000
+#define IDC_CHECKUPDATES_CHK 1001
+#define IDC_TYPE_AUTO 1002
+#define IDC_TYPE_DEC 1003
+#define IDC_TYPE_HEX 1004
+#define IDC_LANGUAGE 1005
 
 // Main Menu
 #define IDM_SETTINGS 1000
@@ -37,7 +50,7 @@
 #define IDM_COPY 10012
 
 // Strings
-#define IDS_TRANSLATION_INFO 10000
+#define IDS_TRANSLATOR 10000
 
 #define IDS_UPDATE_NO 10001
 #define IDS_UPDATE_YES 10002
