@@ -4,6 +4,8 @@ v2.0 (xx January 2015)
 + managing modules
 + settings
 + i18n
++ updated facility list (ntstatus.h v8.1)
++ updated module list
 
 v1.6 (3 января 2012)
 - Добавлено получение ошибок RAS

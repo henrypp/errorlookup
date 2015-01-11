@@ -35,33 +35,64 @@ IDM_LISTVIEW MENU
 //
 // Dialog resources
 //
-IDD_MAIN DIALOGEX 0, 0, 400, 257
+IDD_MAIN DIALOGEX 0, 0, 400, 256
 STYLE DS_SHELLFONT | WS_POPUP | DS_MODALFRAME | DS_CENTER | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE
 CAPTION APP_NAME
 MENU IDM_MAIN
-FONT 8, "Ms Shell Dlg", 0, 0, 1
+FONT 8, "Ms Shell Dlg"
 {
-	LTEXT           "Код ошибки:", IDC_STATIC, 12, 10, 285, 12, SS_CENTERIMAGE
-    EDITTEXT        IDC_CODE, 12, 25, 285, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+	LTEXT           "Код ошибки:", IDC_STATIC, 12, 10, 285, 12
+    EDITTEXT        IDC_CODE, 12, 25, 285, 14, ES_AUTOHSCROLL
 
-	DEFPUSHBUTTON   "Получить описание!", IDC_GET, 303, 25, 85, 15, 0, WS_EX_LEFT
+	DEFPUSHBUTTON   "Получить описание!", IDC_GET, 303, 25, 85, 15
 
-	LTEXT           "Int код:", IDC_STATIC, 12, 50, 40, 12
-    EDITTEXT        IDC_DESCRIPTION_1, 50, 50, 60, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
+	LTEXT           "Dec:", IDC_STATIC, 12, 50, 20, 10
+    EDITTEXT        IDC_DESCRIPTION_1, 35, 50, 50, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
 
-	LTEXT           "Hex код:", IDC_STATIC, 12, 64, 40, 12
-    EDITTEXT        IDC_DESCRIPTION_2, 50, 64, 60, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
+	LTEXT           "Hex:", IDC_STATIC, 12, 64, 20, 10
+    EDITTEXT        IDC_DESCRIPTION_2, 35, 64, 50, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
 
-	LTEXT           "Severity:", IDC_STATIC, 124, 50, 40, 12
-    EDITTEXT        IDC_DESCRIPTION_3, 162, 50, 224, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
+	LTEXT           "Severity:", IDC_STATIC, 100, 50, 35, 10
+    EDITTEXT        IDC_DESCRIPTION_3, 135, 50, 252, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
 
-	LTEXT           "Facility:", IDC_STATIC, 124, 64, 40, 12
-    EDITTEXT        IDC_DESCRIPTION_4, 162, 64, 224, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
+	LTEXT           "Facility:", IDC_STATIC, 100, 64, 35, 10
+    EDITTEXT        IDC_DESCRIPTION_4, 135, 64, 252, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
 
-    CONTROL         "", IDC_LISTVIEW, WC_LISTVIEW, LVS_REPORT | LVS_ALIGNLEFT | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP | WS_VSCROLL, 12, 85, 376, 160, WS_EX_LEFT
+    CONTROL         "", IDC_LISTVIEW, WC_LISTVIEW, LVS_REPORT | LVS_ALIGNLEFT | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP | WS_VSCROLL, 12, 84, 376, 160
 
 
-	COMBOBOX        IDC_MODULE, -1224, 60, 235, 30, CBS_AUTOHSCROLL | CBS_DROPDOWNLIST, WS_EX_LEFT
+	COMBOBOX        IDC_MODULE, -1224, 60, 235, 30, CBS_AUTOHSCROLL | CBS_DROPDOWNLIST
+}
+
+IDD_SETTINGS DIALOGEX 0, 0, 400, 245
+STYLE WS_POPUP | WS_SYSMENU | WS_CAPTION | DS_MODALFRAME | DS_SHELLFONT
+CAPTION "Настройки"
+FONT 8, "Ms Shell Dlg"
+{
+   	CONTROL "", IDC_NAV, WC_TREEVIEW, TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_TRACKSELECT | TVS_LINESATROOT | TVS_HASLINES | TVS_INFOTIP | WS_BORDER | WS_TABSTOP, 12, 12, 115, 221
+
+    DEFPUSHBUTTON	"Сохранить", IDC_SAVE, 283, 221, 50, 14
+    PUSHBUTTON		"Отмена", IDC_CANCEL, 338, 221, 50, 14
+}
+
+IDD_SETTINGS_1 DIALOGEX 139, 13, 249, 197
+STYLE WS_CHILD | NOT WS_SYSMENU | NOT WS_BORDER | NOT WS_POPUP | NOT WS_VISIBLE
+FONT 8, "Ms Shell Dlg"
+{
+	LTEXT           "Основные параметры:", IDC_STATIC, 0, 0, 249, 12
+
+    AUTOCHECKBOX    "Вставлять содержимое буфера при запуске", IDC_INSERTBUFFER_CHK, 0, 16, 249, 10, 0
+    AUTOCHECKBOX    "Периодически проверять обновления (рекомендуется)", IDC_CHECKUPDATES_CHK, 0, 30, 249, 10, 0
+
+    LTEXT           "Тип числа:", IDC_STATIC, 0, 48, 249, 12
+
+    AUTORADIOBUTTON "Автоматически", IDC_TYPE_AUTO, 0, 64, 249, 10, WS_GROUP
+    AUTORADIOBUTTON "Десятичное", IDC_TYPE_DEC, 0, 78, 249, 10
+    AUTORADIOBUTTON "Шестнадцатиричное", IDC_TYPE_HEX, 0, 92, 249, 10
+
+    LTEXT           "Язык интерфейса:", IDC_STATIC, 0, 110, 249, 12
+    COMBOBOX        IDC_LANGUAGE, 0, 126, 150, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+//	LTEXT           "* restart needed", IDC_STATIC, 158, 126, 90, 12, SS_CENTERIMAGE
 }
 
 //
@@ -69,10 +100,10 @@ FONT 8, "Ms Shell Dlg", 0, 0, 1
 //
 STRINGTABLE
 {
-	IDS_TRANSLATION_INFO "Русский (by <a href=""http://www.henrypp.org"">Henry++</a>)"
+	IDS_TRANSLATOR """Русский"" перевод Henry++</a>)"
 
-	IDS_UPDATE_NO "Вы используете последнюю версию данной программы."
-	IDS_UPDATE_YES "Update is now available: %s\r\nDo you want to open download page?"
+	IDS_UPDATE_NO "Обновления отсутствуют."
+	IDS_UPDATE_YES "Доступна новая версия программы: %s\r\nDo you want to open download page?"
 
 	IDS_ABOUT "О программе"
 	IDS_COPYRIGHT "This program is redistributed under the terms of the GNU General Public License v2, see license for details.\r\n\r\nThis software is provided ""as is"" and without any express or implied warranties."
