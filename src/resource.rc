@@ -46,20 +46,19 @@ FONT 8, "Ms Shell Dlg"
 
 	DEFPUSHBUTTON   "Get description!", IDC_GET, 303, 25, 85, 15
 
-	LTEXT           "Dec:", IDC_STATIC, 12, 50, 20, 10
-    EDITTEXT        IDC_DESCRIPTION_1, 35, 50, 50, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
+	LTEXT           "As Dec:", IDC_STATIC, 12, 50, 30, 10
+    EDITTEXT        IDC_DESCRIPTION_1, 46, 50, 60, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
 
-	LTEXT           "Hex:", IDC_STATIC, 12, 64, 20, 10
-    EDITTEXT        IDC_DESCRIPTION_2, 35, 64, 50, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
+	LTEXT           "As Hex:", IDC_STATIC, 12, 64, 30, 10
+    EDITTEXT        IDC_DESCRIPTION_2, 46, 64, 60, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
 
-	LTEXT           "Severity:", IDC_STATIC, 100, 50, 35, 10
-    EDITTEXT        IDC_DESCRIPTION_3, 135, 50, 252, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
+	LTEXT           "Severity:", IDC_STATIC, 110, 50, 35, 10
+    EDITTEXT        IDC_DESCRIPTION_3, 150, 50, 237, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
 
-	LTEXT           "Facility:", IDC_STATIC, 100, 64, 35, 10
-    EDITTEXT        IDC_DESCRIPTION_4, 135, 64, 252, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
+	LTEXT           "Facility:", IDC_STATIC, 110, 64, 35, 10
+    EDITTEXT        IDC_DESCRIPTION_4, 150, 64, 237, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
 
     CONTROL         "", IDC_LISTVIEW, WC_LISTVIEW, LVS_REPORT | LVS_ALIGNLEFT | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP | WS_VSCROLL, 12, 84, 376, 160
-
 
 	COMBOBOX        IDC_MODULE, -1224, 60, 235, 30, CBS_AUTOHSCROLL | CBS_DROPDOWNLIST
 }
@@ -81,25 +80,40 @@ FONT 8, "Ms Shell Dlg"
 {
 	LTEXT           "General configuration:", IDC_STATIC, 0, 0, 249, 12
 
-    AUTOCHECKBOX    "Insert buffer at startup", IDC_INSERTBUFFER_CHK, 0, 16, 249, 10, 0
-    AUTOCHECKBOX    "Periodically check for updates (recommended)", IDC_CHECKUPDATES_CHK, 0, 30, 249, 10, 0
+    AUTOCHECKBOX    "Always on top", IDC_ALWAYSONTOP_CHK, 0, 16, 249, 10, 0
+    AUTOCHECKBOX    "Insert buffer at startup", IDC_INSERTBUFFER_CHK, 0, 30, 249, 10, 0
+    AUTOCHECKBOX    "Periodically check for updates (recommended)", IDC_CHECKUPDATES_CHK, 0, 44, 249, 10, 0
 
-    LTEXT           "Number type:", IDC_STATIC, 0, 48, 249, 12
+    LTEXT           "Number type:", IDC_STATIC, 0, 62, 249, 12
 
-    AUTORADIOBUTTON "Automatically", IDC_TYPE_AUTO, 0, 64, 249, 10, WS_GROUP
-    AUTORADIOBUTTON "Decimal", IDC_TYPE_DEC, 0, 78, 249, 10
-    AUTORADIOBUTTON "Hexadecimal", IDC_TYPE_HEX, 0, 92, 249, 10
+    AUTORADIOBUTTON "Automatically", IDC_TYPE_AUTO, 0, 78, 249, 10, WS_GROUP
+    AUTORADIOBUTTON "Decimal", IDC_TYPE_DEC, 0, 92, 249, 10
+    AUTORADIOBUTTON "Hexadecimal", IDC_TYPE_HEX, 0, 106, 249, 10
 
-    LTEXT           "Language:", IDC_STATIC, 0, 110, 249, 12
-    COMBOBOX        IDC_LANGUAGE, 0, 126, 150, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-//	LTEXT           "* restart needed", IDC_STATIC, 158, 126, 90, 12, SS_CENTERIMAGE
+    LTEXT           "Language:", IDC_STATIC, 0, 124, 249, 12
+    COMBOBOX        IDC_LANGUAGE, 0, 140, 150, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+	LTEXT           "* restart needed", IDC_STATIC, 158, 140, 90, 12, SS_CENTERIMAGE
 }
 
 IDD_SETTINGS_2 DIALOGEX 139, 13, 249, 197
 STYLE WS_CHILD | NOT WS_SYSMENU | NOT WS_BORDER | NOT WS_POPUP | NOT WS_VISIBLE
 FONT 8, "Ms Shell Dlg"
 {
-	LISTBOX         IDC_STATIC, 0, 0, 249, 197, WS_TABSTOP | WS_VSCROLL | LBS_NOINTEGRALHEIGHT | LBS_SORT | LBS_NOTIFY, WS_EX_ACCEPTFILES
+	LTEXT           "Error modules:", IDC_STATIC, 0, 0, 249, 12
+
+    AUTOCHECKBOX    "Windows (User-Mode)", IDC_STATIC, 0, 16, 249, 10, 0
+    AUTOCHECKBOX    "Windows (Kernel-Mode)", IDC_STATIC, 0, 30, 249, 10, 0
+
+	AUTOCHECKBOX    "Graphics and Gaming (DirectX)", IDC_STATIC, 0, 44, 249, 10, 0
+	AUTOCHECKBOX    "Blue Screen of Dead (STOP)", IDC_STATIC, 0, 114, 249, 10, 0
+
+    AUTOCHECKBOX    "Windows Internet (WinINet)", IDC_STATIC, 0, 58, 249, 10, 0
+    AUTOCHECKBOX    "Remote Access Service (RAS)", IDC_STATIC, 0, 72, 249, 10, 0
+    AUTOCHECKBOX    "Performance Data Helper (PDH)", IDC_STATIC, 0, 86, 249, 10, 0
+    AUTOCHECKBOX    "IP Helper", IDC_STATIC, 0, 100, 249, 10, 0
+
+	LTEXT           "Custom modules:", IDC_STATIC, 0, 132, 249, 12
+	EDITTEXT        IDC_MODULE_CUSTOM, 0, 148, 249, 14, ES_AUTOHSCROLL, WS_EX_LEFT
 }
 
 //
@@ -107,16 +121,19 @@ FONT 8, "Ms Shell Dlg"
 //
 STRINGTABLE
 {
-	IDS_TRANSLATOR """English"" translation by Henry++"
+	IDS_TRANSLATOR "English translation (Henry++)"
 
-	IDS_UPDATE_NO "You're using the latest version of this program."
-	IDS_UPDATE_YES "Update is now available: %s\r\nDo you want to open download page?"
+	IDS_UPDATE_NO "No updates available."
+	IDS_UPDATE_YES "New version (%s) available. Open download page?"
 
 	IDS_ABOUT "About"
 	IDS_COPYRIGHT "This program is redistributed under the terms of the GNU\r\nGeneral Public License v2, see license for details.\r\n\r\nThis software is provided ""as is"" and without any express\r\nor implied warranties."
 
 	IDS_COLUMN_1 "Module"
 	IDS_COLUMN_2 "Description"
+
+	IDS_SETTINGS_1 "General"
+	IDS_SETTINGS_2 "Modules"
 }
 
 

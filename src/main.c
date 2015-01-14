@@ -26,7 +26,7 @@ DWORD _Errlib_GetCode(HWND hwnd, INT ctrl)
 
 	if(GetDlgItemText(hwnd, ctrl, buff, 100))
 	{
-		//swscanf_s(buff, L"%ul64", &result);
+		//swscanf_s(buff, L"%lld", &result); // dec
 
 		if((result = wcstoul(buff, NULL, 10)) == NULL)
 		{
@@ -37,141 +37,133 @@ DWORD _Errlib_GetCode(HWND hwnd, INT ctrl)
 	return result;
 }
 
-BOOL _Errlib_GetDesciption(DWORD code, INT module, LPWSTR output, CONST DWORD length)
+BOOL _Errlib_FormatMessage(DWORD code, LPWSTR library, LPWSTR buffer, DWORD size)
 {
-	HMODULE h = NULL;
-	BOOL result = 0;
+	HMODULE h = LoadLibraryEx(library, NULL, LOAD_LIBRARY_AS_DATAFILE);
 
-	switch(module)
+	if(h && FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, buffer, size, NULL))
 	{
-		// User-Mode
-		case 1:
-		{
-			if(FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, code, 0, output, length, NULL))
-			{
-				result = TRUE;
-			}
+		buffer[wcslen(buffer) - sizeof(WCHAR)] = L'\0';
 
-			break;
-		}
-
-		// Kernel-Mode
-		case 2:
-		{
-			h = LoadLibrary(L"ntdll.dll");
-
-			if(h && FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, output, length, NULL))
-			{
-				result = TRUE;
-			}
-
-			break;
-		}
-
-		// DirectX
-		case 3:
-		{
-			StringCchCopy(output, (size_t)length, DXGetErrorDescription(HRESULT(code)));
-
-			if(wcscmp(output, L"n/a\0") != 0)
-			{
-				result = TRUE;
-			}
-
-			break;
-		}
-
-		// Wininet
-		case 4:
-		{
-			h = LoadLibrary(L"wininet.dll");
-
-			if(h && FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, output, length, NULL))
-			{
-				result = TRUE;
-			}
-
-			break;
-		}
-
-		// RAS
-		case 5:
-		{
-			if(RasGetErrorString(code, output, length) == ERROR_SUCCESS)
-			{
-				result = TRUE;
-			}
-
-			break;
-		}
-
-		// PDH
-		case 6:
-		{
-			h = LoadLibrary(L"pdh.dll");
-
-			if(h && FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, output, length, NULL))
-			{
-				result = TRUE;
-			}
-
-			break;
-		}
-
-		// IP Helper
-		case 7:
-		{
-			DWORD lengthptr = length;
-
-			if(GetIpErrorString(code, output, &lengthptr) == NO_ERROR)
-			{
-				result = TRUE;
-			}
-
-            break;
-		}
-
-		// PDH
-		case 8:
-		{
-			h = LoadLibrary(L"ntoskrnl.exe");
-
-			if(h && FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, output, length, NULL))
-			{
-				result = TRUE;
-			}
-
-			break;
-		}
+		return TRUE;
 	}
 
-	//output[wcslen(output) - sizeof(WCHAR)] = L'\0';
-
-	if(h)
-	{
-		FreeLibrary(h);
-	}
-
-	return result;
+	return FALSE;
 }
 
-VOID _Errlib_PrintResult(HWND hwnd, INT ctrl, DWORD code, INT module)
+VOID _Errlib_PrintDescription(HWND hwnd, INT ctrl, DWORD code)
 {
-	WCHAR buffer[MAX_PATH] = {0}, description[1024] = {0};
+	WCHAR buffer[1024] = {0};
+	DWORD length = 1024;
 
-	if(!_Errlib_GetDesciption(code, module, description, 1024))
+	INT i = 0;
+
+	// User-Mode
+	if(1)
 	{
-		return;
+		if(_Errlib_FormatMessage(code, L"kernel32.dll", buffer, length))
+		{
+			_r_listviewinsertitem(hwnd, ctrl, L"Windows (User-Mode)", i, 0);
+			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+		}
 	}
 
-	INT item = (INT)SendDlgItemMessage(hwnd, ctrl, LVM_GETITEMCOUNT, 0, NULL);
+	// Kernel-Mode
+	if(2)
+	{
+		if(_Errlib_FormatMessage(code, L"ntdll.dll", buffer, length))
+		{
+			_r_listviewinsertitem(hwnd, ctrl, L"Windows (Kernel-Mode)", i, 0);
+			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+		}
+	}
 
-	// Module
-	SendDlgItemMessage(hwnd, IDC_MODULE, CB_GETLBTEXT, (WPARAM)module, (LPARAM)&buffer);
-	_R_ListviewInsertItem(hwnd, ctrl, buffer, item, 0);
+	// DirectX
+	if(3)
+	{
+		StringCchCopy(buffer, (size_t)length, DXGetErrorDescription(HRESULT(code)));
 
-	// Description
-	_R_ListviewInsertItem(hwnd, ctrl, description, item, 1);
+		if(wcscmp(buffer, L"n/a\0") != 0)
+		{
+			_r_listviewinsertitem(hwnd, ctrl, L"Graphics and Gaming (DirectX)", i, 0);
+			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+		}
+	}
+
+	// Wininet
+	if(4)
+	{
+		if(_Errlib_FormatMessage(code, L"wininet.dll", buffer, length))
+		{
+			_r_listviewinsertitem(hwnd, ctrl, L"Windows Internet (WinINet)", i, 0);
+			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+		}
+	}
+
+	// RAS
+	if(5)
+	{
+		if(_Errlib_FormatMessage(code, L"mprmsg.dll", buffer, length))
+		{
+			_r_listviewinsertitem(hwnd, ctrl, L"Remote Access Service (RAS)", i, 0);
+			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+		}
+	}
+
+	// PDH
+	if(6)
+	{
+		if(_Errlib_FormatMessage(code, L"pdh.dll", buffer, length))
+		{
+			_r_listviewinsertitem(hwnd, ctrl, L"Performance Data Helper (PDH)", i, 0);
+			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+		}
+	}
+
+	// IP Helper
+	if(7)
+	{
+		if(_Errlib_FormatMessage(code, L"iphlpapi.dll", buffer, length))
+		{
+			_r_listviewinsertitem(hwnd, ctrl, L"IP Helper", i, 0);
+			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+		}
+	}
+
+	// BSOD
+	if(8)
+	{
+		if(_Errlib_FormatMessage(code, L"ntoskrnl.dll", buffer, length))
+		{
+			_r_listviewinsertitem(hwnd, ctrl, L"Blue Screen of Dead (STOP)", i, 0);
+			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+		}
+	}
+
+	WCHAR* next = NULL;
+	WCHAR custom[MAX_PATH] = {0};
+
+	StringCchCopy(custom, MAX_PATH, _r_cfg_read(APP_NAME_SHORT, L"ModuleCustom", LPCWSTR(NULL)));
+
+	wchar_t* tok = wcstok_s(custom, L";", &next);
+
+	while(tok != NULL)
+	{
+
+		if(_Errlib_FormatMessage(code, tok, buffer, length))
+		{
+			_r_listviewinsertitem(hwnd, ctrl, tok, i, 0);
+			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+		}
+
+		tok = wcstok_s(NULL, L";", &next);
+	}
+
+}
+
+VOID _Errlib_PrintCode(HWND hwnd, DWORD code)
+{
+	WCHAR buffer[MAX_PATH] = {0};
 
 	// Decimal
 #ifdef _WIN64
@@ -366,13 +358,13 @@ VOID _Errlib_Clear(HWND hwnd)
 {
 	SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_DELETEALLITEMS, 0, NULL);
 
-	SetDlgItemText(hwnd, IDC_DESCRIPTION_1, NULL);
-	SetDlgItemText(hwnd, IDC_DESCRIPTION_2, NULL);
-	SetDlgItemText(hwnd, IDC_DESCRIPTION_3, NULL);
-	SetDlgItemText(hwnd, IDC_DESCRIPTION_4, NULL);
+	SetDlgItemText(hwnd, IDC_DESCRIPTION_1, NULL_STRING);
+	SetDlgItemText(hwnd, IDC_DESCRIPTION_2, NULL_STRING);
+	SetDlgItemText(hwnd, IDC_DESCRIPTION_3, NULL_STRING);
+	SetDlgItemText(hwnd, IDC_DESCRIPTION_4, NULL_STRING);
 }
 
-INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 {
 	switch(msg)
 	{
@@ -382,10 +374,11 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 			if((INT)lparam == IDD_SETTINGS_1)
 			{
-				CheckDlgButton(hwnd, IDC_INSERTBUFFER_CHK, _R_ConfigGet(APP_NAME_SHORT, L"InsertBufferAtStartup", 1) ? BST_CHECKED : BST_UNCHECKED);
-				CheckDlgButton(hwnd, IDC_CHECKUPDATES_CHK, _R_ConfigGet(APP_NAME_SHORT, L"CheckUpdates", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_ALWAYSONTOP_CHK, _r_cfg_read(APP_NAME_SHORT, L"AlwaysOnTop", 0) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_INSERTBUFFER_CHK, _r_cfg_read(APP_NAME_SHORT, L"InsertBufferAtStartup", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_CHECKUPDATES_CHK, _r_cfg_read(APP_NAME_SHORT, L"CheckUpdates", 1) ? BST_CHECKED : BST_UNCHECKED);
 
-				switch(_R_ConfigGet(APP_NAME_SHORT, L"InputType", 0))
+				switch(_r_cfg_read(APP_NAME_SHORT, L"InputType", 0))
 				{
 					case 1:
 					{
@@ -413,7 +406,7 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				for(INT i = 0; i < ARRAYSIZE(ui_lcid); i++)
 				{
-					GetLocaleInfo(ui_lcid[i], _R_SystemValidVersion(6, 1) ? LOCALE_SLOCALIZEDLANGUAGENAME : LOCALE_SLANGUAGE, buffer, MAX_PATH);
+					GetLocaleInfo(ui_lcid[i], _r_systemvalidversion(6, 1) ? LOCALE_SLOCALIZEDLANGUAGENAME : LOCALE_SLANGUAGE, buffer, MAX_PATH);
 
 					SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_INSERTSTRING, i + 1, (LPARAM)buffer);
 					SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETITEMDATA, i + 1, (LPARAM)ui_lcid[i]);
@@ -424,6 +417,10 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					}
 				}
 			}
+			else if((INT)lparam == IDD_SETTINGS_2)
+			{
+				SetDlgItemText(hwnd, IDC_MODULE_CUSTOM, _r_cfg_read(APP_NAME_SHORT, L"ModuleCustom", LPCWSTR(NULL)));
+			}
 
 			break;
 		}
@@ -431,35 +428,47 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case WM_DESTROY:
 		{
 			// save settings if this property is empty
-			if(!GetProp(GetParent(hwnd), L"hwnd"))
+			if(GetProp(GetParent(hwnd), L"is_save"))
 			{
 				if(INT(GetProp(hwnd, L"id")) == IDD_SETTINGS_1)
 				{
-					_R_ConfigSet(APP_NAME_SHORT, L"InsertBufferAtStartup", INT((IsDlgButtonChecked(hwnd, IDC_INSERTBUFFER_CHK) == BST_CHECKED) ? TRUE : FALSE));
-					_R_ConfigSet(APP_NAME_SHORT, L"CheckUpdates", INT((IsDlgButtonChecked(hwnd, IDC_CHECKUPDATES_CHK) == BST_CHECKED) ? TRUE : FALSE));
+					BOOL top = (IsDlgButtonChecked(hwnd, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE;
+
+					_r_windowtotop(_r_hwnd, top);
+
+					_r_cfg_write(APP_NAME_SHORT, L"AlwaysOnTop", INT(top));
+					_r_cfg_write(APP_NAME_SHORT, L"InsertBufferAtStartup", INT((IsDlgButtonChecked(hwnd, IDC_INSERTBUFFER_CHK) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(APP_NAME_SHORT, L"CheckUpdates", INT((IsDlgButtonChecked(hwnd, IDC_CHECKUPDATES_CHK) == BST_CHECKED) ? TRUE : FALSE));
 
 					if(IsDlgButtonChecked(hwnd, IDC_TYPE_DEC) == BST_CHECKED)
 					{
-						_R_ConfigSet(APP_NAME_SHORT, L"InputType", 1);
+						_r_cfg_write(APP_NAME_SHORT, L"InputType", 1);
 					}
 					else if(IsDlgButtonChecked(hwnd, IDC_TYPE_HEX) == BST_CHECKED)
 					{
-						_R_ConfigSet(APP_NAME_SHORT, L"InputType", 2);
+						_r_cfg_write(APP_NAME_SHORT, L"InputType", 2);
 					}
 					else
 					{
-						_R_ConfigSet(APP_NAME_SHORT, L"InputType", DWORD(0));
+						_r_cfg_write(APP_NAME_SHORT, L"InputType", DWORD(0));
 					}
 
 					LCID lang = (LCID)SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, NULL), NULL);
 
-					if(lang == CB_ERR)
+					if(lang <= 0)
 					{
 						lang = NULL;
 					}
 
-					_R_ConfigSet(APP_NAME_SHORT, L"Language", lang);
-					_R_SetLocale(lang);
+					_r_locale_set(lang);
+				}
+				else if(INT(GetProp(hwnd, L"id")) == IDD_SETTINGS_2)
+				{
+					WCHAR buffer[MAX_PATH] = {0};
+
+					GetDlgItemText(hwnd, IDC_MODULE_CUSTOM, buffer, MAX_PATH);
+
+					_r_cfg_write(APP_NAME_SHORT, L"ModuleCustom", buffer);
 				}
 			}
 
@@ -470,17 +479,16 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	return FALSE;
 }
 
-
 INT_PTR CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	switch(msg)
 	{
 		case WM_INITDIALOG:
 		{
-			_R_TreeviewSetStyle(hwnd, IDC_NAV, TVS_EX_DOUBLEBUFFER, 20);
+			_r_treeviewsetstyle(hwnd, IDC_NAV, TVS_EX_DOUBLEBUFFER, 18);
 
-			_R_TreeviewInsertItem(hwnd, IDC_NAV, L"General", -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_1), hwnd, PagesDlgProc, IDD_SETTINGS_1));
-			_R_TreeviewInsertItem(hwnd, IDC_NAV, L"Modules", -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_2), hwnd, PagesDlgProc, IDD_SETTINGS_2));
+			_r_treeviewinsertitem(hwnd, IDC_NAV, (LPWSTR)_r_locale(IDS_SETTINGS_1), -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_1), hwnd, PagesDlgProc, IDD_SETTINGS_1));
+			_r_treeviewinsertitem(hwnd, IDC_NAV, (LPWSTR)_r_locale(IDS_SETTINGS_2), -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_2), hwnd, PagesDlgProc, IDD_SETTINGS_2));
 
 			break;
 		}
@@ -500,6 +508,7 @@ INT_PTR CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 						ShowWindow((HWND)GetProp(hwnd, L"hwnd"), SW_HIDE);
 
 						SetProp(hwnd, L"hwnd", (HANDLE)pnmtv->itemNew.lParam);
+
 						ShowWindow((HWND)pnmtv->itemNew.lParam, SW_SHOW);
 					}
 
@@ -517,7 +526,7 @@ INT_PTR CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 				case IDOK: // process Enter key
 				case IDC_SAVE:
 				{
-					SetProp(hwnd, L"hwnd", NULL); // indicator for save settings
+					SetProp(hwnd, L"is_save", (HANDLE)TRUE); // save settings indicator
 
 					// without break;
 				}
@@ -543,31 +552,19 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		case WM_INITDIALOG:
 		{
-			_R_ListviewSetStyle(hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP, FALSE);
-			
-			_R_ListviewInsertColumn(hwnd, IDC_LISTVIEW, (LPWSTR)i18n(IDS_COLUMN_1), _R_ConfigGet(APP_NAME_SHORT, L"Column1", (INT)190), 1, LVCFMT_LEFT);
-			_R_ListviewInsertColumn(hwnd, IDC_LISTVIEW, (LPWSTR)i18n(IDS_COLUMN_2), _R_ConfigGet(APP_NAME_SHORT, L"Column2", (INT)370), 2, LVCFMT_LEFT);
+			_r_listviewsetstyle(hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP, FALSE);
 
-			SendDlgItemMessage(hwnd, IDC_MODULE, CB_INSERTSTRING, 0, (LPARAM)L"NULL_PTR");
-			SendDlgItemMessage(hwnd, IDC_MODULE, CB_INSERTSTRING, 1, (LPARAM)L"Windows (User-Mode)");
-			SendDlgItemMessage(hwnd, IDC_MODULE, CB_INSERTSTRING, 2, (LPARAM)L"Windows (Kernel-Mode)");
-			SendDlgItemMessage(hwnd, IDC_MODULE, CB_INSERTSTRING, 3, (LPARAM)L"Graphics and Gaming (DirectX)");
-			SendDlgItemMessage(hwnd, IDC_MODULE, CB_INSERTSTRING, 4, (LPARAM)L"Windows Internet");
-			SendDlgItemMessage(hwnd, IDC_MODULE, CB_INSERTSTRING, 5, (LPARAM)L"Remote Access Service");
-			SendDlgItemMessage(hwnd, IDC_MODULE, CB_INSERTSTRING, 6, (LPARAM)L"Performance Data Helper");
-			SendDlgItemMessage(hwnd, IDC_MODULE, CB_INSERTSTRING, 7, (LPARAM)L"IP Helper");
-			SendDlgItemMessage(hwnd, IDC_MODULE, CB_INSERTSTRING, 8, (LPARAM)L"Blue Screen of Dead (BSOD)");
+			_r_listviewinsertcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_1), _r_cfg_read(APP_NAME_SHORT, L"Column1", INT(190)), 0, LVCFMT_LEFT);
+			_r_listviewinsertcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_2), _r_cfg_read(APP_NAME_SHORT, L"Column2", INT(370)), 1, LVCFMT_LEFT);
 
-			SendDlgItemMessage(hwnd, IDC_MODULE, CB_SETCURSEL, (LPARAM)_R_ConfigGet(APP_NAME_SHORT, L"Module", (INT)0), 0);
+			_r_windowtotop(hwnd, _r_cfg_read(APP_NAME_SHORT, L"AlwaysOnTop", 0));
 
-			if(_R_ConfigGet(APP_NAME_SHORT, L"InsertBufferAtStartup", 1))
+			_Errlib_Clear(hwnd);
+
+			if(_r_cfg_read(APP_NAME_SHORT, L"InsertBufferAtStartup", 1))
 			{
-				SetDlgItemText(hwnd, IDC_CODE, _R_ClipboardGet());
-			}
-
-			if(_R_ConfigGet(APP_NAME_SHORT, L"CheckUpdates", 1))
-			{
-				_R_UpdateCheck(TRUE);
+				SetDlgItemText(hwnd, IDC_CODE, _r_clipboard_get());
+				SendMessage(hwnd, WM_COMMAND, MAKELPARAM(IDC_GET, 0), NULL);
 			}
 
 			break;
@@ -575,8 +572,8 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 		case WM_DESTROY:
 		{
-			_R_ConfigSet(APP_NAME_SHORT, L"Column1", (DWORD)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETCOLUMNWIDTH, 0, 0));
-			_R_ConfigSet(APP_NAME_SHORT, L"Column2", (DWORD)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETCOLUMNWIDTH, 1, 0));
+			_r_cfg_write(APP_NAME_SHORT, L"Column1", (DWORD)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETCOLUMNWIDTH, 0, 0));
+			_r_cfg_write(APP_NAME_SHORT, L"Column2", (DWORD)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETCOLUMNWIDTH, 1, 0));
 
 			PostQuitMessage(0);
 
@@ -632,10 +629,8 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 					_Errlib_Clear(hwnd);
 
-					for(INT i = 1; i < (INT)SendDlgItemMessage(hwnd, IDC_MODULE, CB_GETCOUNT, 0, 0); i++)
-					{
-						_Errlib_PrintResult(hwnd, IDC_LISTVIEW, code, i);
-					}
+					_Errlib_PrintCode(hwnd, code);
+					_Errlib_PrintDescription(hwnd, IDC_LISTVIEW, code);
 
 					break;
 				}
@@ -648,19 +643,19 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				case IDM_WEBSITE:
 				{
-					ShellExecute(hwnd, NULL, APP_WEBSITE, NULL, NULL, 0);
+					ShellExecute(hwnd, NULL, APP_WEBSITE L"/product/" APP_NAME_SHORT, NULL, NULL, 0);
 					break;
 				}
 
 				case IDM_CHECKUPDATES:
 				{
-					_R_UpdateCheck(FALSE);
+					_r_updatecheck(FALSE);
 					break;
 				}
 
 				case IDM_ABOUT:
 				{
-					_R_AboutBox(hwnd/*, APP_NAME, L"Version %s, " APP_MACHINE L"-bit (Unicode)\r\n© 2015 Henry++. All Rights Reserved.\r\n\r\n%s\r\n\r\n%s", APP_VERSION, i18n(IDS_COPYRIGHT), _R_SystemValidVersion(6, 0) ? L"<a href=\"" APP_WEBSITE L"\">" APP_HOST L"</a>" : APP_HOST*/);
+					_r_aboutbox(hwnd);
 					break;
 				}
 			}
@@ -674,12 +669,7 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 INT APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, INT)
 {
-	//SetThreadLocale(LANG_ENGLISH);
-	//SetThreadUILanguage(MAKELCID(MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT), SORT_DEFAULT));
-
-	//SetThreadLocale(MAKELCID(MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT), SORT_DEFAULT));
-
-	if(_R_Initialize((DLGPROC)DlgProc))
+	if(_r_initialize((DLGPROC)DlgProc))
 	{
 		MSG msg = {0};
 
@@ -693,7 +683,7 @@ INT APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, INT)
 		}
 	}
 
-	_R_Uninitialize();
+	_r_uninitialize();
 
 	return ERROR_SUCCESS;
 }

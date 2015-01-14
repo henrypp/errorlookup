@@ -26,23 +26,23 @@
 #define STATUS_SEVERITY_WARNING			0x2
 #define STATUS_SEVERITY_ERROR			0x3
 
-#define FACILITY_AUDIO_KERNEL			68
-#define FACILITY_BTH_ATT                 0x42
-#define FACILITY_CODCLASS_ERROR_CODE     0x6
-#define FACILITY_FILTER_MANAGER          0x1C
-#define FACILITY_GRAPHICS_KERNEL         0x1E
-#define FACILITY_INTERIX                 0x99
-#define FACILITY_MAXIMUM_VALUE           0xE8
-#define FACILITY_MONITOR                 0x1D
-#define FACILITY_WIN32K_NTGDI            0x3F
-#define FACILITY_WIN32K_NTUSER           0x3E
-#define FACILITY_RDBSS                   0x41
-#define FACILITY_RESUME_KEY_FILTER       0x40
-#define FACILITY_SECUREBOOT              0x43
-#define FACILITY_SHARED_VHDX             0x5C
-#define FACILITY_SPACES                  0xE7
-#define FACILITY_VIDEO                   0x1B
-#define FACILITY_VOLSNAP                 0x50
+#define FACILITY_AUDIO_KERNEL			0x44
+#define FACILITY_BTH_ATT				0x42
+#define FACILITY_CODCLASS_ERROR_CODE	0x6
+#define FACILITY_FILTER_MANAGER			0x1C
+#define FACILITY_GRAPHICS_KERNEL		0x1E
+#define FACILITY_INTERIX				0x99
+#define FACILITY_MAXIMUM_VALUE			0xE8
+#define FACILITY_MONITOR				0x1D
+#define FACILITY_WIN32K_NTGDI			0x3F
+#define FACILITY_WIN32K_NTUSER			0x3E
+#define FACILITY_RDBSS					0x41
+#define FACILITY_RESUME_KEY_FILTER		0x40
+#define FACILITY_SECUREBOOT				0x43
+#define FACILITY_SHARED_VHDX			0x5C
+#define FACILITY_SPACES					0xE7
+#define FACILITY_VIDEO					0x1B
+#define FACILITY_VOLSNAP				0x50
 
 #define FACILITY_D3D					0x876
 #define FACILITY_D3DX					0x877
@@ -57,7 +57,7 @@
 #define FACILITY_APO					0x87d
 #define FACILITY_WSAPI					0x889
 
-#define FACILITY_EAP_MESSAGE           0x0842
+#define FACILITY_EAP_MESSAGE			0x0842
 
 #define SWITCH_ROUTINE(x)  case x: StringCchPrintf(buffer, MAX_PATH, L"%s (0x%02x)\0", L#x, x); break;
 
