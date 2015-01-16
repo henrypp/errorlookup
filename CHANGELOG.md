@@ -42,7 +42,7 @@ v1.3 (12 September 2011)
 + wininet  error codes
 - fixed small bugs
 
-v1.2 (3 июня 2011)
+v1.2 (3 Juny 2011)
 + new logo
 + directx error codes
 - fixed gui

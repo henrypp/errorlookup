@@ -17,14 +17,13 @@
 
 // Main Dlg
 #define IDC_CODE 100
-#define IDC_GET 101
-#define IDC_LISTVIEW 102
-#define IDC_DESCRIPTION_1 103
-#define IDC_DESCRIPTION_2 104
-#define IDC_DESCRIPTION_3 105
-#define IDC_DESCRIPTION_4 106
-
-#define IDC_MODULE 999
+#define IDC_CODE_UD 101
+#define IDC_GET 102
+#define IDC_LISTVIEW 103
+#define IDC_DESCRIPTION_1 104
+#define IDC_DESCRIPTION_2 105
+#define IDC_DESCRIPTION_3 106
+#define IDC_DESCRIPTION_4 107
 
 // Settings Dlg
 #define IDC_NAV 100
@@ -39,7 +38,7 @@
 #define IDC_TYPE_HEX 1005
 #define IDC_LANGUAGE 1006
 
-#define IDC_MODULE_CUSTOM 10009
+#define IDC_MODULES 10009
 
 // Main Menu
 #define IDM_SETTINGS 1000
@@ -64,8 +63,11 @@
 #define IDS_COLUMN_1 10005
 #define IDS_COLUMN_2 10006
 
-#define IDS_SETTINGS_1 10007
-#define IDS_SETTINGS_2 10008
+#define IDS_GROUP_1 10007
+#define IDS_GROUP_2 10008
+
+#define IDS_SETTINGS_1 10009
+#define IDS_SETTINGS_2 10010
 
 // Icons
 #define IDI_MAIN 100

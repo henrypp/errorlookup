@@ -39,7 +39,7 @@ DWORD _Errlib_GetCode(HWND hwnd, INT ctrl)
 
 BOOL _Errlib_FormatMessage(DWORD code, LPWSTR library, LPWSTR buffer, DWORD size)
 {
-	HMODULE h = LoadLibraryEx(library, NULL, LOAD_LIBRARY_AS_DATAFILE);
+	HMODULE h = LoadLibraryEx(library, NULL, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
 
 	if(h && FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, buffer, size, NULL))
 	{
@@ -51,114 +51,76 @@ BOOL _Errlib_FormatMessage(DWORD code, LPWSTR library, LPWSTR buffer, DWORD size
 	return FALSE;
 }
 
+VOID _Errlib_Insert(HWND hwnd, INT ctrl, LPCWSTR module, LPCWSTR description, INT group_id = 0)
+{
+	INT item = (INT)SendDlgItemMessage(hwnd, ctrl, LVM_GETITEMCOUNT, 0, NULL);
+
+	_r_listview_additem(hwnd, ctrl, module, item, 0, -1, group_id);
+	_r_listview_additem(hwnd, ctrl, description, item, 1);
+}
+
 VOID _Errlib_PrintDescription(HWND hwnd, INT ctrl, DWORD code)
 {
 	WCHAR buffer[1024] = {0};
 	DWORD length = 1024;
-
-	INT i = 0;
 
 	// User-Mode
 	if(1)
 	{
 		if(_Errlib_FormatMessage(code, L"kernel32.dll", buffer, length))
 		{
-			_r_listviewinsertitem(hwnd, ctrl, L"Windows (User-Mode)", i, 0);
-			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+			_Errlib_Insert(hwnd, ctrl, L"Windows (User-Mode)", buffer);
 		}
 	}
 
 	// Kernel-Mode
-	if(2)
+	if(1)
 	{
 		if(_Errlib_FormatMessage(code, L"ntdll.dll", buffer, length))
 		{
-			_r_listviewinsertitem(hwnd, ctrl, L"Windows (Kernel-Mode)", i, 0);
-			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+			_Errlib_Insert(hwnd, ctrl, L"Windows (Kernel-Mode)", buffer);
 		}
 	}
 
 	// DirectX
-	if(3)
+	if(1)
 	{
 		StringCchCopy(buffer, (size_t)length, DXGetErrorDescription(HRESULT(code)));
 
 		if(wcscmp(buffer, L"n/a\0") != 0)
 		{
-			_r_listviewinsertitem(hwnd, ctrl, L"Graphics and Gaming (DirectX)", i, 0);
-			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
-		}
-	}
-
-	// Wininet
-	if(4)
-	{
-		if(_Errlib_FormatMessage(code, L"wininet.dll", buffer, length))
-		{
-			_r_listviewinsertitem(hwnd, ctrl, L"Windows Internet (WinINet)", i, 0);
-			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
-		}
-	}
-
-	// RAS
-	if(5)
-	{
-		if(_Errlib_FormatMessage(code, L"mprmsg.dll", buffer, length))
-		{
-			_r_listviewinsertitem(hwnd, ctrl, L"Remote Access Service (RAS)", i, 0);
-			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
-		}
-	}
-
-	// PDH
-	if(6)
-	{
-		if(_Errlib_FormatMessage(code, L"pdh.dll", buffer, length))
-		{
-			_r_listviewinsertitem(hwnd, ctrl, L"Performance Data Helper (PDH)", i, 0);
-			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
-		}
-	}
-
-	// IP Helper
-	if(7)
-	{
-		if(_Errlib_FormatMessage(code, L"iphlpapi.dll", buffer, length))
-		{
-			_r_listviewinsertitem(hwnd, ctrl, L"IP Helper", i, 0);
-			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+			_Errlib_Insert(hwnd, ctrl, L"Graphics and Gaming (DirectX)", buffer);
 		}
 	}
 
 	// BSOD
-	if(8)
+	if(1)
 	{
 		if(_Errlib_FormatMessage(code, L"ntoskrnl.dll", buffer, length))
 		{
-			_r_listviewinsertitem(hwnd, ctrl, L"Blue Screen of Dead (STOP)", i, 0);
-			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+			_Errlib_Insert(hwnd, ctrl, L"Blue Screen of Dead (STOP)", buffer);
 		}
 	}
 
-	WCHAR* next = NULL;
-	WCHAR custom[MAX_PATH] = {0};
+	LPWSTR next = NULL;
+	std::wstring custom = _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL));
 
-	StringCchCopy(custom, MAX_PATH, _r_cfg_read(APP_NAME_SHORT, L"ModuleCustom", LPCWSTR(NULL)));
+	LPWSTR token = _wcsdup(custom.c_str());
 
-	wchar_t* tok = wcstok_s(custom, L";", &next);
+	LPWSTR tok = wcstok_s(token, L";", &next);
 
 	while(tok != NULL)
 	{
 
 		if(_Errlib_FormatMessage(code, tok, buffer, length))
 		{
-			_r_listviewinsertitem(hwnd, ctrl, tok, i, 0);
-			_r_listviewinsertitem(hwnd, ctrl, buffer, i++, 1);
+			_Errlib_Insert(hwnd, ctrl, tok, buffer, 1);
 		}
 
 		tok = wcstok_s(NULL, L";", &next);
 	}
 
+	free(token);
 }
 
 VOID _Errlib_PrintCode(HWND hwnd, DWORD code)
@@ -173,7 +135,7 @@ VOID _Errlib_PrintCode(HWND hwnd, DWORD code)
 #endif
 
 	SetDlgItemText(hwnd, IDC_DESCRIPTION_1, buffer);
-	 
+
 	// Hexadecimal
 #ifdef _WIN64
 	StringCchPrintf(buffer, MAX_PATH, L"0x%08llx\0", code);
@@ -255,7 +217,6 @@ VOID _Errlib_PrintCode(HWND hwnd, DWORD code)
 		SWITCH_ROUTINE(FACILITY_AUDIO_KERNEL)
 		SWITCH_ROUTINE(FACILITY_WINDOWS_DEFENDER)
 		SWITCH_ROUTINE(FACILITY_OPC)
-
 		SWITCH_ROUTINE(FACILITY_BTH_ATT)
 		SWITCH_ROUTINE(FACILITY_CODCLASS_ERROR_CODE)
 		SWITCH_ROUTINE(FACILITY_FILTER_MANAGER)
@@ -271,12 +232,10 @@ VOID _Errlib_PrintCode(HWND hwnd, DWORD code)
 		SWITCH_ROUTINE(FACILITY_SHARED_VHDX)
 		SWITCH_ROUTINE(FACILITY_SPACES)
 		SWITCH_ROUTINE(FACILITY_VIDEO)
-
 		SWITCH_ROUTINE(FACILITY_MBN)
 		SWITCH_ROUTINE(FACILITY_RAS)
 		SWITCH_ROUTINE(FACILITY_UI)
 		SWITCH_ROUTINE(FACILITY_XPS)
-
 		SWITCH_ROUTINE(FACILITY_D3D)
 		SWITCH_ROUTINE(FACILITY_D3DX)
 		SWITCH_ROUTINE(FACILITY_DSOUND_DMUSIC)
@@ -291,7 +250,6 @@ VOID _Errlib_PrintCode(HWND hwnd, DWORD code)
 		SWITCH_ROUTINE(FACILITY_LEAP)
 		SWITCH_ROUTINE(FACILITY_WSAPI)
 		SWITCH_ROUTINE(FACILITY_DXGI)
-
 		SWITCH_ROUTINE(FACILITY_XAML)
 		SWITCH_ROUTINE(FACILITY_USN)
 		SWITCH_ROUTINE(FACILITY_BLBUI)
@@ -341,7 +299,6 @@ VOID _Errlib_PrintCode(HWND hwnd, DWORD code)
 		SWITCH_ROUTINE(FACILITY_AUDIOSTREAMING)
 		SWITCH_ROUTINE(FACILITY_AUDIO)
 		SWITCH_ROUTINE(FACILITY_ACTION_QUEUE)
-
 		SWITCH_ROUTINE(FACILITY_EAP_MESSAGE)
 
 		default:
@@ -406,7 +363,7 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 
 				for(INT i = 0; i < ARRAYSIZE(ui_lcid); i++)
 				{
-					GetLocaleInfo(ui_lcid[i], _r_systemvalidversion(6, 1) ? LOCALE_SLOCALIZEDLANGUAGENAME : LOCALE_SLANGUAGE, buffer, MAX_PATH);
+					GetLocaleInfo(ui_lcid[i], _r_system_validversion(6, 1) ? LOCALE_SLOCALIZEDLANGUAGENAME : LOCALE_SLANGUAGE, buffer, MAX_PATH);
 
 					SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_INSERTSTRING, i + 1, (LPARAM)buffer);
 					SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETITEMDATA, i + 1, (LPARAM)ui_lcid[i]);
@@ -419,7 +376,7 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 			}
 			else if((INT)lparam == IDD_SETTINGS_2)
 			{
-				SetDlgItemText(hwnd, IDC_MODULE_CUSTOM, _r_cfg_read(APP_NAME_SHORT, L"ModuleCustom", LPCWSTR(NULL)));
+				SetDlgItemText(hwnd, IDC_MODULES, _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL)));
 			}
 
 			break;
@@ -464,11 +421,18 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 				}
 				else if(INT(GetProp(hwnd, L"id")) == IDD_SETTINGS_2)
 				{
-					WCHAR buffer[MAX_PATH] = {0};
+					INT length = (SendDlgItemMessage(hwnd, IDC_MODULES, WM_GETTEXTLENGTH, 0, NULL) + 1) * sizeof(WCHAR);
 
-					GetDlgItemText(hwnd, IDC_MODULE_CUSTOM, buffer, MAX_PATH);
+					LPWSTR buffer = (LPWSTR)malloc(length);
 
-					_r_cfg_write(APP_NAME_SHORT, L"ModuleCustom", buffer);
+					if(buffer)
+					{
+						GetDlgItemText(hwnd, IDC_MODULES, buffer, length);
+
+						_r_cfg_write(APP_NAME_SHORT, L"Modules", buffer);
+					}
+
+					free(buffer);
 				}
 			}
 
@@ -485,10 +449,10 @@ INT_PTR CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 	{
 		case WM_INITDIALOG:
 		{
-			_r_treeviewsetstyle(hwnd, IDC_NAV, TVS_EX_DOUBLEBUFFER, 18);
+			_r_treeview_setstyle(hwnd, IDC_NAV, TVS_EX_DOUBLEBUFFER, 18);
 
-			_r_treeviewinsertitem(hwnd, IDC_NAV, (LPWSTR)_r_locale(IDS_SETTINGS_1), -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_1), hwnd, PagesDlgProc, IDD_SETTINGS_1));
-			_r_treeviewinsertitem(hwnd, IDC_NAV, (LPWSTR)_r_locale(IDS_SETTINGS_2), -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_2), hwnd, PagesDlgProc, IDD_SETTINGS_2));
+			_r_treeview_additem(hwnd, IDC_NAV, (LPWSTR)_r_locale(IDS_SETTINGS_1), -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_1), hwnd, PagesDlgProc, IDD_SETTINGS_1));
+			_r_treeview_additem(hwnd, IDC_NAV, (LPWSTR)_r_locale(IDS_SETTINGS_2), -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_2), hwnd, PagesDlgProc, IDD_SETTINGS_2));
 
 			break;
 		}
@@ -552,12 +516,17 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		case WM_INITDIALOG:
 		{
-			_r_listviewsetstyle(hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP, FALSE);
+			_r_listview_setstyle(hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP, TRUE);
 
-			_r_listviewinsertcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_1), _r_cfg_read(APP_NAME_SHORT, L"Column1", INT(190)), 0, LVCFMT_LEFT);
-			_r_listviewinsertcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_2), _r_cfg_read(APP_NAME_SHORT, L"Column2", INT(370)), 1, LVCFMT_LEFT);
+			_r_listview_addcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_1), _r_cfg_read(APP_NAME_SHORT, L"Column1", INT(190)), 0, LVCFMT_LEFT);
+			_r_listview_addcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_2), _r_cfg_read(APP_NAME_SHORT, L"Column2", INT(370)), 1, LVCFMT_LEFT);
+
+			_r_listview_addgroup(hwnd, IDC_LISTVIEW, 0, _r_locale(IDS_GROUP_1), 0, 0);
+			_r_listview_addgroup(hwnd, IDC_LISTVIEW, 1, _r_locale(IDS_GROUP_2), 0, 0);
 
 			_r_windowtotop(hwnd, _r_cfg_read(APP_NAME_SHORT, L"AlwaysOnTop", 0));
+
+			SendDlgItemMessage(hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, 9999999);
 
 			_Errlib_Clear(hwnd);
 
@@ -600,6 +569,20 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				DestroyMenu(menu);
 				DestroyMenu(submenu);
+			}
+
+			break;
+		}
+
+		case WM_NOTIFY:
+		{
+			switch(((LPNMHDR)lparam)->code)
+			{
+				case UDN_DELTAPOS:
+				{
+					SendMessage(hwnd, WM_COMMAND, MAKELPARAM(IDC_GET, 0), NULL);
+					break;
+				}
 			}
 
 			break;
