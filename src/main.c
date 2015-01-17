@@ -9,8 +9,6 @@
 #include "routine.h"
 
 #include <dxerr.h> // direct x
-#include <iphlpapi.h> // ip helper api
-#include <ras.h> // ras
 
 #define NULL_STRING L"(null)"
 
@@ -26,8 +24,6 @@ DWORD _Errlib_GetCode(HWND hwnd, INT ctrl)
 
 	if(GetDlgItemText(hwnd, ctrl, buffer, 100))
 	{
-		//swscanf_s(buff, L"%lld", &result); // dec
-
 		if((result = wcstoul(buffer, NULL, 10)) == NULL)
 		{
 			result = wcstoul(buffer, NULL, 16);
@@ -41,13 +37,16 @@ BOOL _Errlib_FormatMessage(DWORD code, LPCWSTR library, LPWSTR buffer, DWORD len
 {
 	HMODULE h = LoadLibraryEx(library, NULL, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
 
-	if(h && FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, buffer, length, NULL))
+	if(h)
 	{
-		buffer[wcslen(buffer) - sizeof(WCHAR)] = L'\0';
+		if(FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, buffer, length, NULL))
+		{
+			buffer[wcslen(buffer) - sizeof(WCHAR)] = L'\0';
+
+			return TRUE;
+		}
 
 		FreeLibrary(h);
-
-		return TRUE;
 	}
 
 	return FALSE;
@@ -64,7 +63,7 @@ VOID _Errlib_Insert(HWND hwnd, INT ctrl, LPCWSTR module, LPCWSTR description, IN
 VOID _Errlib_PrintDescription(HWND hwnd, INT ctrl, DWORD code)
 {
 	WCHAR buffer[1024] = {0};
-	DWORD length = 1024;
+	const DWORD length = 1024;
 
 	// User-Mode
 	if(1)
@@ -104,53 +103,31 @@ VOID _Errlib_PrintDescription(HWND hwnd, INT ctrl, DWORD code)
 		}
 	}
 
-	LPWSTR next = NULL;
+	// Custom modules
+	std::wstring modules = _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL));
+	std::wstring module;
 
-	std::wstring s = _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL));
+	LPWSTR next = NULL, modules_dup = _wcsdup(modules.c_str()), token = wcstok_s(modules_dup, L";", &next);
 
-	/*
-	std::wstring delimiter = L";";
-
-	size_t pos = 0;
-	std::wstring token;
-
-	while((pos = s.find(delimiter)) != std::wstring::npos)
-	{
-		token = s.substr(0, pos);
-
-		if(_Errlib_FormatMessage(code, token.c_str(), buffer, length))
-		{
-			_Errlib_Insert(hwnd, ctrl, token.c_str(), buffer, 1);
-
-			SecureZeroMemory(buffer, MAX_PATH * sizeof(WCHAR));
-		}
-
-		s.erase(0, pos + delimiter.length());
-	}
-
-	token.clear();
-	s.clear();*/
-
-
-	LPWSTR token = _wcsdup(s.c_str());
-
-	LPWSTR tok = wcstok_s(token, L";", &next);
-
-	while(tok != NULL)
+	while(token != NULL)
 	{
 		SecureZeroMemory(buffer, MAX_PATH * sizeof(WCHAR));
 
-		if(_Errlib_FormatMessage(code, tok, buffer, length))
+		module = token;
+
+		module.erase(0, module.find_first_not_of(L' '));
+		module.erase(module.find_last_not_of(L' ') + 1);
+
+		if(_Errlib_FormatMessage(code, module.c_str(), buffer, length))
 		{
-			_Errlib_Insert(hwnd, ctrl, tok, buffer, 1);
+			_Errlib_Insert(hwnd, ctrl, module.c_str(), buffer, 1);
 		}
 
-		tok = wcstok_s(NULL, L";", &next);
+		token = wcstok_s(NULL, L";", &next);
 	}
 
-	free(tok);
-	//free(tok);
 	free(token);
+	free(modules_dup);
 }
 
 VOID _Errlib_PrintCode(HWND hwnd, DWORD code)
@@ -341,16 +318,6 @@ VOID _Errlib_PrintCode(HWND hwnd, DWORD code)
 	SetDlgItemText(hwnd, IDC_DESCRIPTION_4, buffer);
 }
 
-VOID _Errlib_Clear(HWND hwnd)
-{
-	SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_DELETEALLITEMS, 0, NULL);
-
-	SetDlgItemText(hwnd, IDC_DESCRIPTION_1, NULL_STRING);
-	SetDlgItemText(hwnd, IDC_DESCRIPTION_2, NULL_STRING);
-	SetDlgItemText(hwnd, IDC_DESCRIPTION_3, NULL_STRING);
-	SetDlgItemText(hwnd, IDC_DESCRIPTION_4, NULL_STRING);
-}
-
 INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 {
 	switch(msg)
@@ -366,27 +333,6 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 				CheckDlgButton(hwnd, IDC_ALWAYSONTOP_CHK, _r_cfg_read(APP_NAME_SHORT, L"AlwaysOnTop", 0) ? BST_CHECKED : BST_UNCHECKED);
 				CheckDlgButton(hwnd, IDC_INSERTBUFFER_CHK, _r_cfg_read(APP_NAME_SHORT, L"InsertBufferAtStartup", 1) ? BST_CHECKED : BST_UNCHECKED);
 				CheckDlgButton(hwnd, IDC_CHECKUPDATES_CHK, _r_cfg_read(APP_NAME_SHORT, L"CheckUpdates", 1) ? BST_CHECKED : BST_UNCHECKED);
-
-				switch(_r_cfg_read(APP_NAME_SHORT, L"InputType", 0))
-				{
-					case 1:
-					{
-						CheckDlgButton(hwnd, IDC_TYPE_DEC, BST_CHECKED);
-						break;
-					}
-					
-					case 2:
-					{
-						CheckDlgButton(hwnd, IDC_TYPE_HEX, BST_CHECKED);
-						break;
-					}
-
-					default:
-					{
-						CheckDlgButton(hwnd, IDC_TYPE_AUTO, BST_CHECKED);
-						break;
-					}
-				}
 
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_INSERTSTRING, 0, (LPARAM)L"System default");
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, 0, 0);
@@ -424,20 +370,6 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 					_r_cfg_write(APP_NAME_SHORT, L"AlwaysOnTop", INT((IsDlgButtonChecked(hwnd, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE));
 					_r_cfg_write(APP_NAME_SHORT, L"InsertBufferAtStartup", INT((IsDlgButtonChecked(hwnd, IDC_INSERTBUFFER_CHK) == BST_CHECKED) ? TRUE : FALSE));
 					_r_cfg_write(APP_NAME_SHORT, L"CheckUpdates", INT((IsDlgButtonChecked(hwnd, IDC_CHECKUPDATES_CHK) == BST_CHECKED) ? TRUE : FALSE));
-
-					// number type
-					if(IsDlgButtonChecked(hwnd, IDC_TYPE_DEC) == BST_CHECKED)
-					{
-						_r_cfg_write(APP_NAME_SHORT, L"InputType", 1);
-					}
-					else if(IsDlgButtonChecked(hwnd, IDC_TYPE_HEX) == BST_CHECKED)
-					{
-						_r_cfg_write(APP_NAME_SHORT, L"InputType", 2);
-					}
-					else
-					{
-						_r_cfg_write(APP_NAME_SHORT, L"InputType", DWORD(0));
-					}
 
 					// language
 					LCID lang = (LCID)SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, NULL), NULL);
@@ -556,15 +488,18 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 			_r_windowtotop(hwnd, _r_cfg_read(APP_NAME_SHORT, L"AlwaysOnTop", INT(0)));
 
-			SendDlgItemMessage(hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, 9999999);
-
-			_Errlib_Clear(hwnd);
+			SendDlgItemMessage(hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, 0xfffffff);
 
 			if(_r_cfg_read(APP_NAME_SHORT, L"InsertBufferAtStartup", INT(1)))
 			{
 				SetDlgItemText(hwnd, IDC_CODE, _r_clipboard_get().c_str());
-				SendMessage(hwnd, WM_COMMAND, MAKELPARAM(IDC_GET, 0), NULL);
 			}
+			else
+			{
+				SetDlgItemInt(hwnd, IDC_CODE, 0, TRUE);
+			}
+
+			SendMessage(hwnd, WM_COMMAND, MAKELPARAM(IDC_GET, 0), NULL);
 
 			break;
 		}
@@ -632,7 +567,7 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				{
 					DWORD code = _Errlib_GetCode(hwnd, IDC_CODE);
 
-					_Errlib_Clear(hwnd);
+					SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_DELETEALLITEMS, 0, NULL);
 
 					_Errlib_PrintCode(hwnd, code);
 					_Errlib_PrintDescription(hwnd, IDC_LISTVIEW, code);
@@ -655,6 +590,35 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				case IDM_ABOUT:
 				{
 					_r_aboutbox(hwnd);
+					break;
+				}
+
+				case IDM_COPY:
+				{
+					WCHAR buffer[1024] = {0};
+					std::wstring text;
+
+					LVITEM lvi = {0};
+					
+					lvi.iSubItem = 1;
+					lvi.cchTextMax = 1024;
+
+					INT item = -1;
+
+					while((item = (INT)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETNEXTITEM, item, LVNI_SELECTED)) != -1)
+					{
+						lvi.pszText = buffer;
+
+						SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETITEMTEXT, item, (LPARAM)&lvi);
+
+						text.append(buffer);
+						text.append(L"\r\n");
+					}
+
+					text.erase(text.length() - 2);
+
+					_r_clipboard_set(text.c_str(), text.length());
+ 
 					break;
 				}
 			}

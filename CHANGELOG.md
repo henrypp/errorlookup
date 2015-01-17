@@ -1,11 +1,11 @@
 v2.0 (xx January 2015)
++ x64 support
 + new gui
 + new logo
-+ internationalization support
-+ x64 support
 + new settings
++ custom modules support
++ internationalization support
 - updated facility list (ntstatus.h v8.1)
-- updated module list
 
 v1.6 (3 January 2012)
 + ras error codes

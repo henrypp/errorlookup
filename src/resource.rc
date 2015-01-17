@@ -81,15 +81,9 @@ FONT 8, "Ms Shell Dlg"
     AUTOCHECKBOX    "Insert buffer at startup", IDC_INSERTBUFFER_CHK, 0, 30, 249, 10, 0
     AUTOCHECKBOX    "Periodically check for updates (recommended)", IDC_CHECKUPDATES_CHK, 0, 44, 249, 10, 0
 
-    LTEXT           "Number type:", IDC_STATIC, 0, 62, 249, 12
-
-    AUTORADIOBUTTON "Automatically", IDC_TYPE_AUTO, 0, 78, 249, 10, WS_GROUP
-    AUTORADIOBUTTON "Decimal", IDC_TYPE_DEC, 0, 92, 249, 10
-    AUTORADIOBUTTON "Hexadecimal", IDC_TYPE_HEX, 0, 106, 249, 10
-
-    LTEXT           "Language:", IDC_STATIC, 0, 124, 249, 12
-    COMBOBOX        IDC_LANGUAGE, 0, 140, 150, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-	LTEXT           "* restart needed", IDC_STATIC, 158, 140, 90, 12, SS_CENTERIMAGE
+    LTEXT           "Language:", IDC_STATIC, 0, 62, 249, 12
+    COMBOBOX        IDC_LANGUAGE, 0, 78, 150, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+	LTEXT           "* restart needed", IDC_STATIC, 158, 78, 90, 12, SS_CENTERIMAGE
 }
 
 IDD_SETTINGS_2 DIALOGEX 139, 13, 249, 197
@@ -118,6 +112,8 @@ STRINGTABLE
 	IDS_UPDATE_YES "New version (%s) available. Open download page?"
 
 	IDS_ABOUT "About"
+	IDS_VERSION "Version"
+
 	IDS_COPYRIGHT "This program is redistributed under the terms of the GNU\r\nGeneral Public License v2, see license for details.\r\n\r\nThis software is provided ""as is"" and without any express\r\nor implied warranties."
 
 	IDS_COLUMN_1 "Module"
