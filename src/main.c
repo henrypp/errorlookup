@@ -21,29 +21,31 @@ LCID ui_lcid[] = {
 
 DWORD _Errlib_GetCode(HWND hwnd, INT ctrl)
 {
-	WCHAR buff[100] = {0};
+	WCHAR buffer[100] = {0};
 	DWORD result = 0;
 
-	if(GetDlgItemText(hwnd, ctrl, buff, 100))
+	if(GetDlgItemText(hwnd, ctrl, buffer, 100))
 	{
 		//swscanf_s(buff, L"%lld", &result); // dec
 
-		if((result = wcstoul(buff, NULL, 10)) == NULL)
+		if((result = wcstoul(buffer, NULL, 10)) == NULL)
 		{
-			result = wcstoul(buff, NULL, 16);
+			result = wcstoul(buffer, NULL, 16);
 		}
 	}
 
 	return result;
 }
 
-BOOL _Errlib_FormatMessage(DWORD code, LPWSTR library, LPWSTR buffer, DWORD size)
+BOOL _Errlib_FormatMessage(DWORD code, LPCWSTR library, LPWSTR buffer, DWORD length)
 {
 	HMODULE h = LoadLibraryEx(library, NULL, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
 
-	if(h && FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, buffer, size, NULL))
+	if(h && FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, buffer, length, NULL))
 	{
 		buffer[wcslen(buffer) - sizeof(WCHAR)] = L'\0';
+
+		FreeLibrary(h);
 
 		return TRUE;
 	}
@@ -103,14 +105,40 @@ VOID _Errlib_PrintDescription(HWND hwnd, INT ctrl, DWORD code)
 	}
 
 	LPWSTR next = NULL;
-	std::wstring custom = _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL));
 
-	LPWSTR token = _wcsdup(custom.c_str());
+	std::wstring s = _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL));
+
+	/*
+	std::wstring delimiter = L";";
+
+	size_t pos = 0;
+	std::wstring token;
+
+	while((pos = s.find(delimiter)) != std::wstring::npos)
+	{
+		token = s.substr(0, pos);
+
+		if(_Errlib_FormatMessage(code, token.c_str(), buffer, length))
+		{
+			_Errlib_Insert(hwnd, ctrl, token.c_str(), buffer, 1);
+
+			SecureZeroMemory(buffer, MAX_PATH * sizeof(WCHAR));
+		}
+
+		s.erase(0, pos + delimiter.length());
+	}
+
+	token.clear();
+	s.clear();*/
+
+
+	LPWSTR token = _wcsdup(s.c_str());
 
 	LPWSTR tok = wcstok_s(token, L";", &next);
 
 	while(tok != NULL)
 	{
+		SecureZeroMemory(buffer, MAX_PATH * sizeof(WCHAR));
 
 		if(_Errlib_FormatMessage(code, tok, buffer, length))
 		{
@@ -120,6 +148,8 @@ VOID _Errlib_PrintDescription(HWND hwnd, INT ctrl, DWORD code)
 		tok = wcstok_s(NULL, L";", &next);
 	}
 
+	free(tok);
+	//free(tok);
 	free(token);
 }
 
@@ -327,6 +357,8 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 	{
 		case WM_INITDIALOG:
 		{
+			WCHAR buffer[MAX_PATH] = {0};
+
 			SetProp(hwnd, L"id", (HANDLE)lparam);
 
 			if((INT)lparam == IDD_SETTINGS_1)
@@ -356,8 +388,6 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 					}
 				}
 
-				WCHAR buffer[MAX_PATH] = {0};
-
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_INSERTSTRING, 0, (LPARAM)L"System default");
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, 0, 0);
 
@@ -376,7 +406,7 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 			}
 			else if((INT)lparam == IDD_SETTINGS_2)
 			{
-				SetDlgItemText(hwnd, IDC_MODULES, _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL)));
+				SetDlgItemText(hwnd, IDC_MODULES, _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL)).c_str());
 			}
 
 			break;
@@ -384,19 +414,18 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 
 		case WM_DESTROY:
 		{
-			// save settings if this property is empty
 			if(GetProp(GetParent(hwnd), L"is_save"))
 			{
 				if(INT(GetProp(hwnd, L"id")) == IDD_SETTINGS_1)
 				{
-					BOOL top = (IsDlgButtonChecked(hwnd, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE;
+					_r_windowtotop(_r_hwnd, (IsDlgButtonChecked(hwnd, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE);
 
-					_r_windowtotop(_r_hwnd, top);
-
-					_r_cfg_write(APP_NAME_SHORT, L"AlwaysOnTop", INT(top));
+					// general
+					_r_cfg_write(APP_NAME_SHORT, L"AlwaysOnTop", INT((IsDlgButtonChecked(hwnd, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE));
 					_r_cfg_write(APP_NAME_SHORT, L"InsertBufferAtStartup", INT((IsDlgButtonChecked(hwnd, IDC_INSERTBUFFER_CHK) == BST_CHECKED) ? TRUE : FALSE));
 					_r_cfg_write(APP_NAME_SHORT, L"CheckUpdates", INT((IsDlgButtonChecked(hwnd, IDC_CHECKUPDATES_CHK) == BST_CHECKED) ? TRUE : FALSE));
 
+					// number type
 					if(IsDlgButtonChecked(hwnd, IDC_TYPE_DEC) == BST_CHECKED)
 					{
 						_r_cfg_write(APP_NAME_SHORT, L"InputType", 1);
@@ -410,6 +439,7 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 						_r_cfg_write(APP_NAME_SHORT, L"InputType", DWORD(0));
 					}
 
+					// language
 					LCID lang = (LCID)SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, NULL), NULL);
 
 					if(lang <= 0)
@@ -421,9 +451,9 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 				}
 				else if(INT(GetProp(hwnd, L"id")) == IDD_SETTINGS_2)
 				{
-					INT length = (SendDlgItemMessage(hwnd, IDC_MODULES, WM_GETTEXTLENGTH, 0, NULL) + 1) * sizeof(WCHAR);
+					INT length = (INT)SendDlgItemMessage(hwnd, IDC_MODULES, WM_GETTEXTLENGTH, 0, NULL) + sizeof(WCHAR);
 
-					LPWSTR buffer = (LPWSTR)malloc(length);
+					LPWSTR buffer = (LPWSTR)malloc(length * sizeof(WCHAR));
 
 					if(buffer)
 					{
@@ -524,15 +554,15 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			_r_listview_addgroup(hwnd, IDC_LISTVIEW, 0, _r_locale(IDS_GROUP_1), 0, 0);
 			_r_listview_addgroup(hwnd, IDC_LISTVIEW, 1, _r_locale(IDS_GROUP_2), 0, 0);
 
-			_r_windowtotop(hwnd, _r_cfg_read(APP_NAME_SHORT, L"AlwaysOnTop", 0));
+			_r_windowtotop(hwnd, _r_cfg_read(APP_NAME_SHORT, L"AlwaysOnTop", INT(0)));
 
 			SendDlgItemMessage(hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, 9999999);
 
 			_Errlib_Clear(hwnd);
 
-			if(_r_cfg_read(APP_NAME_SHORT, L"InsertBufferAtStartup", 1))
+			if(_r_cfg_read(APP_NAME_SHORT, L"InsertBufferAtStartup", INT(1)))
 			{
-				SetDlgItemText(hwnd, IDC_CODE, _r_clipboard_get());
+				SetDlgItemText(hwnd, IDC_CODE, _r_clipboard_get().c_str());
 				SendMessage(hwnd, WM_COMMAND, MAKELPARAM(IDC_GET, 0), NULL);
 			}
 
@@ -574,22 +604,14 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			break;
 		}
 
-		case WM_NOTIFY:
-		{
-			switch(((LPNMHDR)lparam)->code)
-			{
-				case UDN_DELTAPOS:
-				{
-					SendMessage(hwnd, WM_COMMAND, MAKELPARAM(IDC_GET, 0), NULL);
-					break;
-				}
-			}
-
-			break;
-		}
-
 		case WM_COMMAND:
 		{
+			if(HIWORD(wparam) == EN_CHANGE && LOWORD(wparam) == IDC_CODE)
+			{
+				SendMessage(hwnd, WM_COMMAND, MAKELPARAM(IDC_GET, 0), NULL);
+				break;
+			}
+
 			switch(LOWORD(wparam))
 			{
 				case IDM_SETTINGS:
@@ -615,12 +637,6 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					_Errlib_PrintCode(hwnd, code);
 					_Errlib_PrintDescription(hwnd, IDC_LISTVIEW, code);
 
-					break;
-				}
-
-				case IDM_CLEAR:
-				{
-					_Errlib_Clear(hwnd);
 					break;
 				}
 

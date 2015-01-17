@@ -48,8 +48,7 @@
 #define IDM_EXIT 1004
 
 // Listview Menu
-#define IDM_CLEAR 10011
-#define IDM_COPY 10012
+#define IDM_COPY 2000
 
 // Strings
 #define IDS_TRANSLATOR 10000

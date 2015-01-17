@@ -26,8 +26,6 @@ IDM_LISTVIEW MENU
 {
 	POPUP ""
 	{
-		MENUITEM "Clear result...", IDM_CLEAR
-		MENUITEM SEPARATOR
 		MENUITEM "Copy", IDM_COPY
 	}
 }
