@@ -90,15 +90,30 @@ IDD_SETTINGS_2 DIALOGEX 139, 13, 249, 197
 STYLE WS_CHILD | NOT WS_SYSMENU | NOT WS_BORDER | NOT WS_POPUP | NOT WS_VISIBLE
 FONT 8, "Ms Shell Dlg"
 {
-	LTEXT           "Internal modules:", IDC_STATIC, 0, 0, 249, 12
+	LTEXT           "Please select necessary system modules:", IDC_STATIC, 0, 0, 249, 12
 
-    AUTOCHECKBOX    "Windows (User-Mode)", IDC_STATIC, 0, 16, 249, 10, 0
-    AUTOCHECKBOX    "Windows (Kernel-Mode)", IDC_STATIC, 0, 30, 249, 10, 0
-	AUTOCHECKBOX    "Graphics and Gaming (DirectX)", IDC_STATIC, 0, 44, 249, 10, 0
-	AUTOCHECKBOX    "Blue Screen of Dead (BSOD)", IDC_STATIC, 0, 58, 249, 10, 0
+    AUTOCHECKBOX    "", IDC_MODULE_KERNEL32, 0, 16, 249, 10, 0
+    AUTOCHECKBOX    "", IDC_MODULE_NTDLL, 0, 30, 249, 10, 0
+	AUTOCHECKBOX    "", IDC_MODULE_NTOSKRNL, 0, 44, 249, 10, 0
 
-	LTEXT           "Custom modules:", IDC_STATIC, 0, 76, 249, 12
-	EDITTEXT        IDC_MODULES, 0, 92, 249, 104, ES_MULTILINE
+	AUTOCHECKBOX    "", IDC_MODULE_MSIMSG, 0, 62, 249, 10, 0
+	AUTOCHECKBOX    "", IDC_MODULE_WMERROR, 0, 76, 249, 10, 0
+	AUTOCHECKBOX    "", IDC_MODULE_DIRECTX, 0, 90, 249, 10, 0
+
+	AUTOCHECKBOX    "", IDC_MODULE_MPSSVC, 0, 108, 249, 10, 0
+	AUTOCHECKBOX    "", IDC_MODULE_ADTSCHEMA, 0, 122, 249, 10, 0
+
+	AUTOCHECKBOX    "", IDC_MODULE_NETMSG, 0, 140, 249, 10, 0
+	AUTOCHECKBOX    "", IDC_MODULE_NETEVENT, 0, 154, 249, 10, 0
+}
+
+IDD_SETTINGS_3 DIALOGEX 139, 13, 249, 197
+STYLE WS_CHILD | NOT WS_SYSMENU | NOT WS_BORDER | NOT WS_POPUP | NOT WS_VISIBLE
+FONT 8, "Ms Shell Dlg"
+{
+	LTEXT           "Please select necessary custom modules:", IDC_STATIC, 0, 0, 249, 12
+
+    EDITTEXT        IDC_MODULE_LIST, 0, 0, 249, 197, ES_MULTILINE
 }
 
 //
@@ -123,9 +138,23 @@ STRINGTABLE
 	IDS_GROUP_2 "Custom modules"
 
 	IDS_SETTINGS_1 "General"
-	IDS_SETTINGS_2 "Modules"
-}
+	IDS_SETTINGS_2 "Modules (internal)"
+	IDS_SETTINGS_3 "Modules (custom)"
 
+	IDS_MODULE_KERNEL32 "Windows (User-Mode)"
+	IDS_MODULE_NTDLL "Windows (Kernel-Mode)"
+	IDS_MODULE_NTOSKRNL "Blue Screen of Dead (BSOD)"
+
+	IDS_MODULE_MSIMSG "Windows Installer"
+	IDS_MODULE_WMERROR "Windows Media"
+	IDS_MODULE_DIRECTX "Graphics and Gaming (DirectX)"
+
+	IDS_MODULE_MPSSVC "Windows Protection Service"
+	IDS_MODULE_ADTSCHEMA "Windows Security Audit"
+
+	IDS_MODULE_NETMSG "Network Messages"
+	IDS_MODULE_NETEVENT "Network Events"
+}
 
 //
 // Icon resources

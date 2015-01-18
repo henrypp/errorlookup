@@ -36,6 +36,7 @@ DWORD _Errlib_GetCode(HWND hwnd, INT ctrl)
 BOOL _Errlib_FormatMessage(DWORD code, LPCWSTR library, LPWSTR buffer, DWORD length)
 {
 	HMODULE h = LoadLibraryEx(library, NULL, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+	BOOL result = FALSE;
 
 	if(h)
 	{
@@ -43,20 +44,23 @@ BOOL _Errlib_FormatMessage(DWORD code, LPCWSTR library, LPWSTR buffer, DWORD len
 		{
 			buffer[wcslen(buffer) - sizeof(WCHAR)] = L'\0';
 
-			return TRUE;
+			if(wcscmp(buffer, L"%1") != 0)
+			{
+				result = TRUE;
+			}
 		}
 
 		FreeLibrary(h);
 	}
 
-	return FALSE;
+	return result;
 }
 
-VOID _Errlib_Insert(HWND hwnd, INT ctrl, LPCWSTR module, LPCWSTR description, INT group_id = 0)
+VOID _Errlib_Insert(HWND hwnd, INT ctrl, INT i18n, LPCWSTR description, LPCWSTR module = NULL, INT group_id = 0)
 {
 	INT item = (INT)SendDlgItemMessage(hwnd, ctrl, LVM_GETITEMCOUNT, 0, NULL);
 
-	_r_listview_additem(hwnd, ctrl, module, item, 0, -1, group_id);
+	_r_listview_additem(hwnd, ctrl, i18n ? _r_locale(i18n) : module, item, 0, -1, group_id);
 	_r_listview_additem(hwnd, ctrl, description, item, 1);
 }
 
@@ -65,41 +69,86 @@ VOID _Errlib_PrintDescription(HWND hwnd, INT ctrl, DWORD code)
 	WCHAR buffer[1024] = {0};
 	const DWORD length = 1024;
 
-	// User-Mode
-	if(1)
+	// Internal modules
+	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleKernel32", 1))
 	{
 		if(_Errlib_FormatMessage(code, L"kernel32.dll", buffer, length))
 		{
-			_Errlib_Insert(hwnd, ctrl, L"Windows (User-Mode)", buffer);
+			_Errlib_Insert(hwnd, ctrl, IDS_MODULE_KERNEL32, buffer);
 		}
 	}
 
-	// Kernel-Mode
-	if(1)
+	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleNtdll", 1))
 	{
 		if(_Errlib_FormatMessage(code, L"ntdll.dll", buffer, length))
 		{
-			_Errlib_Insert(hwnd, ctrl, L"Windows (Kernel-Mode)", buffer);
+			_Errlib_Insert(hwnd, ctrl, IDS_MODULE_NTDLL, buffer);
+		}
+	}
+	
+	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleNtoskrnl", 1))
+	{
+		if(_Errlib_FormatMessage(code, L"ntoskrnl.exe", buffer, length))
+		{
+			_Errlib_Insert(hwnd, ctrl, IDS_MODULE_NTOSKRNL, buffer);
 		}
 	}
 
-	// DirectX
-	if(1)
+	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleMsimsg", 1))
+	{
+		if(_Errlib_FormatMessage(code, L"msimsg.dll", buffer, length))
+		{
+			_Errlib_Insert(hwnd, ctrl, IDS_MODULE_MSIMSG, buffer);
+		}
+	}
+
+	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleWmerror", 1))
+	{
+		if(_Errlib_FormatMessage(code, L"wmerror.dll", buffer, length))
+		{
+			_Errlib_Insert(hwnd, ctrl, IDS_MODULE_WMERROR, buffer);
+		}
+	}
+
+	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleDirectX", 1))
 	{
 		StringCchCopy(buffer, (size_t)length, DXGetErrorDescription(HRESULT(code)));
 
 		if(wcscmp(buffer, L"n/a\0") != 0)
 		{
-			_Errlib_Insert(hwnd, ctrl, L"Graphics and Gaming (DirectX)", buffer);
+			_Errlib_Insert(hwnd, ctrl, IDS_MODULE_DIRECTX, buffer);
+		}
+	}
+	
+	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleMpssvc", 1))
+	{
+		if(_Errlib_FormatMessage(code, L"mpssvc.dll", buffer, length))
+		{
+			_Errlib_Insert(hwnd, ctrl, IDS_MODULE_MPSSVC, buffer);
+		}
+	}
+	
+	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleAdtschema", 1))
+	{
+		if(_Errlib_FormatMessage(code, L"adtschema.dll", buffer, length))
+		{
+			_Errlib_Insert(hwnd, ctrl, IDS_MODULE_ADTSCHEMA, buffer);
+		}
+	}
+	
+	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleNetmsg", 1))
+	{
+		if(_Errlib_FormatMessage(code, L"netmsg.dll", buffer, length))
+		{
+			_Errlib_Insert(hwnd, ctrl, IDS_MODULE_NETMSG, buffer);
 		}
 	}
 
-	// BSOD
-	if(1)
+	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleNetevent", 1))
 	{
-		if(_Errlib_FormatMessage(code, L"ntoskrnl.dll", buffer, length))
+		if(_Errlib_FormatMessage(code, L"netevent.dll", buffer, length))
 		{
-			_Errlib_Insert(hwnd, ctrl, L"Blue Screen of Dead (STOP)", buffer);
+			_Errlib_Insert(hwnd, ctrl, IDS_MODULE_NETEVENT, buffer);
 		}
 	}
 
@@ -120,7 +169,7 @@ VOID _Errlib_PrintDescription(HWND hwnd, INT ctrl, DWORD code)
 
 		if(_Errlib_FormatMessage(code, module.c_str(), buffer, length))
 		{
-			_Errlib_Insert(hwnd, ctrl, module.c_str(), buffer, 1);
+			_Errlib_Insert(hwnd, ctrl, NULL, buffer, module.c_str(), 1);
 		}
 
 		token = wcstok_s(NULL, L";", &next);
@@ -352,7 +401,28 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 			}
 			else if((INT)lparam == IDD_SETTINGS_2)
 			{
-				SetDlgItemText(hwnd, IDC_MODULES, _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL)).c_str());
+				for (INT i = IDC_MODULE_KERNEL32, j = IDS_MODULE_KERNEL32; i < IDC_MODULE_NETEVENT + 1; i++, j++)
+				{
+					SetDlgItemText(hwnd, i, _r_locale(j));
+				}
+
+				CheckDlgButton(hwnd, IDC_MODULE_KERNEL32, _r_cfg_read(APP_NAME_SHORT, L"ModuleKernel32", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_NTDLL, _r_cfg_read(APP_NAME_SHORT, L"ModuleNtdll", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_NTOSKRNL, _r_cfg_read(APP_NAME_SHORT, L"ModuleNtoskrnl", 1) ? BST_CHECKED : BST_UNCHECKED);
+
+				CheckDlgButton(hwnd, IDC_MODULE_MSIMSG, _r_cfg_read(APP_NAME_SHORT, L"ModuleMsimsg", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_WMERROR, _r_cfg_read(APP_NAME_SHORT, L"ModuleWmerror", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_DIRECTX, _r_cfg_read(APP_NAME_SHORT, L"ModuleDirectX", 1) ? BST_CHECKED : BST_UNCHECKED);
+
+				CheckDlgButton(hwnd, IDC_MODULE_MPSSVC, _r_cfg_read(APP_NAME_SHORT, L"ModuleMpssvc", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_ADTSCHEMA, _r_cfg_read(APP_NAME_SHORT, L"ModuleAdtschema", 1) ? BST_CHECKED : BST_UNCHECKED);
+
+				CheckDlgButton(hwnd, IDC_MODULE_NETMSG, _r_cfg_read(APP_NAME_SHORT, L"ModuleNetmsg", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_NETEVENT, _r_cfg_read(APP_NAME_SHORT, L"ModuleNetevent", 1) ? BST_CHECKED : BST_UNCHECKED);
+			}
+			else if((INT)lparam == IDD_SETTINGS_3)
+			{
+				SetDlgItemText(hwnd, IDC_MODULE_LIST, _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL)).c_str());
 			}
 
 			break;
@@ -383,13 +453,29 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 				}
 				else if(INT(GetProp(hwnd, L"id")) == IDD_SETTINGS_2)
 				{
-					INT length = (INT)SendDlgItemMessage(hwnd, IDC_MODULES, WM_GETTEXTLENGTH, 0, NULL) + sizeof(WCHAR);
+					_r_cfg_write(APP_NAME_SHORT, L"ModuleKernel32", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_KERNEL32) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(APP_NAME_SHORT, L"ModuleNtdll", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NTDLL) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(APP_NAME_SHORT, L"ModuleNtoskrnl", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NTOSKRNL) == BST_CHECKED) ? TRUE : FALSE));
+
+					_r_cfg_write(APP_NAME_SHORT, L"ModuleMsimsg", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_MSIMSG) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(APP_NAME_SHORT, L"ModuleWmerror", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_WMERROR) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(APP_NAME_SHORT, L"ModuleDirectX", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_DIRECTX) == BST_CHECKED) ? TRUE : FALSE));
+
+					_r_cfg_write(APP_NAME_SHORT, L"ModuleMpssvc", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_MPSSVC) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(APP_NAME_SHORT, L"ModuleAdtschema", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_ADTSCHEMA) == BST_CHECKED) ? TRUE : FALSE));
+
+					_r_cfg_write(APP_NAME_SHORT, L"ModuleNetmsg", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NETMSG) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(APP_NAME_SHORT, L"ModuleNetevent", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NETEVENT) == BST_CHECKED) ? TRUE : FALSE));
+				}
+				else if(INT(GetProp(hwnd, L"id")) == IDD_SETTINGS_3)
+				{
+					INT length = (INT)SendDlgItemMessage(hwnd, IDC_MODULE_LIST, WM_GETTEXTLENGTH, 0, NULL) + sizeof(WCHAR);
 
 					LPWSTR buffer = (LPWSTR)malloc(length * sizeof(WCHAR));
 
 					if(buffer)
 					{
-						GetDlgItemText(hwnd, IDC_MODULES, buffer, length);
+						GetDlgItemText(hwnd, IDC_MODULE_LIST, buffer, length);
 
 						_r_cfg_write(APP_NAME_SHORT, L"Modules", buffer);
 					}
@@ -415,6 +501,7 @@ INT_PTR CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 
 			_r_treeview_additem(hwnd, IDC_NAV, (LPWSTR)_r_locale(IDS_SETTINGS_1), -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_1), hwnd, PagesDlgProc, IDD_SETTINGS_1));
 			_r_treeview_additem(hwnd, IDC_NAV, (LPWSTR)_r_locale(IDS_SETTINGS_2), -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_2), hwnd, PagesDlgProc, IDD_SETTINGS_2));
+			_r_treeview_additem(hwnd, IDC_NAV, (LPWSTR)_r_locale(IDS_SETTINGS_3), -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_3), hwnd, PagesDlgProc, IDD_SETTINGS_3));
 
 			break;
 		}
