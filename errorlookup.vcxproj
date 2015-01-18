@@ -193,6 +193,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ResourceCompile Include="src\i18n\azerbaijani.rc" />
+    <ResourceCompile Include="src\i18n\italian.rc" />
     <ResourceCompile Include="src\i18n\russian.rc" />
     <ResourceCompile Include="src\resource.rc" />
   </ItemGroup>

@@ -12,11 +12,6 @@
 
 #define NULL_STRING L"(null)"
 
-LCID ui_lcid[] = {
-	MAKELCID(MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT), SORT_DEFAULT),
-	MAKELCID(MAKELANGID(LANG_RUSSIAN, SUBLANG_DEFAULT), SORT_DEFAULT)
-};
-
 DWORD _Errlib_GetCode(HWND hwnd, INT ctrl)
 {
 	WCHAR buffer[100] = {0};
@@ -367,14 +362,38 @@ VOID _Errlib_PrintCode(HWND hwnd, DWORD code)
 	SetDlgItemText(hwnd, IDC_DESCRIPTION_4, buffer);
 }
 
+BOOL CALLBACK EnumResourceLanguagesCallback(HMODULE, LPCWSTR, LPCWSTR, WORD language, LONG_PTR lparam)
+{
+	WCHAR buffer[MAX_PATH] = {0};
+
+	INT item = (INT)SendMessage((HWND)lparam, CB_GETCOUNT, 0, NULL);
+	LCID lang = MAKELANGID(language, SUBLANG_DEFAULT);
+
+	if(item == CB_ERR)
+	{
+		item = 0;
+	}
+
+	if(GetLocaleInfo(lang, _r_system_validversion(6, 1) ? LOCALE_SLOCALIZEDLANGUAGENAME : LOCALE_SLANGUAGE, buffer, MAX_PATH))
+	{
+		SendMessage((HWND)lparam, CB_INSERTSTRING, item, (LPARAM)buffer);
+		SendMessage((HWND)lparam, CB_SETITEMDATA, item, (LPARAM)lang);
+
+		if(lang == _r_lcid)
+		{
+			SendMessage((HWND)lparam, CB_SETCURSEL, item, 0);
+		}
+	}
+
+	return TRUE;
+}
+
 INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 {
 	switch(msg)
 	{
 		case WM_INITDIALOG:
 		{
-			WCHAR buffer[MAX_PATH] = {0};
-
 			SetProp(hwnd, L"id", (HANDLE)lparam);
 
 			if((INT)lparam == IDD_SETTINGS_1)
@@ -386,18 +405,8 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_INSERTSTRING, 0, (LPARAM)L"System default");
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, 0, 0);
 
-				for(INT i = 0; i < ARRAYSIZE(ui_lcid); i++)
-				{
-					GetLocaleInfo(ui_lcid[i], _r_system_validversion(6, 1) ? LOCALE_SLOCALIZEDLANGUAGENAME : LOCALE_SLANGUAGE, buffer, MAX_PATH);
+				EnumResourceLanguages(NULL, RT_STRING, MAKEINTRESOURCE(626), EnumResourceLanguagesCallback, (LONG_PTR)GetDlgItem(hwnd, IDC_LANGUAGE));
 
-					SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_INSERTSTRING, i + 1, (LPARAM)buffer);
-					SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETITEMDATA, i + 1, (LPARAM)ui_lcid[i]);
-
-					if(ui_lcid[i] == _r_lcid)
-					{
-						SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, i + 1, 0);
-					}
-				}
 			}
 			else if((INT)lparam == IDD_SETTINGS_2)
 			{
