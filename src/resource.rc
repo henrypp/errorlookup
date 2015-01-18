@@ -111,7 +111,7 @@ IDD_SETTINGS_3 DIALOGEX 139, 13, 249, 197
 STYLE WS_CHILD | NOT WS_SYSMENU | NOT WS_BORDER | NOT WS_POPUP | NOT WS_VISIBLE
 FONT 8, "Ms Shell Dlg"
 {
-	LTEXT           "Please select necessary custom modules:", IDC_STATIC, 0, 0, 249, 12
+	LTEXT           "Please enter modules below with semicolon separator:", IDC_STATIC, 0, 0, 249, 12
 
     EDITTEXT        IDC_MODULE_LIST, 0, 0, 249, 197, ES_MULTILINE
 }
