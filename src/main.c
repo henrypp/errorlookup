@@ -395,7 +395,7 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 		case WM_INITDIALOG:
 		{
 			SetProp(hwnd, L"id", (HANDLE)lparam);
-
+			
 			if((INT)lparam == IDD_SETTINGS_1)
 			{
 				CheckDlgButton(hwnd, IDC_ALWAYSONTOP_CHK, _r_cfg_read(APP_NAME_SHORT, L"AlwaysOnTop", 0) ? BST_CHECKED : BST_UNCHECKED);
