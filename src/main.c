@@ -374,7 +374,7 @@ BOOL CALLBACK EnumResourceLanguagesCallback(HMODULE, LPCWSTR, LPCWSTR, WORD lang
 		item = 0;
 	}
 
-	if(GetLocaleInfo(lang, _r_system_validversion(6, 1) ? LOCALE_SNATIVELANGUAGENAME : LOCALE_SNATIVELANGNAME, buffer, MAX_PATH))
+	if(GetLocaleInfo(lang, _r_system_validversion(6, 1) ? LOCALE_SENGLISHLANGUAGENAME : LOCALE_SENGLANGUAGE, buffer, MAX_PATH))
 	{
 		SendMessage((HWND)lparam, CB_INSERTSTRING, item, (LPARAM)buffer);
 		SendMessage((HWND)lparam, CB_SETITEMDATA, item, (LPARAM)lang);
