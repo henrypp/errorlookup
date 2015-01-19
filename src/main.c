@@ -367,19 +367,18 @@ BOOL CALLBACK EnumResourceLanguagesCallback(HMODULE, LPCWSTR, LPCWSTR, WORD lang
 	WCHAR buffer[MAX_PATH] = {0};
 
 	INT item = (INT)SendMessage((HWND)lparam, CB_GETCOUNT, 0, NULL);
-	LCID lang = MAKELANGID(language, SUBLANG_DEFAULT);
 
 	if(item == CB_ERR)
 	{
 		item = 0;
 	}
 
-	if(GetLocaleInfo(lang, _r_system_validversion(6, 1) ? LOCALE_SENGLISHLANGUAGENAME : LOCALE_SENGLANGUAGE, buffer, MAX_PATH))
+	if(GetLocaleInfo(language, _r_system_validversion(6, 1) ? LOCALE_SENGLISHLANGUAGENAME : LOCALE_SENGLANGUAGE, buffer, MAX_PATH))
 	{
 		SendMessage((HWND)lparam, CB_INSERTSTRING, item, (LPARAM)buffer);
-		SendMessage((HWND)lparam, CB_SETITEMDATA, item, (LPARAM)lang);
+		SendMessage((HWND)lparam, CB_SETITEMDATA, item, (LPARAM)language);
 
-		if(lang == _r_lcid)
+		if(language == _r_lcid)
 		{
 			SendMessage((HWND)lparam, CB_SETCURSEL, item, 0);
 		}
