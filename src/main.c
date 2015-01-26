@@ -11,6 +11,7 @@
 #include <dxerr.h> // direct x
 
 #define NULL_STRING L"(null)"
+#define CUSTOM_DEFAULT L"asferror.dll; blbres.dll; comres.dll; crypt32.dll; ddputils.dll; dhcpcore.dll; dhcpcore6.dll; dhcpsapi.dll; dmutil.dll; efscore.dll; imapi2.dll; imapi2fs.dll; iphlpapi.dll; ipnathlp.dll; kerberos.dll; loadperf.dll; mferror.dll; mprmsg.dll; msobjs.dll; mswsock.dll; msxml3r.dll; msxml6r.dll; ntprint.dll; ntshrui.dll; ole32.dll; p2p.dll; pdh.dll; pshed.dll; qmgr.dll; rpcrt4.dll; schedsvc.dll; twinui.dll; winbio.dll; winhttp.dll; wininet.dll; wsock32.dll;"
 
 DWORD _Errlib_GetCode(HWND hwnd, INT ctrl)
 {
@@ -37,8 +38,6 @@ BOOL _Errlib_FormatMessage(DWORD code, LPCWSTR library, LPWSTR buffer, DWORD len
 	{
 		if(FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, buffer, length, NULL))
 		{
-			buffer[wcslen(buffer) - sizeof(WCHAR)] = L'\0';
-
 			if(wcscmp(buffer, L"%1") != 0)
 			{
 				result = TRUE;
@@ -148,7 +147,7 @@ VOID _Errlib_PrintDescription(HWND hwnd, INT ctrl, DWORD code)
 	}
 
 	// Custom modules
-	std::wstring modules = _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL));
+	std::wstring modules = _r_cfg_read(APP_NAME_SHORT, L"Modules", CUSTOM_DEFAULT);
 	std::wstring module;
 
 	LPWSTR next = NULL, modules_dup = _wcsdup(modules.c_str()), token = wcstok_s(modules_dup, L";", &next);
@@ -373,7 +372,7 @@ BOOL CALLBACK EnumResourceLanguagesCallback(HMODULE, LPCWSTR, LPCWSTR, WORD lang
 		item = 0;
 	}
 
-	if(GetLocaleInfo(language, _r_system_validversion(6, 1) ? LOCALE_SENGLISHLANGUAGENAME : LOCALE_SENGLANGUAGE, buffer, MAX_PATH))
+	if(GetLocaleInfo(language, _r_system_validversion(6, 1) ? LOCALE_SNATIVEDISPLAYNAME : LOCALE_SNATIVELANGNAME, buffer, MAX_PATH))
 	{
 		SendMessage((HWND)lparam, CB_INSERTSTRING, item, (LPARAM)buffer);
 		SendMessage((HWND)lparam, CB_SETITEMDATA, item, (LPARAM)language);
@@ -430,7 +429,7 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 			}
 			else if((INT)lparam == IDD_SETTINGS_3)
 			{
-				SetDlgItemText(hwnd, IDC_MODULE_LIST, _r_cfg_read(APP_NAME_SHORT, L"Modules", LPCWSTR(NULL)).c_str());
+				SetDlgItemText(hwnd, IDC_MODULE_LIST, _r_cfg_read(APP_NAME_SHORT, L"Modules", CUSTOM_DEFAULT).c_str());
 			}
 
 			break;
@@ -456,6 +455,8 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 					{
 						lang = NULL;
 					}
+
+					SetProp(_r_hwnd, L"is_restart", (HANDLE)((lang != _r_lcid) ? TRUE : FALSE));
 
 					_r_locale_set(lang);
 				}
@@ -647,6 +648,12 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				case IDM_SETTINGS:
 				{
 					DialogBox(NULL, MAKEINTRESOURCE(IDD_SETTINGS), hwnd, SettingsDlgProc);
+
+					if(GetProp(hwnd, L"is_restart"))
+					{
+						_r_uninitialize(TRUE);
+					}
+
 					break;
 				}
 
@@ -741,7 +748,7 @@ INT APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, INT)
 		}
 	}
 
-	_r_uninitialize();
+	_r_uninitialize(FALSE);
 
 	return ERROR_SUCCESS;
 }

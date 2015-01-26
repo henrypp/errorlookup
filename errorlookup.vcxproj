@@ -195,11 +195,16 @@
   <ItemGroup>
     <ResourceCompile Include="src\i18n\azerbaijani.rc" />
     <ResourceCompile Include="src\i18n\belarusian.rc" />
+    <ResourceCompile Include="src\i18n\german.rc" />
     <ResourceCompile Include="src\i18n\hungarian.rc" />
     <ResourceCompile Include="src\i18n\italian.rc" />
     <ResourceCompile Include="src\i18n\korean.rc" />
     <ResourceCompile Include="src\i18n\portuguese (portugal).rc" />
+    <ResourceCompile Include="src\i18n\romanian.rc" />
     <ResourceCompile Include="src\i18n\russian.rc" />
+    <ResourceCompile Include="src\i18n\slovak.rc" />
+    <ResourceCompile Include="src\i18n\spanish (argentina).rc" />
+    <ResourceCompile Include="src\i18n\spanish.rc" />
     <ResourceCompile Include="src\resource.rc" />
   </ItemGroup>
   <ItemGroup>
