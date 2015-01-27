@@ -1,4 +1,4 @@
-v2.0 (xx January 2015)
+v2.0 (27 January 2015)
 + x64 support
 + new gui
 + new logo
