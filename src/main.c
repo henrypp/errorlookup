@@ -33,17 +33,26 @@ BOOL _Errlib_FormatMessage(DWORD code, LPCWSTR library, LPWSTR buffer, DWORD len
 {
 	HMODULE h = LoadLibraryEx(library, NULL, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
 	BOOL result = FALSE;
+	HLOCAL out = NULL;
 
 	if(h)
 	{
-		if(FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, buffer, length, NULL))
+		if(FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, (LPWSTR)&out, 0, NULL))
 		{
-			if(wcscmp(buffer, L"%1") != 0)
+			StringCchCopy(buffer, length, (LPWSTR)out);
+
+			if(wcsncmp(buffer, L"%1", 2) != 0)
 			{
+				if(buffer[wcslen(buffer) - 1] == 10)
+				{
+					buffer[wcslen(buffer) - sizeof(WCHAR)] = L'\0';
+				}
+
 				result = TRUE;
 			}
 		}
 
+		LocalFree(out);
 		FreeLibrary(h);
 	}
 
@@ -365,14 +374,9 @@ BOOL CALLBACK EnumResourceLanguagesCallback(HMODULE, LPCWSTR, LPCWSTR, WORD lang
 {
 	WCHAR buffer[MAX_PATH] = {0};
 
-	INT item = (INT)SendMessage((HWND)lparam, CB_GETCOUNT, 0, NULL);
+	INT item = max(0, (INT)SendMessage((HWND)lparam, CB_GETCOUNT, 0, NULL));
 
-	if(item == CB_ERR)
-	{
-		item = 0;
-	}
-
-	if(GetLocaleInfo(language, _r_system_validversion(6, 1) ? LOCALE_SNATIVEDISPLAYNAME : LOCALE_SNATIVELANGNAME, buffer, MAX_PATH))
+	if(GetLocaleInfo(language, _r_system_validversion(6, 1) ? LOCALE_SENGLISHDISPLAYNAME : LOCALE_SLANGUAGE, buffer, MAX_PATH))
 	{
 		SendMessage((HWND)lparam, CB_INSERTSTRING, item, (LPARAM)buffer);
 		SendMessage((HWND)lparam, CB_SETITEMDATA, item, (LPARAM)language);
