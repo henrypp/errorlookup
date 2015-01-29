@@ -1,3 +1,6 @@
+v2.0.2 (29 January 2015)
+- fixed update checking
+
 v2.0.1 (29 January 2015)
 - removed "get" button
 - fixed error description localization's
