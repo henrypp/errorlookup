@@ -9,8 +9,8 @@
 
 #define APP_NAME L"Error Lookup"
 #define APP_NAME_SHORT L"errorlookup"
-#define APP_VERSION L"2.0.0"
-#define APP_VERSION_RES 2,0,0,0
+#define APP_VERSION L"2.0.1"
+#define APP_VERSION_RES 2,0,1,0
 #define APP_HOST L"www.henrypp.org"
 #define APP_WEBSITE L"http://" APP_HOST
 #define APP_AUTHOR L"Henry++"

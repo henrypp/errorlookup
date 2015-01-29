@@ -1,4 +1,10 @@
-v2.0 (27 January 2015)
+v2.0.1 (29 January 2015)
+- removed "get" button
+- fixed error description localization's
+- fixed copying to clipboard
+- improved dpi compatibility
+
+v2.0.0 (27 January 2015)
 + x64 support
 + new gui
 + new logo

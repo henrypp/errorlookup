@@ -29,26 +29,34 @@ DWORD _Errlib_GetCode(HWND hwnd, INT ctrl)
 	return result;
 }
 
-BOOL _Errlib_FormatMessage(DWORD code, LPCWSTR library, LPWSTR buffer, DWORD length)
+BOOL _Errlib_FormatMessage(DWORD code, LPCWSTR library, LPWSTR buffer, const DWORD length, BOOL localized = TRUE)
 {
-	HMODULE h = LoadLibraryEx(library, NULL, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
 	BOOL result = FALSE;
+
+	HMODULE h = LoadLibraryEx(library, NULL, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
 	HLOCAL out = NULL;
 
 	if(h)
 	{
-		if(FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, 0, (LPWSTR)&out, 0, NULL))
+		if(FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, localized ? _r_lcid : 0, (LPWSTR)&out, 0, NULL))
 		{
-			StringCchCopy(buffer, length, (LPWSTR)out);
+			StringCchCopy(buffer, length, (LPCWSTR)out);
 
 			if(wcsncmp(buffer, L"%1", 2) != 0)
 			{
 				if(buffer[wcslen(buffer) - 1] == 10)
 				{
-					buffer[wcslen(buffer) - sizeof(WCHAR)] = L'\0';
+					buffer[wcslen(buffer) - sizeof(WCHAR)] = 0;
 				}
 
 				result = TRUE;
+			}
+		}
+		else
+		{
+			if(localized)
+			{
+				result = _Errlib_FormatMessage(code, library, buffer, length, FALSE);
 			}
 		}
 
@@ -182,9 +190,14 @@ VOID _Errlib_PrintDescription(HWND hwnd, INT ctrl, DWORD code)
 	free(modules_dup);
 }
 
-VOID _Errlib_PrintCode(HWND hwnd, DWORD code)
+VOID _Errlib_PrintCode(HWND hwnd)
 {
 	WCHAR buffer[MAX_PATH] = {0};
+	DWORD code = _Errlib_GetCode(hwnd, IDC_CODE);
+
+	SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_DELETEALLITEMS, 0, NULL);
+
+	_Errlib_PrintDescription(hwnd, IDC_LISTVIEW, code);
 
 	// Decimal
 #ifdef _WIN64
@@ -397,7 +410,14 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 		case WM_INITDIALOG:
 		{
 			SetProp(hwnd, L"id", (HANDLE)lparam);
-			
+
+			RECT rc = {0};
+
+			GetWindowRect(GetDlgItem(GetParent(hwnd), IDC_NAV), &rc);
+			MapWindowPoints(NULL, GetParent(hwnd), (LPPOINT)&rc, 2);
+
+			SetWindowPos(hwnd, HWND_TOP, (rc.right - rc.left) + rc.left * 2, rc.top, 0, 0, SWP_NOSIZE);
+
 			if((INT)lparam == IDD_SETTINGS_1)
 			{
 				CheckDlgButton(hwnd, IDC_ALWAYSONTOP_CHK, _r_cfg_read(APP_NAME_SHORT, L"AlwaysOnTop", 0) ? BST_CHECKED : BST_UNCHECKED);
@@ -599,7 +619,7 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				SetDlgItemInt(hwnd, IDC_CODE, 0, TRUE);
 			}
 
-			SendMessage(hwnd, WM_COMMAND, MAKELPARAM(IDC_GET, 0), NULL);
+			_Errlib_PrintCode(hwnd);
 
 			break;
 		}
@@ -643,7 +663,7 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		{
 			if(HIWORD(wparam) == EN_CHANGE && LOWORD(wparam) == IDC_CODE)
 			{
-				SendMessage(hwnd, WM_COMMAND, MAKELPARAM(IDC_GET, 0), NULL);
+				_Errlib_PrintCode(hwnd);
 				break;
 			}
 
@@ -669,15 +689,8 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				}
 
 				case IDOK: // process Enter key
-				case IDC_GET:
 				{
-					DWORD code = _Errlib_GetCode(hwnd, IDC_CODE);
-
-					SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_DELETEALLITEMS, 0, NULL);
-
-					_Errlib_PrintCode(hwnd, code);
-					_Errlib_PrintDescription(hwnd, IDC_LISTVIEW, code);
-
+					_Errlib_PrintCode(hwnd);
 					break;
 				}
 
@@ -721,7 +734,7 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 						text.append(L"\r\n");
 					}
 
-					text.erase(text.length() - 2);
+					text.erase(text.find_last_not_of(L"\r\n") + 2);
 
 					_r_clipboard_set(text.c_str(), text.length());
  
