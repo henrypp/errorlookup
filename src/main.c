@@ -35,19 +35,31 @@ BOOL _Errlib_FormatMessage(DWORD code, LPCWSTR library, LPWSTR buffer, const DWO
 
 	HMODULE h = LoadLibraryEx(library, NULL, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
 	HLOCAL out = NULL;
+	std::wstring str;
 
 	if(h)
 	{
 		if(FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, localized ? _r_lcid : 0, (LPWSTR)&out, 0, NULL))
 		{
-			StringCchCopy(buffer, length, (LPCWSTR)out);
+			str = (LPCWSTR)out;
 
-			if(wcsncmp(buffer, L"%1", 2) != 0)
+			if(wcsncmp(str.c_str(), L"%1", 2) != 0)
 			{
-				if(buffer[wcslen(buffer) - 1] == 10)
+				size_t pos = 0;
+
+				while((pos = str.find(L"\r\n")) != std::wstring::npos)
 				{
-					buffer[wcslen(buffer) - sizeof(WCHAR)] = 0;
+					if(str[pos + 2] == L'\0' || str[pos + 2] == L' ')
+					{
+						str.erase(pos, 2);
+					}
+					else
+					{
+						str.replace(pos, 2, L" ");
+					}
 				}
+
+				StringCchCopy(buffer, length, str.c_str());
 
 				result = TRUE;
 			}
@@ -67,11 +79,11 @@ BOOL _Errlib_FormatMessage(DWORD code, LPCWSTR library, LPWSTR buffer, const DWO
 	return result;
 }
 
-VOID _Errlib_Insert(HWND hwnd, INT ctrl, INT i18n, LPCWSTR description, LPCWSTR module = NULL, INT group_id = 0)
+VOID _Errlib_Insert(HWND hwnd, INT ctrl, INT i18n, LPCWSTR description, LPCWSTR module = NULL)
 {
 	INT item = (INT)SendDlgItemMessage(hwnd, ctrl, LVM_GETITEMCOUNT, 0, NULL);
 
-	_r_listview_additem(hwnd, ctrl, i18n ? _r_locale(i18n) : module, item, 0, -1, group_id);
+	_r_listview_additem(hwnd, ctrl, i18n ? _r_locale(i18n) : module, item, 0, -1, module ? 1 : 0);
 	_r_listview_additem(hwnd, ctrl, description, item, 1);
 }
 
@@ -180,7 +192,7 @@ VOID _Errlib_PrintDescription(HWND hwnd, INT ctrl, DWORD code)
 
 		if(_Errlib_FormatMessage(code, module.c_str(), buffer, length))
 		{
-			_Errlib_Insert(hwnd, ctrl, NULL, buffer, module.c_str(), 1);
+			_Errlib_Insert(hwnd, ctrl, NULL, buffer, module.c_str());
 		}
 
 		token = wcstok_s(NULL, L";", &next);
@@ -410,13 +422,6 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 		case WM_INITDIALOG:
 		{
 			SetProp(hwnd, L"id", (HANDLE)lparam);
-
-			RECT rc = {0};
-
-			GetWindowRect(GetDlgItem(GetParent(hwnd), IDC_NAV), &rc);
-			MapWindowPoints(NULL, GetParent(hwnd), (LPPOINT)&rc, 2);
-
-			SetWindowPos(hwnd, HWND_TOP, (rc.right - rc.left) + rc.left * 2, rc.top, 0, 0, SWP_NOSIZE);
 
 			if((INT)lparam == IDD_SETTINGS_1)
 			{
@@ -714,29 +719,19 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				case IDM_COPY:
 				{
-					WCHAR buffer[1024] = {0};
-					std::wstring text;
-
-					LVITEM lvi = {0};
-					
-					lvi.iSubItem = 1;
-					lvi.cchTextMax = 1024;
+					std::wstring result;
 
 					INT item = -1;
 
 					while((item = (INT)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETNEXTITEM, item, LVNI_SELECTED)) != -1)
 					{
-						lvi.pszText = buffer;
-
-						SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETITEMTEXT, item, (LPARAM)&lvi);
-
-						text.append(buffer);
-						text.append(L"\r\n");
+						result.append(_r_listview_gettext(hwnd, IDC_LISTVIEW, item, 1, 1024));
+						result.append(L"\r\n");
 					}
 
-					text.erase(text.find_last_not_of(L"\r\n") + 2);
+					result.erase(result.find_last_not_of(L"\r\n") + 2);
 
-					_r_clipboard_set(text.c_str(), text.length());
+					_r_clipboard_set(result.c_str(), result.length());
  
 					break;
 				}
