@@ -1,3 +1,8 @@
+v2.0.3 (1 February 2015)
+- fixed listview & tooltip crlf bug
+- fixed settings dpi bug
+- fixed small bugs
+
 v2.0.2 (29 January 2015)
 - fixed update checking
 
