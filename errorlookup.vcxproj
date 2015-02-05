@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9F4AF041-FDB1-4BF7-B35F-A7684A45308E}</ProjectGuid>
-    <RootNamespace>loyaldog</RootNamespace>
+    <RootNamespace>errorlookup</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -195,7 +195,9 @@
   <ItemGroup>
     <ResourceCompile Include="src\i18n\azerbaijani.rc" />
     <ResourceCompile Include="src\i18n\belarusian.rc" />
+    <ResourceCompile Include="src\i18n\bosnian.rc" />
     <ResourceCompile Include="src\i18n\german.rc" />
+    <ResourceCompile Include="src\i18n\greek.rc" />
     <ResourceCompile Include="src\i18n\hungarian.rc" />
     <ResourceCompile Include="src\i18n\italian.rc" />
     <ResourceCompile Include="src\i18n\korean.rc" />

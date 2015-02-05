@@ -1,3 +1,12 @@
+v2.0.4 (5 February 2015)
+- added "bosnian" localization
+- added "greek" localization
+- fixed tooltip params
+- fixed critical copy bug
+- fixed duplicate description printing at startup
+- small ui fixes
+- small refactoring
+
 v2.0.3 (1 February 2015)
 - fixed listview & tooltip crlf bug
 - fixed settings dpi bug

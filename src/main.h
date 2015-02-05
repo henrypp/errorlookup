@@ -9,8 +9,8 @@
 
 #define APP_NAME L"Error Lookup"
 #define APP_NAME_SHORT L"errorlookup"
-#define APP_VERSION L"2.0.3"
-#define APP_VERSION_RES 2,0,3,0
+#define APP_VERSION L"2.0.4"
+#define APP_VERSION_RES 2,0,4,0
 #define APP_HOST L"www.henrypp.org"
 #define APP_WEBSITE L"http://" APP_HOST
 #define APP_AUTHOR L"Henry++"
@@ -20,6 +20,8 @@
 #else
 #define APP_MACHINE L"32"
 #endif
+
+#define APP_SETTINGS_COUNT 3
 
 #define STATUS_SEVERITY_SUCCESS			0x0
 #define STATUS_SEVERITY_INFORMATIONAL	0x1
