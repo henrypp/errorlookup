@@ -1,3 +1,8 @@
+v2.0.5 (11 February 2015)
+- added "swedish" localization
+- improved dpi compatibility
+- small ui fixes
+
 v2.0.4 (5 February 2015)
 - added "bosnian" localization
 - added "greek" localization

@@ -1,0 +1,156 @@
+#include <windows.h>
+#include <commctrl.h>
+#include <richedit.h>
+#include "resource.h"
+#include "main.h"
+
+LANGUAGE LANG_SWEDISH, SUBLANG_DEFAULT
+
+IDM_MAIN MENU
+{
+	POPUP "Arkiv"
+	{
+		MENUITEM "Inställningar...", IDM_SETTINGS
+		MENUITEM SEPARATOR
+		MENUITEM "Avsluta\tEsc", IDM_EXIT
+	}
+	POPUP "Help"
+	{
+		MENUITEM "Webbplats", IDM_WEBSITE
+		MENUITEM "Sök efter uppdateringar", IDM_CHECKUPDATES
+		MENUITEM "Om", IDM_ABOUT
+	}
+}
+
+IDM_LISTVIEW MENU
+{
+	POPUP ""
+	{
+		MENUITEM "View description...", IDM_DESCRIPTION
+		MENUITEM "Kopiera", IDM_COPY
+	}
+}
+
+//
+// Dialog resources
+//
+IDD_MAIN DIALOGEX 0, 0, 390, 256
+STYLE DS_SHELLFONT | WS_POPUP | DS_MODALFRAME | DS_CENTER | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE
+CAPTION APP_NAME
+MENU IDM_MAIN
+FONT 8, "Ms Shell Dlg"
+{
+	LTEXT           "Felkod:", IDC_STATIC, 12, 10, 366, 12
+	EDITTEXT        IDC_CODE, 12, 25, 366, 14, ES_AUTOHSCROLL
+	CONTROL         "", IDC_CODE_UD, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_AUTOBUDDY | UDS_HOTTRACK | UDS_SETBUDDYINT | UDS_NOTHOUSANDS | UDS_WRAP, 0, 0, 0, 0
+
+	LTEXT           "Som Dec:", IDC_STATIC, 12, 50, 48, 10
+	EDITTEXT        IDC_DESCRIPTION_1, 64, 50, 60, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
+
+	LTEXT           "Som Hex:", IDC_STATIC, 12, 64, 48, 10
+	EDITTEXT        IDC_DESCRIPTION_2, 64, 64, 60, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
+
+	LTEXT           "Allvarlighetsgrad:", IDC_STATIC, 128, 50, 42, 10
+	EDITTEXT        IDC_DESCRIPTION_3, 174, 50, 204, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
+
+	LTEXT           "Facility:", IDC_STATIC, 128, 64, 42, 10
+	EDITTEXT        IDC_DESCRIPTION_4, 174, 64, 204, 10, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY
+
+	CONTROL         "", IDC_LISTVIEW, WC_LISTVIEW, LVS_REPORT | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP | WS_VSCROLL, 12, 84, 366, 160
+}
+
+IDD_SETTINGS DIALOGEX 0, 0, 400, 245
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_DLGMODALFRAME
+CAPTION "Inställningar"
+FONT 8, "Ms Shell Dlg"
+{
+   	CONTROL		"", IDC_NAV, WC_TREEVIEW, WS_BORDER | WS_TABSTOP | TVS_SHOWSELALWAYS | TVS_TRACKSELECT | TVS_LINESATROOT | TVS_HASLINES | TVS_INFOTIP, 10, 10, 115, 225
+
+	DEFPUSHBUTTON	"Spara", IDC_OK, 287, 221, 50, 14
+	PUSHBUTTON	"Avbryt", IDC_CANCEL, 342, 221, 50, 14
+}
+
+IDD_SETTINGS_1 DIALOGEX 135, 11, 255, 200
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "Ms Shell Dlg"
+{
+	LTEXT           "Allmän konfiguration:", IDC_STATIC, 0, 0, 255, 12
+
+    AUTOCHECKBOX    "Alltid överst", IDC_ALWAYSONTOP_CHK, 0, 16, 255, 10
+    AUTOCHECKBOX    "Sätt buffert vid start", IDC_INSERTBUFFER_CHK, 0, 30, 255, 10
+    AUTOCHECKBOX    "Sök efter uppdateringar periodiskt (rekommenderas)", IDC_CHECKUPDATES_CHK, 0, 44, 255, 10
+
+    LTEXT           "Språk:", IDC_STATIC, 0, 62, 255, 12
+    COMBOBOX        IDC_LANGUAGE, 0, 78, 255, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+}
+
+IDD_SETTINGS_2 DIALOGEX 135, 11, 255, 200
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "Ms Shell Dlg"
+{
+	LTEXT           "Välj nödvändiga systemmoduler:", IDC_STATIC, 0, 0, 255, 12
+
+    AUTOCHECKBOX    "", IDC_MODULE_KERNEL32, 0, 16, 255, 10
+    AUTOCHECKBOX    "", IDC_MODULE_NTDLL, 0, 30, 255, 10
+	AUTOCHECKBOX    "", IDC_MODULE_NTOSKRNL, 0, 44, 255, 10
+
+	AUTOCHECKBOX    "", IDC_MODULE_MSIMSG, 0, 62, 255, 10
+	AUTOCHECKBOX    "", IDC_MODULE_WMERROR, 0, 76, 255, 10
+	AUTOCHECKBOX    "", IDC_MODULE_DIRECTX, 0, 90, 255, 10
+
+	AUTOCHECKBOX    "", IDC_MODULE_MPSSVC, 0, 108, 255, 10
+	AUTOCHECKBOX    "", IDC_MODULE_ADTSCHEMA, 0, 122, 255, 10
+
+	AUTOCHECKBOX    "", IDC_MODULE_NETMSG, 0, 140, 255, 10
+	AUTOCHECKBOX    "", IDC_MODULE_NETEVENT, 0, 154, 255, 10
+}
+
+IDD_SETTINGS_3 DIALOGEX 135, 11, 255, 200
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "Ms Shell Dlg"
+{
+	LTEXT           "Please enter modules below with semicolon separator:", IDC_STATIC, 0, 0, 255, 12
+
+	EDITTEXT        IDC_MODULES, 0, 16, 255, 184, ES_MULTILINE
+}
+
+//
+// String resources
+//
+STRINGTABLE
+{
+	IDS_TRANSLATOR "Svensk översättning (Pekka Brännbäck)"
+
+	IDS_UPDATE_NO "Inga uppdateringar tillgängliga."
+	IDS_UPDATE_YES "Ny version (%s) finns tillgänglig. Öppna sida för nedladdning?"
+
+	IDS_ABOUT "Om"
+	IDS_VERSION "Version"
+
+	IDS_COPYRIGHT "This program is redistributed under the terms of the GNU\r\nGeneral Public License v2, see license for details.\r\n\r\nThis software is provided ""as is"" and without any express\r\nor implied warranties."
+
+	IDS_COLUMN_1 "Modul"
+	IDS_COLUMN_2 "Beskrivning"
+
+	IDS_GROUP_1 "Interna moduler"
+	IDS_GROUP_2 "Anpassade modules"
+
+	IDS_SETTINGS_1 "Allmänt"
+	IDS_SETTINGS_2 "Moduler (interna)"
+	IDS_SETTINGS_3 "Moduler (anpassade)"
+
+	IDS_MODULE_KERNEL32 "Windows (Användarläge)"
+	IDS_MODULE_NTDLL "Windows (Kernel-läge)"
+	IDS_MODULE_NTOSKRNL "Blåskärm (BSOD)"
+
+	IDS_MODULE_MSIMSG "Windows installerare"
+	IDS_MODULE_WMERROR "Windows media"
+	IDS_MODULE_DIRECTX "Grafik och spel (DirectX)"
+
+	IDS_MODULE_MPSSVC "Windows skyddstjänst"
+	IDS_MODULE_ADTSCHEMA "Windows säkerhetsgranskning"
+
+	IDS_MODULE_NETMSG "Nätverksmeddelanden"
+	IDS_MODULE_NETEVENT "Nätverkshändelser"
+}

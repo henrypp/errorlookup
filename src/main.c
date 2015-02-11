@@ -1,5 +1,6 @@
 ﻿// Error Lookup
 // Copyright © 2011, 2012, 2015 Henry++
+
 #include <windows.h>
 
 #include "main.h"
@@ -385,12 +386,12 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_INSERTSTRING, 0, (LPARAM)L"System default");
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, 0, 0);
 
-				EnumResourceLanguages(NULL, RT_STRING, MAKEINTRESOURCE(626), _r_locale_enum, (LONG_PTR)GetDlgItem(hwnd, IDC_LANGUAGE));
+				EnumResourceLanguages(NULL, RT_STRING, MAKEINTRESOURCE(63), _r_locale_enum, (LONG_PTR)GetDlgItem(hwnd, IDC_LANGUAGE));
 
 			}
 			else if((INT)lparam == IDD_SETTINGS_2)
 			{
-				for (INT i = IDC_MODULE_KERNEL32, j = IDS_MODULE_KERNEL32; i < IDC_MODULE_NETEVENT + 1; i++, j++)
+				for(INT i = IDC_MODULE_KERNEL32, j = IDS_MODULE_KERNEL32; i < IDC_MODULE_NETEVENT + 1; i++, j++)
 				{
 					SetDlgItemText(hwnd, i, _r_locale(j));
 				}
@@ -488,7 +489,7 @@ INT_PTR CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 	{
 		case WM_INITDIALOG:
 		{
-			_r_treeview_setstyle(hwnd, IDC_NAV, TVS_EX_DOUBLEBUFFER, 22);
+			_r_treeview_setstyle(hwnd, IDC_NAV, TVS_EX_DOUBLEBUFFER, GetSystemMetrics(SM_CYSMICON));
 
 			for(INT i = 0; i < APP_SETTINGS_COUNT; i++)
 			{
@@ -551,6 +552,37 @@ INT_PTR CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 	return FALSE;
 }
 
+INT_PTR CALLBACK DescriptionDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+	switch(msg)
+	{
+		case WM_INITDIALOG:
+		{
+			SetDlgItemText(hwnd, IDC_DESCRIPTION_1, _r_listview_gettext(_r_hwnd, IDC_LISTVIEW, (INT)lparam, 0, MAX_PATH).c_str());
+			SetDlgItemText(hwnd, IDC_DESCRIPTION_2, (LPCWSTR)_r_listview_getlparam(_r_hwnd, IDC_LISTVIEW, (INT)lparam));
+
+			break;
+		}
+
+		case WM_COMMAND:
+		{
+			switch(LOWORD(wparam))
+			{
+				case IDOK: // process Enter key
+				case IDCANCEL: // process Esc key
+				{
+					EndDialog(hwnd, 0);
+					break;
+				}
+			}
+
+			break;
+		}
+	}
+
+	return FALSE;
+}
+
 LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	switch(msg)
@@ -559,8 +591,8 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		{
 			_r_listview_setstyle(hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP, TRUE);
 
-			_r_listview_addcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_1), _r_cfg_read(APP_NAME_SHORT, L"Column1", INT(190)), 0, LVCFMT_LEFT);
-			_r_listview_addcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_2), _r_cfg_read(APP_NAME_SHORT, L"Column2", INT(355)), 1, LVCFMT_LEFT);
+			_r_listview_addcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_1), _r_cfg_read(APP_NAME_SHORT, L"Column1", 40), 1, LVCFMT_LEFT);
+			_r_listview_addcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_2), _r_cfg_read(APP_NAME_SHORT, L"Column2", 60), 2, LVCFMT_LEFT);
 
 			_r_listview_addgroup(hwnd, IDC_LISTVIEW, 0, _r_locale(IDS_GROUP_1), 0, 0);
 			_r_listview_addgroup(hwnd, IDC_LISTVIEW, 1, _r_locale(IDS_GROUP_2), 0, 0);
@@ -583,8 +615,8 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 		case WM_DESTROY:
 		{
-			_r_cfg_write(APP_NAME_SHORT, L"Column1", (DWORD)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETCOLUMNWIDTH, 0, 0));
-			_r_cfg_write(APP_NAME_SHORT, L"Column2", (DWORD)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETCOLUMNWIDTH, 1, 0));
+			_r_cfg_write(APP_NAME_SHORT, L"Column1", (DWORD)_r_listview_getcolumnwidth(hwnd, IDC_LISTVIEW, 0));
+			_r_cfg_write(APP_NAME_SHORT, L"Column2", (DWORD)_r_listview_getcolumnwidth(hwnd, IDC_LISTVIEW, 1));
 
 			PostQuitMessage(0);
 
@@ -621,19 +653,7 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			LPNMHDR hdr = (LPNMHDR)lparam;
 
 			switch(hdr->code)
-			{	
-				case LVN_GETINFOTIP:
-				{
-					if(wparam == IDC_LISTVIEW)
-					{
-						LPNMLVGETINFOTIP pnmlv = (LPNMLVGETINFOTIP)lparam;
-
-						StringCchCopy(pnmlv->pszText, pnmlv->cchTextMax, (LPCWSTR)_r_listview_getlparam(hwnd, IDC_LISTVIEW, pnmlv->iItem));
-					}
-
-					break;
-				}
-
+			{
 				case NM_DBLCLK:
 				{
 					if(wparam == IDC_LISTVIEW)
@@ -642,7 +662,7 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 						if(pnmlv->iItem >= 0)
 						{
-							_r_msg(MB_ICONINFORMATION, L"%s: %s", _r_listview_gettext(hwnd, IDC_LISTVIEW, pnmlv->iItem, 0, MAX_PATH).c_str(), _r_listview_getlparam(hwnd, IDC_LISTVIEW, pnmlv->iItem));
+							SendMessage(hwnd, WM_COMMAND, MAKELPARAM(IDM_DESCRIPTION, 0), NULL);
 						}
 					}
 
@@ -675,12 +695,6 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 			switch(LOWORD(wparam))
 			{
-				case IDOK: // process Enter key
-				{
-					_Errlib_Print(hwnd);
-					break;
-				}
-
 				case IDM_SETTINGS:
 				{
 					DialogBox(NULL, MAKEINTRESOURCE(IDD_SETTINGS), hwnd, SettingsDlgProc);
@@ -715,6 +729,18 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				case IDM_ABOUT:
 				{
 					_r_aboutbox(hwnd);
+					break;
+				}
+
+				case IDM_DESCRIPTION:
+				{
+					INT item = (INT)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
+
+					if(item >= 0)
+					{
+						DialogBoxParam(NULL, MAKEINTRESOURCE(IDD_DESCRIPTION), hwnd, DescriptionDlgProc, item);
+					}
+
 					break;
 				}
 
