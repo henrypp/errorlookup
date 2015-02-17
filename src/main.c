@@ -212,45 +212,21 @@ DWORD _Errlib_ParseCode(HWND hwnd)
 	return result;
 }
 
-VOID _Errlib_Insert(HWND hwnd, INT i18n, LPCWSTR description, LPCWSTR module)
+VOID _Errlib_Insert(HWND hwnd, INT i18n, CString description, LPCWSTR module)
 {
-	WCHAR buffer[70] = {0};
+	description.Trim(L"\r\n ");
 
-	StringCchCopy(buffer, 70, description);
+	SIZE_T length = wcslen(description) + 1;
 
-	buffer[66] = L'.';
-	buffer[67] = L'.';
-	buffer[68] = L'.';
-	buffer[69] = L'\0';
-
-	INT item = (INT)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETITEMCOUNT, 0, NULL);
-	size_t length = wcslen(description);
-
-	LPWSTR lparam = (LPWSTR)malloc((length + 1) * sizeof(WCHAR));
+	LPWSTR lparam = (LPWSTR)malloc(length * sizeof(WCHAR));
 
 	if(lparam != NULL)
 	{
-		StringCchCopy(lparam, length + sizeof(WCHAR), description);
+		StringCchCopy(lparam, length, description);
 	}
 
-	size_t pos = 0;
-
-	std::wstring result = description;
-
-	while((pos = result.find(L"\r\n")) != std::wstring::npos)
-	{
-		if(result[pos + 2] == L'\0' || result[pos + 2] == L' ')
-		{
-			result.erase(pos, 2);
-		}
-		else
-		{
-			result.replace(pos, 2, L" ");
-		}
-	}
-
-	_r_listview_additem(hwnd, IDC_LISTVIEW, i18n ? _r_locale(i18n) : module, item, 0, -1, module ? 1 : 0, (LPARAM)lparam);
-	_r_listview_additem(hwnd, IDC_LISTVIEW, buffer, item, 1);
+	_r_listview_additem(hwnd, IDC_LISTVIEW, i18n ? _r_locale(i18n) : module, -1, 0, -1, module ? 1 : 0, (LPARAM)lparam);
+	_r_listview_additem(hwnd, IDC_LISTVIEW, description.Mid(0, 70), -1, 1);
 }
 
 VOID _Errlib_FormatMessage(HWND hwnd, DWORD code, LPCWSTR library, INT i18n, BOOL localized = TRUE)
@@ -262,11 +238,11 @@ VOID _Errlib_FormatMessage(HWND hwnd, DWORD code, LPCWSTR library, INT i18n, BOO
 	{
 		if(FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, localized ? _r_lcid : 0, (LPWSTR)&buffer, 0, NULL))
 		{
-			std::wstring result = (LPCWSTR)buffer;
+			CString result = (LPCWSTR)buffer;
 
-			if(wcsncmp(result.c_str(), L"%1", 2) != 0)
+			if(wcsncmp(result, L"%1", 2) != 0)
 			{
-				_Errlib_Insert(hwnd, i18n, result.c_str(), i18n ? NULL : library);
+				_Errlib_Insert(hwnd, i18n, result, i18n ? NULL : library);
 			}
 		}
 		else
@@ -292,81 +268,73 @@ VOID _Errlib_Print(HWND hwnd)
 	//_wcserror_s
 
 	// print (internal)
-	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleKernel32", 1))
+	if(_r_cfg_read(L"ModuleKernel32", 1))
 	{
 		_Errlib_FormatMessage(hwnd, code, L"kernel32.dll", IDS_MODULE_KERNEL32);
 	}
 
-	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleNtdll", 1))
+	if(_r_cfg_read(L"ModuleNtdll", 1))
 	{
 		_Errlib_FormatMessage(hwnd, code, L"ntdll.dll", IDS_MODULE_NTDLL);
 	}
 	
-	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleNtoskrnl", 1))
+	if(_r_cfg_read(L"ModuleNtoskrnl", 1))
 	{
 		_Errlib_FormatMessage(hwnd, code, L"ntoskrnl.exe", IDS_MODULE_NTOSKRNL);
 	}
 
-	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleMsimsg", 1))
+	if(_r_cfg_read(L"ModuleMsimsg", 1))
 	{
 		_Errlib_FormatMessage(hwnd, code, L"msimsg.dll", IDS_MODULE_MSIMSG);
 	}
 
-	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleWmerror", 1))
+	if(_r_cfg_read(L"ModuleWmerror", 1))
 	{
 		_Errlib_FormatMessage(hwnd, code, L"wmerror.dll", IDS_MODULE_WMERROR);
 	}
 
-	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleDirectX", 1))
+	if(_r_cfg_read(L"ModuleDirectX", 1))
 	{
-		std::wstring buffer = DXGetErrorDescription(HRESULT(code));
+		LPCWSTR buffer = DXGetErrorDescription(HRESULT(code));
 
-		if(wcsncmp(buffer.c_str(), L"n/a", 2) != 0)
+		if(wcsncmp(buffer, L"n/a", 2) != 0)
 		{
-			_Errlib_Insert(hwnd, IDS_MODULE_DIRECTX, buffer.c_str(), NULL);
+			_Errlib_Insert(hwnd, IDS_MODULE_DIRECTX, buffer, NULL);
 		}
 	}
 
-	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleMpssvc", 1))
+	if(_r_cfg_read(L"ModuleMpssvc", 1))
 	{
 		_Errlib_FormatMessage(hwnd, code, L"mpssvc.dll", IDS_MODULE_MPSSVC);
 	}
 
-	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleAdtschema", 1))
+	if(_r_cfg_read(L"ModuleAdtschema", 1))
 	{
 		_Errlib_FormatMessage(hwnd, code, L"adtschema.dll", IDS_MODULE_ADTSCHEMA);
 	}
 	
-	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleNetmsg", 1))
+	if(_r_cfg_read(L"ModuleNetmsg", 1))
 	{
 		_Errlib_FormatMessage(hwnd, code, L"netmsg.dll", IDS_MODULE_NETMSG);
 	}
 
-	if(_r_cfg_read(APP_NAME_SHORT, L"ModuleNetevent", 1))
+	if(_r_cfg_read(L"ModuleNetevent", 1))
 	{
 		_Errlib_FormatMessage(hwnd, code, L"netevent.dll", IDS_MODULE_NETEVENT);
 	}
 
 	// print (custom)
-	std::wstring modules = _r_cfg_read(APP_NAME_SHORT, L"Modules", CUSTOM_DEFAULT);
-	std::wstring module;
+	CString str = _r_cfg_read(L"Modules", CUSTOM_DEFAULT);
 
-	LPWSTR next = NULL, modules_dup = _wcsdup(modules.c_str()), token = wcstok_s(modules_dup, L";", &next);
+	INT pos = 0;
+	CString token = str.Tokenize(L";", pos);
 
-	while(token != NULL)
+	while(!token.IsEmpty())
 	{
-		module = token;
+		_Errlib_FormatMessage(hwnd, code, token.Trim(), 0);
 
-		module.erase(0, module.find_first_not_of(L' '));
-		module.erase(module.find_last_not_of(L' ') + 1);
-
-		_Errlib_FormatMessage(hwnd, code, module.c_str(), 0);
-
-		token = wcstok_s(NULL, L";", &next);
+		token = str.Tokenize(L";", pos);
 	}
-
-	free(token);
-	free(modules_dup);
 }
 
 INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
@@ -379,9 +347,9 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 
 			if((INT)lparam == IDD_SETTINGS_1)
 			{
-				CheckDlgButton(hwnd, IDC_ALWAYSONTOP_CHK, _r_cfg_read(APP_NAME_SHORT, L"AlwaysOnTop", 0) ? BST_CHECKED : BST_UNCHECKED);
-				CheckDlgButton(hwnd, IDC_INSERTBUFFER_CHK, _r_cfg_read(APP_NAME_SHORT, L"InsertBufferAtStartup", 1) ? BST_CHECKED : BST_UNCHECKED);
-				CheckDlgButton(hwnd, IDC_CHECKUPDATES_CHK, _r_cfg_read(APP_NAME_SHORT, L"CheckUpdates", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_ALWAYSONTOP_CHK, _r_cfg_read(L"AlwaysOnTop", 0) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_INSERTBUFFER_CHK, _r_cfg_read(L"InsertBufferAtStartup", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_CHECKUPDATES_CHK, _r_cfg_read(L"CheckUpdates", 1) ? BST_CHECKED : BST_UNCHECKED);
 
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_INSERTSTRING, 0, (LPARAM)L"System default");
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, 0, 0);
@@ -396,23 +364,23 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 					SetDlgItemText(hwnd, i, _r_locale(j));
 				}
 
-				CheckDlgButton(hwnd, IDC_MODULE_KERNEL32, _r_cfg_read(APP_NAME_SHORT, L"ModuleKernel32", 1) ? BST_CHECKED : BST_UNCHECKED);
-				CheckDlgButton(hwnd, IDC_MODULE_NTDLL, _r_cfg_read(APP_NAME_SHORT, L"ModuleNtdll", 1) ? BST_CHECKED : BST_UNCHECKED);
-				CheckDlgButton(hwnd, IDC_MODULE_NTOSKRNL, _r_cfg_read(APP_NAME_SHORT, L"ModuleNtoskrnl", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_KERNEL32, _r_cfg_read(L"ModuleKernel32", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_NTDLL, _r_cfg_read(L"ModuleNtdll", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_NTOSKRNL, _r_cfg_read(L"ModuleNtoskrnl", 1) ? BST_CHECKED : BST_UNCHECKED);
 
-				CheckDlgButton(hwnd, IDC_MODULE_MSIMSG, _r_cfg_read(APP_NAME_SHORT, L"ModuleMsimsg", 1) ? BST_CHECKED : BST_UNCHECKED);
-				CheckDlgButton(hwnd, IDC_MODULE_WMERROR, _r_cfg_read(APP_NAME_SHORT, L"ModuleWmerror", 1) ? BST_CHECKED : BST_UNCHECKED);
-				CheckDlgButton(hwnd, IDC_MODULE_DIRECTX, _r_cfg_read(APP_NAME_SHORT, L"ModuleDirectX", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_MSIMSG, _r_cfg_read(L"ModuleMsimsg", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_WMERROR, _r_cfg_read(L"ModuleWmerror", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_DIRECTX, _r_cfg_read(L"ModuleDirectX", 1) ? BST_CHECKED : BST_UNCHECKED);
 
-				CheckDlgButton(hwnd, IDC_MODULE_MPSSVC, _r_cfg_read(APP_NAME_SHORT, L"ModuleMpssvc", 1) ? BST_CHECKED : BST_UNCHECKED);
-				CheckDlgButton(hwnd, IDC_MODULE_ADTSCHEMA, _r_cfg_read(APP_NAME_SHORT, L"ModuleAdtschema", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_MPSSVC, _r_cfg_read(L"ModuleMpssvc", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_ADTSCHEMA, _r_cfg_read(L"ModuleAdtschema", 1) ? BST_CHECKED : BST_UNCHECKED);
 
-				CheckDlgButton(hwnd, IDC_MODULE_NETMSG, _r_cfg_read(APP_NAME_SHORT, L"ModuleNetmsg", 1) ? BST_CHECKED : BST_UNCHECKED);
-				CheckDlgButton(hwnd, IDC_MODULE_NETEVENT, _r_cfg_read(APP_NAME_SHORT, L"ModuleNetevent", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_NETMSG, _r_cfg_read(L"ModuleNetmsg", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton(hwnd, IDC_MODULE_NETEVENT, _r_cfg_read(L"ModuleNetevent", 1) ? BST_CHECKED : BST_UNCHECKED);
 			}
 			else if((INT)lparam == IDD_SETTINGS_3)
 			{
-				SetDlgItemText(hwnd, IDC_MODULES, _r_cfg_read(APP_NAME_SHORT, L"Modules", CUSTOM_DEFAULT).c_str());
+				SetDlgItemText(hwnd, IDC_MODULES, _r_cfg_read(L"Modules", CUSTOM_DEFAULT));
 			}
 
 			break;
@@ -427,9 +395,9 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 					_r_windowtotop(_r_hwnd, (IsDlgButtonChecked(hwnd, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE);
 
 					// general
-					_r_cfg_write(APP_NAME_SHORT, L"AlwaysOnTop", INT((IsDlgButtonChecked(hwnd, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE));
-					_r_cfg_write(APP_NAME_SHORT, L"InsertBufferAtStartup", INT((IsDlgButtonChecked(hwnd, IDC_INSERTBUFFER_CHK) == BST_CHECKED) ? TRUE : FALSE));
-					_r_cfg_write(APP_NAME_SHORT, L"CheckUpdates", INT((IsDlgButtonChecked(hwnd, IDC_CHECKUPDATES_CHK) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"AlwaysOnTop", INT((IsDlgButtonChecked(hwnd, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"InsertBufferAtStartup", INT((IsDlgButtonChecked(hwnd, IDC_INSERTBUFFER_CHK) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"CheckUpdates", INT((IsDlgButtonChecked(hwnd, IDC_CHECKUPDATES_CHK) == BST_CHECKED) ? TRUE : FALSE));
 
 					// language
 					LCID lang = (LCID)SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, NULL), NULL);
@@ -445,19 +413,19 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 				}
 				else if(INT(GetProp(hwnd, L"id")) == IDD_SETTINGS_2)
 				{
-					_r_cfg_write(APP_NAME_SHORT, L"ModuleKernel32", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_KERNEL32) == BST_CHECKED) ? TRUE : FALSE));
-					_r_cfg_write(APP_NAME_SHORT, L"ModuleNtdll", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NTDLL) == BST_CHECKED) ? TRUE : FALSE));
-					_r_cfg_write(APP_NAME_SHORT, L"ModuleNtoskrnl", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NTOSKRNL) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"ModuleKernel32", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_KERNEL32) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"ModuleNtdll", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NTDLL) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"ModuleNtoskrnl", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NTOSKRNL) == BST_CHECKED) ? TRUE : FALSE));
 
-					_r_cfg_write(APP_NAME_SHORT, L"ModuleMsimsg", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_MSIMSG) == BST_CHECKED) ? TRUE : FALSE));
-					_r_cfg_write(APP_NAME_SHORT, L"ModuleWmerror", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_WMERROR) == BST_CHECKED) ? TRUE : FALSE));
-					_r_cfg_write(APP_NAME_SHORT, L"ModuleDirectX", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_DIRECTX) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"ModuleMsimsg", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_MSIMSG) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"ModuleWmerror", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_WMERROR) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"ModuleDirectX", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_DIRECTX) == BST_CHECKED) ? TRUE : FALSE));
 
-					_r_cfg_write(APP_NAME_SHORT, L"ModuleMpssvc", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_MPSSVC) == BST_CHECKED) ? TRUE : FALSE));
-					_r_cfg_write(APP_NAME_SHORT, L"ModuleAdtschema", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_ADTSCHEMA) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"ModuleMpssvc", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_MPSSVC) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"ModuleAdtschema", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_ADTSCHEMA) == BST_CHECKED) ? TRUE : FALSE));
 
-					_r_cfg_write(APP_NAME_SHORT, L"ModuleNetmsg", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NETMSG) == BST_CHECKED) ? TRUE : FALSE));
-					_r_cfg_write(APP_NAME_SHORT, L"ModuleNetevent", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NETEVENT) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"ModuleNetmsg", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NETMSG) == BST_CHECKED) ? TRUE : FALSE));
+					_r_cfg_write(L"ModuleNetevent", INT((IsDlgButtonChecked(hwnd, IDC_MODULE_NETEVENT) == BST_CHECKED) ? TRUE : FALSE));
 				}
 				else if(INT(GetProp(hwnd, L"id")) == IDD_SETTINGS_3)
 				{
@@ -469,7 +437,7 @@ INT_PTR WINAPI PagesDlgProc(HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 					{
 						GetDlgItemText(hwnd, IDC_MODULES, buffer, length);
 
-						_r_cfg_write(APP_NAME_SHORT, L"Modules", buffer);
+						_r_cfg_write(L"Modules", buffer);
 					}
 
 					free(buffer);
@@ -493,8 +461,10 @@ INT_PTR CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 
 			for(INT i = 0; i < APP_SETTINGS_COUNT; i++)
 			{
-				_r_treeview_additem(hwnd, IDC_NAV, (LPWSTR)_r_locale(IDS_SETTINGS_1 + i), -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_1 + i), hwnd, PagesDlgProc, IDD_SETTINGS_1 + i));
+				_r_treeview_additem(hwnd, IDC_NAV, _r_locale(IDS_SETTINGS_1 + i), -1, (LPARAM)CreateDialogParam(NULL, MAKEINTRESOURCE(IDD_SETTINGS_1 + i), hwnd, PagesDlgProc, IDD_SETTINGS_1 + i));
 			}
+
+			SendDlgItemMessage(hwnd, IDC_NAV, TVM_SELECTITEM, TVGN_CARET, SendDlgItemMessage(hwnd, IDC_NAV, TVM_GETNEXTITEM, TVGN_FIRSTVISIBLE, NULL));
 
 			break;
 		}
@@ -558,7 +528,7 @@ INT_PTR CALLBACK DescriptionDlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 	{
 		case WM_INITDIALOG:
 		{
-			SetDlgItemText(hwnd, IDC_DESCRIPTION_1, _r_listview_gettext(_r_hwnd, IDC_LISTVIEW, (INT)lparam, 0, MAX_PATH).c_str());
+			SetDlgItemText(hwnd, IDC_DESCRIPTION_1, _r_listview_gettext(_r_hwnd, IDC_LISTVIEW, (INT)lparam, 0));
 			SetDlgItemText(hwnd, IDC_DESCRIPTION_2, (LPCWSTR)_r_listview_getlparam(_r_hwnd, IDC_LISTVIEW, (INT)lparam));
 
 			break;
@@ -589,21 +559,23 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		case WM_INITDIALOG:
 		{
+			_r_hwnd = hwnd;
+
 			_r_listview_setstyle(hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP, TRUE);
 
-			_r_listview_addcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_1), _r_cfg_read(APP_NAME_SHORT, L"Column1", 40), 1, LVCFMT_LEFT);
-			_r_listview_addcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_2), _r_cfg_read(APP_NAME_SHORT, L"Column2", 60), 2, LVCFMT_LEFT);
+			_r_listview_addcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_1), _r_cfg_read(L"Column1", 40), 0, LVCFMT_LEFT);
+			_r_listview_addcolumn(hwnd, IDC_LISTVIEW, _r_locale(IDS_COLUMN_2), _r_cfg_read(L"Column2", 60), 1, LVCFMT_LEFT);
 
 			_r_listview_addgroup(hwnd, IDC_LISTVIEW, 0, _r_locale(IDS_GROUP_1), 0, 0);
 			_r_listview_addgroup(hwnd, IDC_LISTVIEW, 1, _r_locale(IDS_GROUP_2), 0, 0);
 
-			_r_windowtotop(hwnd, _r_cfg_read(APP_NAME_SHORT, L"AlwaysOnTop", INT(0)));
+			_r_windowtotop(hwnd, _r_cfg_read(L"AlwaysOnTop", 0));
 
 			SendDlgItemMessage(hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, 0xfffffff);
 
-			if(_r_cfg_read(APP_NAME_SHORT, L"InsertBufferAtStartup", INT(1)))
+			if(_r_cfg_read(L"InsertBufferAtStartup", 1))
 			{
-				SetDlgItemText(hwnd, IDC_CODE, _r_clipboard_get().c_str());
+				SetDlgItemText(hwnd, IDC_CODE, _r_clipboard_get());
 			}
 			else
 			{
@@ -615,8 +587,8 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 		case WM_DESTROY:
 		{
-			_r_cfg_write(APP_NAME_SHORT, L"Column1", (DWORD)_r_listview_getcolumnwidth(hwnd, IDC_LISTVIEW, 0));
-			_r_cfg_write(APP_NAME_SHORT, L"Column2", (DWORD)_r_listview_getcolumnwidth(hwnd, IDC_LISTVIEW, 1));
+			_r_cfg_write(L"Column1", (DWORD)_r_listview_getcolumnwidth(hwnd, IDC_LISTVIEW, 0));
+			_r_cfg_write(L"Column2", (DWORD)_r_listview_getcolumnwidth(hwnd, IDC_LISTVIEW, 1));
 
 			PostQuitMessage(0);
 
@@ -734,7 +706,7 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				case IDM_DESCRIPTION:
 				{
-					INT item = (INT)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
+					INT item = (INT)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETNEXTITEM, (WPARAM)-1, LVNI_SELECTED);
 
 					if(item >= 0)
 					{
@@ -746,21 +718,21 @@ LRESULT CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				case IDM_COPY:
 				{
-					std::wstring result;
+					CString buffer;
 
 					INT item = -1;
 
 					while((item = (INT)SendDlgItemMessage(hwnd, IDC_LISTVIEW, LVM_GETNEXTITEM, item, LVNI_SELECTED)) != -1)
 					{
-						result.append((LPCWSTR)_r_listview_getlparam(hwnd, IDC_LISTVIEW, item));
-						result.append(L"\r\n");
+						buffer.Append((LPCWSTR)_r_listview_getlparam(hwnd, IDC_LISTVIEW, item));
+						buffer.Append(L"\r\n");
 					}
 
-					if(!result.empty())
+					if(!buffer.IsEmpty())
 					{
-						result.erase(result.find_last_not_of(L"\r\n") + 2);
+						buffer.TrimRight(L"\r\n");
 
-						_r_clipboard_set(result.c_str(), result.length());
+						_r_clipboard_set(buffer, buffer.GetLength());
 					}
  
 					break;

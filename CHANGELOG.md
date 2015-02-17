@@ -1,3 +1,8 @@
+v2.0.6 (18 February 2015)
+- fixed swedish localization
+- fixed critical memory corruption bug when read ini value length over than 1024
+- improved windows xp compatipility
+
 v2.0.5 (11 February 2015)
 - added "swedish" localization
 - improved dpi compatibility
