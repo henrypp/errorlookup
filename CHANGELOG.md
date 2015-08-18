@@ -1,3 +1,13 @@
+v.2.1.143 (x August 2015)
++ added "polish" localization
++ added "c/c++" error codes
++ new module manager
++ support codes larger than INT32_MAX
+- improved up-down hex numbers compatibility
+- fixed update checknig period
+- fixed instal script (thanks to VictorVG)
+- small ui fixes
+
 v2.0.6 (18 February 2015)
 - fixed swedish localization
 - fixed critical memory corruption bug when read ini value length over than 1024
