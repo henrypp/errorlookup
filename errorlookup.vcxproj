@@ -201,10 +201,12 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\routine\application.cpp" />
     <ClCompile Include="..\routine\routine.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\routine\application.h" />
     <ClInclude Include="..\routine\routine.h" />
     <ClInclude Include="src\main.h" />
     <ClInclude Include="src\resource.h" />

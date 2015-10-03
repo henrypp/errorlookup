@@ -1,9 +1,9 @@
-v.2.1.143 (x August 2015)
+v.2.1.159 (x October 2015)
 + added "polish" localization
 + added "c/c++" error codes
-+ new module manager
 + support codes larger than INT32_MAX
-- improved up-down hex numbers compatibility
+- improved module manager
+- improved up-down numbers stepping
 - fixed update checknig period
 - fixed instal script (thanks to VictorVG)
 - small ui fixes
