@@ -1,5 +1,5 @@
 ﻿// Error Lookup
-// Copyright © 2011-2015 Henry++
+// Copyright (c) 2011-2015 Henry++
 
 #ifndef __MAIN_H__
 #define __MAIN_H__
@@ -7,24 +7,21 @@
 #include <windows.h>
 #include "resource.h"
 
+// config
 #define APP_NAME L"Error Lookup"
 #define APP_NAME_SHORT L"errorlookup"
 #define APP_VERSION L"2.1.143"
 #define APP_VERSION_RES 2,1,143,0
 #define APP_AUTHOR L"Henry++"
-#define APP_COPYRIGHT L"© 2011-2015 " APP_AUTHOR L". All rights reserved."
+#define APP_COPYRIGHT L"(c) 2011-2015 " APP_AUTHOR L". All rights reserved."
 
 #define APP_WEBSITE L"http://www.henrypp.org"
 #define APP_GITHUB L"https://github.com/henrypp"
 
 #ifdef _WIN64
-	#define APP_MACHINE L"64"
-	#define FORMAT_DEC L"%lld"
-	#define FORMAT_HEX L"0x%08llx"
+#define APP_MACHINE L"64"
 #else
-	#define APP_MACHINE L"32"
-	#define FORMAT_DEC L"%u"
-	#define FORMAT_HEX L"0x%08x"
+#define APP_MACHINE L"32"
 #endif // _WIN64
 
 #define APP_SETTINGS_COUNT 3

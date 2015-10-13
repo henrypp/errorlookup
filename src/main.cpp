@@ -1,5 +1,5 @@
 ﻿// Error Lookup
-// Copyright © 2011-2015 Henry++
+// Copyright (c) 2011-2015 Henry++
 
 #include <windows.h>
 #include <stdint.h>
@@ -11,29 +11,94 @@
 
 #include "resource.h"
 
-CApplication application (APP_NAME, APP_NAME_SHORT, APP_VERSION, APP_AUTHOR);
+CApplication app (APP_NAME, APP_NAME_SHORT, APP_VERSION, APP_AUTHOR);
 
 #define CUSTOM_DEFAULT L"kernel32.dll; ntdll.dll; ntoskrnl.exe; crypt32.dll; kerberos.dll; adtschema.dll; mpssvc.dll; msimsg.dll; wmerror.dll; mferror.dll; netevent.dll; netmsg.dll; ntshrui.dll; qmgr.dll; winhttp.dll; wininet.dll; wsock32.dll; rpcrt4.dll; dhcpsapi.dll; dhcpcore.dll; dhcpcore6.dll; p2p.dll; iphlpapi.dll; ipnathlp.dll; winbio.dll; pdh.dll; loadperf.dll; pshed.dll; ole32.dll; schedsvc.dll; twinui.dll; ddputils.dll; efscore.dll; msxml3r.dll; msxml6r.dll; comres.dll; blbres.dll;  dmutil.dll; imapi2.dll; imapi2fs.dll; mprmsg.dll; msobjs.dll; mswsock.dll; ntprint.dll;"
 
-VOID _Application_SetDescription (INT item)
+#ifdef _WIN64
+#define FORMAT_DEC L"%lld"
+#define FORMAT_HEX L"0x%08llx"
+#else
+#define FORMAT_DEC L"%u"
+#define FORMAT_HEX L"0x%08x"
+#endif // _WIN64
+
+struct SETTINGS
+{
+	HWND hwnd;
+	UINT dlg_id;
+};
+
+SETTINGS settings[APP_SETTINGS_COUNT];
+
+DWORD _Errlib_GetCode (HWND hwnd)
+{
+	WCHAR buffer[MAX_PATH] = {0};
+	DWORD result = 0;
+
+	if (GetDlgItemText (hwnd, IDC_CODE, buffer, _countof (buffer)))
+	{
+		if ((result = wcstoul (buffer, nullptr, 10)) == 0)
+		{
+			result = wcstoul (buffer, nullptr, 16);
+		}
+	}
+
+	return result;
+}
+
+CString _Errlib_FormatMessage (DWORD code, LPCWSTR module, BOOL is_localized = TRUE)
+{
+	CString result;
+	HMODULE h = LoadLibraryEx (module, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+
+	if (h)
+	{
+		HLOCAL buffer = nullptr;
+
+		if (FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, /*is_localized ? _r_lcid :*/ 0, (LPWSTR)&buffer, 0, nullptr))
+		{
+			result = (LPCWSTR)buffer;
+
+			if (wcsncmp (result, L"%1", 2) == 0)
+			{
+				result.Empty (); // clear
+			}
+		}
+		else
+		{
+			if (is_localized)
+			{
+				result = _Errlib_FormatMessage (code, module, FALSE);
+			}
+		}
+
+		LocalFree (buffer);
+		FreeLibrary (h);
+	}
+
+	return result.Trim (L"\r\n ");
+}
+
+VOID _Errlib_ShowDescription (HWND hwnd, INT item)
 {
 	CString buffer;
 
 	if (item >= 0)
 	{
-		buffer = _r_listview_gettext (application.GetHWND (), IDC_LISTVIEW, item, 0);
+		buffer = _r_listview_gettext (hwnd, IDC_LISTVIEW, item, 0);
 
 		if (buffer.GetLength ())
 		{
 			buffer.Append (L": ");
-			buffer.Append ((LPCWSTR)_r_listview_getlparam (application.GetHWND (), IDC_LISTVIEW, item));
+			buffer.Append ((LPCWSTR)_r_listview_getlparam (hwnd, IDC_LISTVIEW, item));
 		}
 	}
 
-	SetDlgItemText (application.GetHWND (), IDC_DESCRIPTION, buffer);
+	SetDlgItemText (hwnd, IDC_DESCRIPTION, buffer);
 }
 
-CString _Application_GetModuleDescription (CString module)
+CString _Errlib_GetModuleDescription (CString module)
 {
 	// hardcoded descriptions
 	if (module.CompareNoCase (L"kernel32.dll") == 0)
@@ -212,23 +277,7 @@ CString _Application_GetModuleDescription (CString module)
 	return PathFindFileName (module);
 }
 
-DWORD _Application_GetCode (HWND hwnd)
-{
-	WCHAR buffer[MAX_PATH] = {0};
-	DWORD result = 0;
-
-	if (GetDlgItemText (hwnd, IDC_CODE, buffer, _countof (buffer)))
-	{
-		if ((result = wcstoul (buffer, nullptr, 10)) == 0)
-		{
-			result = wcstoul (buffer, nullptr, 16);
-		}
-	}
-
-	return result;
-}
-
-VOID _Application_Insert (HWND hwnd, LPCWSTR description, CString text, BOOL is_internal)
+VOID _Errlib_InsertItem (HWND hwnd, LPCWSTR description, CString text, BOOL is_internal)
 {
 	SIZE_T length = text.GetLength () + 1;
 	LPWSTR lparam = (LPWSTR)malloc (length * sizeof (WCHAR));
@@ -242,42 +291,9 @@ VOID _Application_Insert (HWND hwnd, LPCWSTR description, CString text, BOOL is_
 	_r_listview_additem (hwnd, IDC_LISTVIEW, text.Mid (0, 70), -1, 1);
 }
 
-CString _Application_FormatMessage (DWORD code, LPCWSTR module, BOOL is_localized = TRUE)
+VOID _Errlib_PrintInformation (HWND hwnd)
 {
-	CString result;
-	HMODULE h = LoadLibraryEx (module, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
-
-	if (h)
-	{
-		HLOCAL buffer = nullptr;
-
-		if (FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, /*is_localized ? _r_lcid :*/ 0, (LPWSTR)&buffer, 0, nullptr))
-		{
-			result = (LPCWSTR)buffer;
-
-			if (wcsncmp (result, L"%1", 2) == 0)
-			{
-				result.Empty (); // clear
-			}
-		}
-		else
-		{
-			if (is_localized)
-			{
-				result = _Application_FormatMessage (code, module, FALSE);
-			}
-		}
-
-		LocalFree (buffer);
-		FreeLibrary (h);
-	}
-
-	return result.Trim (L"\r\n ");
-}
-
-VOID _Application_Print (HWND hwnd)
-{
-	DWORD code = _Application_GetCode (hwnd);
+	DWORD code = _Errlib_GetCode (hwnd);
 
 	CString buffer;
 
@@ -300,7 +316,7 @@ VOID _Application_Print (HWND hwnd)
 
 		default:
 		{
-			buffer.Format (L"undefined (0x%02x)", HRESULT_SEVERITY (code));
+			buffer.Format (L"0x%02x", HRESULT_SEVERITY (code));
 			break;
 		}
 	}
@@ -448,7 +464,7 @@ VOID _Application_Print (HWND hwnd)
 
 		default:
 		{
-			buffer.Format (L"undefined (0x%02x)", HRESULT_FACILITY (code));
+			buffer.Format (L"0x%02x", HRESULT_FACILITY (code));
 			break;
 		}
 	}
@@ -457,43 +473,49 @@ VOID _Application_Print (HWND hwnd)
 
 	// print (system)
 	INT pos = 0;
-	CString modules = application.ConfigGet (L"Modules", CUSTOM_DEFAULT), token = modules.Tokenize (L";", pos);
+	CString modules = app.ConfigGet (L"SystemModule", CUSTOM_DEFAULT), token = modules.Tokenize (L";", pos);
 
 	while (!token.IsEmpty ())
 	{
 		token = token.Trim (L"\r\n ");
 
-		buffer = _Application_FormatMessage (code, token);
+		buffer = _Errlib_FormatMessage (code, token);
 
 		if (buffer.GetLength ())
 		{
-			_Application_Insert (hwnd, _Application_GetModuleDescription (token), buffer, FALSE);
+			_Errlib_InsertItem (hwnd, _Errlib_GetModuleDescription (token), buffer, FALSE);
 		}
 
 		token = modules.Tokenize (L";", pos);
 	}
 
 	// print (internal)
-	buffer = DXGetErrorDescription (HRESULT (code));
-
-	if (buffer.CompareNoCase (L"n/a") != 0)
+	if (app.ConfigGet (L"InternalModuleCPP", 1))
 	{
-		_Application_Insert (hwnd, application.LocaleString (IDS_MODULE_DIRECTX), buffer, TRUE);
+		_wcserror_s (buffer.GetBuffer (4096), 4096, code);
+		buffer.ReleaseBuffer ();
+
+		if (wcsncmp (buffer, L"Unknown error", 13) != 0)
+		{
+			_Errlib_InsertItem (hwnd, I18N_ID (&app, IDS_INTERNAL_MODULE_CPP, 0), buffer, TRUE);
+		}
 	}
 
-	_wcserror_s (buffer.GetBuffer (2048), 2048, code);
-	buffer.ReleaseBuffer ();
-
-	if (wcsncmp (buffer, L"Unknown error", 13) != 0)
+	if (app.ConfigGet (L"InternalModuleDX", 1))
 	{
-		_Application_Insert (hwnd, application.LocaleString (IDS_MODULE_C), buffer, TRUE);
+		buffer = DXGetErrorDescription (HRESULT (code));
+
+		if (buffer.CompareNoCase (L"n/a") != 0)
+		{
+			_Errlib_InsertItem (hwnd, I18N_ID (&app, IDS_INTERNAL_MODULE_DX, 0), buffer, TRUE);
+		}
 	}
 
-	// show description
-	_Application_SetDescription (0);
+	// show description for first item
+	_Errlib_ShowDescription (hwnd, 0);
 }
 
-INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
+INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	int                 iHeight;
 	POINT                 p;
@@ -509,25 +531,25 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 	{
 		case WM_INITDIALOG:
 		{
-			SetProp (hwnd, L"id", (HANDLE)lparam);
-
-			if ((INT)lparam == IDD_SETTINGS_1)
+			if (lparam == IDD_SETTINGS_1)
 			{
-				CheckDlgButton (hwnd, IDC_ALWAYSONTOP_CHK, application.ConfigGet (L"AlwaysOnTop", 0) ? BST_CHECKED : BST_UNCHECKED);
-				CheckDlgButton (hwnd, IDC_INSERTBUFFER_CHK, application.ConfigGet (L"InsertBufferAtStartup", 1) ? BST_CHECKED : BST_UNCHECKED);
-				CheckDlgButton (hwnd, IDC_CHECKUPDATES_CHK, application.ConfigGet (L"CheckUpdates", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton (hwnd, IDC_ALWAYSONTOP_CHK, app.ConfigGet (L"AlwaysOnTop", 0) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton (hwnd, IDC_INSERTBUFFER_CHK, app.ConfigGet (L"InsertBufferAtStartup", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton (hwnd, IDC_CHECKUPDATES_CHK, app.ConfigGet (L"CheckUpdates", 1) ? BST_CHECKED : BST_UNCHECKED);
 
 				SendDlgItemMessage (hwnd, IDC_LANGUAGE, CB_INSERTSTRING, 0, (LPARAM)L"English (default)");
 				SendDlgItemMessage (hwnd, IDC_LANGUAGE, CB_SETCURSEL, 0, NULL);
 
-				//EnumResourceLanguages (nullptr, RT_STRING, MAKEINTRESOURCE (63), _r_locale_enum, (LONG_PTR)GetDlgItem (hwnd, IDC_LANGUAGE));
+				app.LocaleEnum (hwnd, IDC_LANGUAGE);
+
+				SetProp (app.GetHWND (), L"language", (HANDLE)SendDlgItemMessage (hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, NULL)); // check on save
 			}
-			else if ((INT)lparam == IDD_SETTINGS_2)
+			else if (lparam == IDD_SETTINGS_2)
 			{
 				_r_listview_setstyle (hwnd, IDC_MODULES, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP | LVS_EX_CHECKBOXES);
 
-				_r_listview_addcolumn (hwnd, IDC_MODULES, application.LocaleString (IDS_COLUMN_1), 30, 0, LVCFMT_LEFT);
-				_r_listview_addcolumn (hwnd, IDC_MODULES, application.LocaleString (IDS_COLUMN_2), 65, 1, LVCFMT_LEFT);
+				_r_listview_addcolumn (hwnd, IDC_MODULES, I18N_ID (&app, IDS_COLUMN_1, 0), 30, 0, LVCFMT_LEFT);
+				_r_listview_addcolumn (hwnd, IDC_MODULES, I18N_ID (&app, IDS_COLUMN_2, 0), 65, 1, LVCFMT_LEFT);
 
 				HIMAGELIST hImgList = ImageList_Create (GetSystemMetrics (SM_CXMENUCHECK), GetSystemMetrics (SM_CYMENUCHECK), ILC_COLOR32 | ILC_MASK, 0, 5);
 
@@ -535,7 +557,7 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 
 				//SendDlgItemMessage(hwnd, IDC_MODULES, TVM_SETIMAGELIST, TVSIL_NORMAL, (LPARAM)hImgList);
 
-				CString str = application.ConfigGet (L"Modules", CUSTOM_DEFAULT);
+				CString str = app.ConfigGet (L"SystemModule", CUSTOM_DEFAULT);
 
 				INT pos = 0;
 				CString token = str.Tokenize (L";", pos);
@@ -543,9 +565,9 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 				while (!token.IsEmpty ())
 				{
 					CString bdgd = token.Trim ();
-					BOOL enalbed = bdgd.GetAt (0) == L'~' ? FALSE : TRUE;
+					BOOL enabled = bdgd.GetAt (0) == L'~' ? FALSE : TRUE;
 
-					if (!enalbed)
+					if (!enabled)
 					{
 						bdgd = bdgd.Mid (1, bdgd.GetLength ());
 					}
@@ -553,70 +575,21 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 					if (!bdgd.IsEmpty ())
 					{
 						_r_listview_additem (hwnd, IDC_MODULES, bdgd, -1, 0);
-						_r_listview_additem (hwnd, IDC_MODULES, _Application_GetModuleDescription (bdgd), -1, 1);
+						_r_listview_additem (hwnd, IDC_MODULES, _Errlib_GetModuleDescription (bdgd), -1, 1);
 
-						ListView_SetCheckState (GetDlgItem (hwnd, IDC_MODULES), SendDlgItemMessage (hwnd, IDC_MODULES, LVM_GETITEMCOUNT, 0, NULL) - 1, enalbed);
+						ListView_SetCheckState (GetDlgItem (hwnd, IDC_MODULES), SendDlgItemMessage (hwnd, IDC_MODULES, LVM_GETITEMCOUNT, 0, NULL) - 1, enabled);
 					}
-
-					/*
-					for(INT i = 0; i < 2; i++)
-					{
-						SetDlgItemText(hwnd, IDC_MODULE_DIRECTX + i, _r_locale(IDS_MODULE_DIRECTX + i));
-					}
-					*/
 
 					token = str.Tokenize (L";", pos);
 				}
 			}
-
-			break;
-		}
-
-		case WM_DESTROY:
-		{
-			if (GetProp (GetParent (hwnd), L"is_save"))
+			else if (lparam == IDD_SETTINGS_3)
 			{
-				if (reinterpret_cast<UINT> (GetProp (hwnd, L"id")) == IDD_SETTINGS_1)
-				{
-					_r_windowtotop (application.GetHWND (), (IsDlgButtonChecked (hwnd, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE);
-
-					// general
-					application.ConfigSet (L"AlwaysOnTop", INT ((IsDlgButtonChecked (hwnd, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE));
-					application.ConfigSet (L"InsertBufferAtStartup", INT ((IsDlgButtonChecked (hwnd, IDC_INSERTBUFFER_CHK) == BST_CHECKED) ? TRUE : FALSE));
-					application.ConfigSet (L"CheckUpdates", INT ((IsDlgButtonChecked (hwnd, IDC_CHECKUPDATES_CHK) == BST_CHECKED) ? TRUE : FALSE));
-
-					// language
-					LCID lang = (LCID)SendDlgItemMessage (hwnd, IDC_LANGUAGE, CB_GETITEMDATA, SendDlgItemMessage (hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, NULL), NULL);
-
-					if (lang <= 0)
-					{
-						lang = NULL;
-					}
-
-					//SetProp (application.GetHWND (), L"is_restart", (HANDLE)((lang != _r_lcid) ? TRUE : FALSE));
-
-					//_r_locale_set (lang);
-				}
-				else if (reinterpret_cast<UINT> (GetProp (hwnd, L"id")) == IDD_SETTINGS_2)
-				{
-					CString buffer;
-
-					INT item = -1;
-
-					while ((item = (INT)SendDlgItemMessage (hwnd, IDC_MODULES, LVM_GETNEXTITEM, item, LVNI_ALL)) != -1)
-					{
-						if (!ListView_GetCheckState (GetDlgItem (hwnd, IDC_MODULES), item))
-						{
-							buffer.Append (L"~");
-						}
-
-						buffer.Append (_r_listview_gettext (hwnd, IDC_MODULES, item, 0));
-						buffer.Append (L"; ");
-					}
-
-					application.ConfigSet (L"Modules", buffer);
-				}
+				CheckDlgButton (hwnd, IDC_MODULE_INTERNAL_CPP, app.ConfigGet (L"InternalModuleCPP", 1) ? BST_CHECKED : BST_UNCHECKED);
+				CheckDlgButton (hwnd, IDC_MODULE_INTERNAL_DX, app.ConfigGet (L"InternalModuleDX", 1) ? BST_CHECKED : BST_UNCHECKED);
 			}
+
+			EnableWindow (GetDlgItem (GetParent (hwnd), IDC_OK), FALSE);
 
 			break;
 		}
@@ -736,7 +709,6 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 					case LVN_BEGINDRAG:
 					{
 						// You can set your customized cursor here
-
 						p.x = p.y = -10;
 
 						// Ok, now we create a drag-image for all selected items
@@ -766,6 +738,7 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 								ImageList_GetImageInfo (hDragImageList, 0, &imf);
 								iHeight = imf.rcImage.bottom;
 							}
+
 							iPos = ListView_GetNextItem (((LPNMHDR)lparam)->hwndFrom, iPos, LVNI_SELECTED);
 						}
 
@@ -823,6 +796,16 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM, LPARAM lparam)
 				}
 			}
 		}
+
+		case WM_COMMAND:
+		{
+			if (lparam && (HIWORD (wparam) == BN_CLICKED || HIWORD (wparam) == EN_CHANGE || HIWORD (wparam) == CBN_SELENDOK))
+			{
+				EnableWindow (GetDlgItem (GetParent (hwnd), IDC_OK), TRUE);
+			}
+
+			break;
+		}
 	}
 
 	return FALSE;
@@ -834,13 +817,27 @@ INT_PTR CALLBACK SettingsDlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 	{
 		case WM_INITDIALOG:
 		{
+			// configure window
 			_r_windowcenter (hwnd);
 
+			// localize
+			if (app.LocaleIsExternal ())
+			{
+				SetWindowText (hwnd, I18N_ID (&app, 0, L"IDS_SETTINGS"));
+
+				SetDlgItemText (hwnd, IDC_OK, I18N_STR (&app, L"IDC_OK"));
+				SetDlgItemText (hwnd, IDC_CANCEL, I18N_STR (&app, L"IDC_CANCEL"));
+			}
+
+			// configure treeview
 			_r_treeview_setstyle (hwnd, IDC_NAV, TVS_EX_DOUBLEBUFFER, GetSystemMetrics (SM_CYSMICON));
 
 			for (INT i = 0; i < APP_SETTINGS_COUNT; i++)
 			{
-				_r_treeview_additem (hwnd, IDC_NAV, application.LocaleString (IDS_SETTINGS_1 + i), -1, (LPARAM)CreateDialogParam (nullptr, MAKEINTRESOURCE (IDD_SETTINGS_1 + i), hwnd, PagesDlgProc, IDD_SETTINGS_1 + i));
+				settings[i].dlg_id = IDD_SETTINGS_1 + i;
+				settings[i].hwnd = CreateDialogParam (nullptr, MAKEINTRESOURCE (settings[i].dlg_id), hwnd, PagesDlgProc, settings[i].dlg_id);
+
+				_r_treeview_additem (hwnd, IDC_NAV, I18N_ID (&app, settings[i].dlg_id, _r_fmt (L"IDS_SETTINGS_%d", i + 1)), -1, (LPARAM)i);
 			}
 
 			SendDlgItemMessage (hwnd, IDC_NAV, TVM_SELECTITEM, TVGN_CARET, SendDlgItemMessage (hwnd, IDC_NAV, TVM_GETNEXTITEM, TVGN_FIRSTVISIBLE, NULL)); // select 1-st item
@@ -860,11 +857,12 @@ INT_PTR CALLBACK SettingsDlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 					{
 						LPNMTREEVIEW pnmtv = (LPNMTREEVIEW)lparam;
 
-						ShowWindow ((HWND)GetProp (hwnd, L"hwnd"), SW_HIDE);
+						if (settings[INT (pnmtv->itemOld.lParam)].hwnd)
+						{
+							ShowWindow (settings[INT (pnmtv->itemOld.lParam)].hwnd, SW_HIDE);
+						}
 
-						SetProp (hwnd, L"hwnd", (HANDLE)pnmtv->itemNew.lParam);
-
-						ShowWindow ((HWND)pnmtv->itemNew.lParam, SW_SHOW);
+						ShowWindow (settings[INT (pnmtv->itemNew.lParam)].hwnd, SW_SHOW);
 
 						break;
 					}
@@ -881,9 +879,78 @@ INT_PTR CALLBACK SettingsDlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 				case IDOK: // process Enter key
 				case IDC_OK:
 				{
-					SetProp (hwnd, L"is_save", (HANDLE)TRUE); // save settings indicator
+					CString buffer;
 
-					// without break;
+					HWND hchild = nullptr;
+					BOOL is_restart = FALSE;
+
+					// setings (page 1)
+					if (settings[0].hwnd)
+					{
+						hchild = settings[0].hwnd;
+						buffer.Empty ();
+
+						_r_windowtotop (app.GetHWND (), (IsDlgButtonChecked (hchild, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE);
+
+						app.ConfigSet (L"AlwaysOnTop", INT ((IsDlgButtonChecked (hchild, IDC_ALWAYSONTOP_CHK) == BST_CHECKED) ? TRUE : FALSE));
+						app.ConfigSet (L"InsertBufferAtStartup", INT ((IsDlgButtonChecked (hchild, IDC_INSERTBUFFER_CHK) == BST_CHECKED) ? TRUE : FALSE));
+						app.ConfigSet (L"CheckUpdates", INT ((IsDlgButtonChecked (hchild, IDC_CHECKUPDATES_CHK) == BST_CHECKED) ? TRUE : FALSE));
+
+						// set language
+						if (SendDlgItemMessage (hchild, IDC_LANGUAGE, CB_GETCURSEL, 0, NULL) >= 1)
+						{
+							GetDlgItemText (hchild, IDC_LANGUAGE, buffer.GetBuffer (MAX_PATH), MAX_PATH);
+							buffer.ReleaseBuffer ();
+						}
+
+						app.LocaleSet (buffer);
+
+						if (((INT)GetProp (app.GetHWND (), L"language") != (INT)SendDlgItemMessage (hchild, IDC_LANGUAGE, CB_GETCURSEL, 0, NULL)))
+						{
+							is_restart = TRUE;
+						}
+					}
+
+					// setings (page 2)
+					if (settings[1].hwnd)
+					{
+						hchild = settings[1].hwnd;
+						buffer.Empty ();
+
+						INT item = -1;
+
+						while ((item = (INT)SendDlgItemMessage (hchild, IDC_MODULES, LVM_GETNEXTITEM, item, LVNI_ALL)) != -1)
+						{
+							if (!ListView_GetCheckState (GetDlgItem (hchild, IDC_MODULES), item))
+							{
+								buffer.Append (L"~");
+							}
+
+							buffer.Append (_r_listview_gettext (hchild, IDC_MODULES, item, 0));
+							buffer.Append (L";");
+						}
+
+						app.ConfigSet (L"SystemModule", buffer);
+					}
+
+					// setings (page 3)
+					if (settings[2].hwnd)
+					{
+						hchild = settings[2].hwnd;
+						buffer.Empty ();
+
+						app.ConfigSet (L"InternalModuleCPP", INT ((IsDlgButtonChecked (hchild, IDC_MODULE_INTERNAL_CPP) == BST_CHECKED) ? TRUE : FALSE));
+						app.ConfigSet (L"InternalModuleDX", INT ((IsDlgButtonChecked (hchild, IDC_MODULE_INTERNAL_DX) == BST_CHECKED) ? TRUE : FALSE));
+					}
+
+					EnableWindow (GetDlgItem (hwnd, IDC_OK), FALSE);
+
+					if (is_restart)
+					{
+						app.Restart ();
+					}
+
+					break;
 				}
 
 				case IDCANCEL: // process Esc key
@@ -909,17 +976,17 @@ LRESULT CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		{
 			_r_listview_setstyle (hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP);
 
-			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, application.LocaleString (IDS_COLUMN_1), application.ConfigGet (L"Column1", 40), 0, LVCFMT_LEFT);
-			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, application.LocaleString (IDS_COLUMN_2), application.ConfigGet (L"Column2", 60), 1, LVCFMT_LEFT);
+			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, I18N_ID (&app, IDS_COLUMN_1, 0), app.ConfigGet (L"Column1", 40), 0, LVCFMT_LEFT);
+			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, I18N_ID (&app, IDS_COLUMN_2, 0), app.ConfigGet (L"Column2", 60), 1, LVCFMT_LEFT);
 
-			_r_listview_addgroup (hwnd, IDC_LISTVIEW, 0, application.LocaleString (IDS_GROUP_1), 0, 0);
-			_r_listview_addgroup (hwnd, IDC_LISTVIEW, 1, application.LocaleString (IDS_GROUP_2), 0, 0);
+			_r_listview_addgroup (hwnd, IDC_LISTVIEW, 0, I18N_ID (&app, IDS_GROUP_1, 0), 0, 0);
+			_r_listview_addgroup (hwnd, IDC_LISTVIEW, 1, I18N_ID (&app, IDS_GROUP_2, 0), 0, 0);
 
-			_r_windowtotop (hwnd, application.ConfigGet (L"AlwaysOnTop", 0));
+			_r_windowtotop (hwnd, app.ConfigGet (L"AlwaysOnTop", 0));
 
 			SendDlgItemMessage (hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, INT32_MAX);
 
-			if (application.ConfigGet (L"InsertBufferAtStartup", 1))
+			if (app.ConfigGet (L"InsertBufferAtStartup", 1))
 			{
 				SetDlgItemText (hwnd, IDC_CODE, _r_clipboard_get (hwnd));
 			}
@@ -928,13 +995,33 @@ LRESULT CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				SetDlgItemInt (hwnd, IDC_CODE, 0, TRUE);
 			}
 
+			if (app.LocaleIsExternal ())
+			{
+				SetDlgItemText (hwnd, IDS_DESCRIPTION_1, I18N_ID (&app, IDS_DESCRIPTION_1, 0));
+				SetDlgItemText (hwnd, IDS_DESCRIPTION_2, I18N_ID (&app, IDS_DESCRIPTION_2, 0));
+				SetDlgItemText (hwnd, IDS_DESCRIPTION_3, I18N_ID (&app, IDS_DESCRIPTION_3, 0));
+				SetDlgItemText (hwnd, IDS_DESCRIPTION_4, I18N_ID (&app, IDS_DESCRIPTION_4, 0));
+
+				HMENU h = GetMenu (hwnd);
+
+				app.LocaleMenu (h, I18N_STR (&app, L"IDM_MENU_1"), 0, TRUE);
+				app.LocaleMenu (h, I18N_ID (&app, IDM_SETTINGS, 0), IDM_SETTINGS, FALSE);
+				app.LocaleMenu (h, I18N_ID (&app, IDM_EXIT, 0), IDM_EXIT, FALSE);
+				app.LocaleMenu (h, I18N_STR (&app, L"IDM_MENU_2"), 1, TRUE);
+				app.LocaleMenu (h, I18N_ID (&app, IDM_WEBSITE, 0), IDM_WEBSITE, FALSE);
+				app.LocaleMenu (h, I18N_ID (&app, IDM_CHECKUPDATES, 0), IDM_CHECKUPDATES, FALSE);
+				app.LocaleMenu (h, I18N_ID (&app, IDM_ABOUT, 0), IDM_ABOUT, FALSE);
+
+				DrawMenuBar (hwnd);
+			}
+
 			break;
 		}
 
 		case WM_DESTROY:
 		{
-			application.ConfigSet (L"Column1", (DWORD)_r_listview_getcolumnwidth (hwnd, IDC_LISTVIEW, 0));
-			application.ConfigSet (L"Column2", (DWORD)_r_listview_getcolumnwidth (hwnd, IDC_LISTVIEW, 1));
+			app.ConfigSet (L"Column1", (DWORD)_r_listview_getcolumnwidth (hwnd, IDC_LISTVIEW, 0));
+			app.ConfigSet (L"Column2", (DWORD)_r_listview_getcolumnwidth (hwnd, IDC_LISTVIEW, 1));
 
 			PostQuitMessage (0);
 
@@ -952,6 +1039,16 @@ LRESULT CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			if (GetDlgCtrlID ((HWND)wparam) == IDC_LISTVIEW)
 			{
 				HMENU menu = LoadMenu (nullptr, MAKEINTRESOURCE (IDM_LISTVIEW)), submenu = GetSubMenu (menu, 0);
+
+				if (app.LocaleIsExternal ())
+				{
+					app.LocaleMenu (submenu, I18N_ID (&app, IDM_COPY, 0), IDM_COPY, FALSE);
+				}
+
+				if (!SendDlgItemMessage (hwnd, IDC_LISTVIEW, LVM_GETSELECTEDCOUNT, 0, NULL))
+				{
+					EnableMenuItem (submenu, IDM_COPY, MF_BYCOMMAND | MF_DISABLED);
+				}
 
 				TrackPopupMenuEx (submenu, TPM_RIGHTBUTTON | TPM_LEFTBUTTON, LOWORD (lparam), HIWORD (lparam), hwnd, nullptr);
 
@@ -973,7 +1070,7 @@ LRESULT CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				{
 					if (wparam == IDC_LISTVIEW)
 					{
-						_Application_SetDescription (LPNMITEMACTIVATE (lparam)->iItem);
+						_Errlib_ShowDescription (hwnd, LPNMITEMACTIVATE (lparam)->iItem);
 					}
 
 					break;
@@ -995,7 +1092,7 @@ LRESULT CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				{
 					if (wparam == IDC_CODE_UD)
 					{
-						SetDlgItemText (hwnd, IDC_CODE, _r_fmt (FORMAT_DEC, _Application_GetCode (hwnd) + LPNMUPDOWN (lparam)->iDelta));
+						SetDlgItemText (hwnd, IDC_CODE, _r_fmt (FORMAT_DEC, _Errlib_GetCode (hwnd) + LPNMUPDOWN (lparam)->iDelta));
 						return TRUE;
 					}
 
@@ -1010,7 +1107,7 @@ LRESULT CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		{
 			if (HIWORD (wparam) == EN_CHANGE && LOWORD (wparam) == IDC_CODE)
 			{
-				_Application_Print (hwnd);
+				_Errlib_PrintInformation (hwnd);
 				break;
 			}
 
@@ -1020,12 +1117,7 @@ LRESULT CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				{
 					DialogBox (nullptr, MAKEINTRESOURCE (IDD_SETTINGS), hwnd, SettingsDlgProc);
 
-					if (GetProp (hwnd, L"is_restart"))
-					{
-						application.Restart ();
-					}
-
-					_Application_Print (hwnd);
+					_Errlib_PrintInformation (hwnd);
 
 					break;
 				}
@@ -1045,13 +1137,13 @@ LRESULT CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				case IDM_CHECKUPDATES:
 				{
-					application.CheckForUpdates (FALSE);
+					app.CheckForUpdates (FALSE);
 					break;
 				}
 
 				case IDM_ABOUT:
 				{
-					application.CreateAboutWindow ();
+					app.CreateAboutWindow ();
 					break;
 				}
 
@@ -1087,16 +1179,16 @@ LRESULT CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 INT APIENTRY wWinMain (HINSTANCE, HINSTANCE, LPWSTR, INT)
 {
-	application.SetCopyright (APP_COPYRIGHT);
-	application.SetLinks (APP_WEBSITE, APP_GITHUB);
+	app.SetCopyright (APP_COPYRIGHT);
+	app.SetLinks (APP_WEBSITE, APP_GITHUB);
 
-	if (application.CreateMainWindow ((DLGPROC)DlgProc))
+	if (app.CreateMainWindow ((DLGPROC)DlgProc))
 	{
 		MSG msg = {0};
 
 		while (GetMessage (&msg, nullptr, 0, 0))
 		{
-			if (!IsDialogMessage (application.GetHWND (), &msg))
+			if (!IsDialogMessage (app.GetHWND (), &msg))
 			{
 				TranslateMessage (&msg);
 				DispatchMessage (&msg);

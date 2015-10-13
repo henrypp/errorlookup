@@ -1,11 +1,13 @@
 v.2.1.159 (x October 2015)
-+ added "polish" localization
 + added "c/c++" error codes
++ added "polish" localization
 + support codes larger than INT32_MAX
-- improved module manager
++ new localization model (plain text)
+- improved settings window
+- improved system module manager
 - improved up-down numbers stepping
-- fixed update checknig period
-- fixed instal script (thanks to VictorVG)
+- fixed update checknig cannot be disabled
+- fixed setup script (thanks to VictorVG)
 - small ui fixes
 
 v2.0.6 (18 February 2015)
