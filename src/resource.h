@@ -8,6 +8,7 @@
 // Menu Id
 #define IDM_MAIN 100
 #define IDM_LISTVIEW 101
+#define IDM_MODULES 102
 
 // Dialogs
 #define IDD_ABOUT 100
@@ -21,8 +22,8 @@
 #define IDC_LOGO 100
 #define IDC_TITLE 101
 #define IDC_COPYRIGHT 102
-#define IDC_INFO 103
-#define IDC_LINKS 104
+#define IDC_LINKS 103
+#define IDC_INFO 104
 
 // Main Dlg
 #define IDC_CODE 104
@@ -43,11 +44,6 @@
 #define IDC_OK 113
 #define IDC_CANCEL 114
 
-#define IDC_TITLE_1 IDC_STATIC
-#define IDC_TITLE_2 IDC_STATIC
-#define IDC_TITLE_3 IDC_STATIC
-#define IDC_TITLE_4 IDC_STATIC
-
 #define IDC_ALWAYSONTOP_CHK 115
 #define IDC_INSERTBUFFER_CHK 116
 #define IDC_CHECKUPDATES_CHK 117
@@ -59,6 +55,10 @@
 #define IDC_MODULE_INTERNAL_CPP 121
 #define IDC_MODULE_INTERNAL_DX 122
 
+#define IDC_TITLE_1 1000
+#define IDC_TITLE_2 1001
+#define IDC_TITLE_3 1002
+
 // Main Menu
 #define IDM_SETTINGS 1000
 #define IDM_WEBSITE 1001
@@ -68,6 +68,10 @@
 
 // Listview Menu
 #define IDM_COPY 1005
+
+// Modules Menu
+#define IDM_ADD 1006
+#define IDM_DELETE 1007
 
 // Strings
 #define IDS_TRANSLATOR 1000

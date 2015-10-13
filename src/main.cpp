@@ -533,6 +533,21 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		case WM_INITDIALOG:
 		{
+			// localize
+			if (app.LocaleIsExternal ())
+			{
+				SetDlgItemText (hwnd, IDC_TITLE_1, I18N_STR (&app, L"IDC_TITLE_1"));
+				SetDlgItemText (hwnd, IDC_TITLE_2, I18N_STR (&app, L"IDC_TITLE_2"));
+				SetDlgItemText (hwnd, IDC_TITLE_3, I18N_STR (&app, L"IDC_TITLE_3"));
+
+				SetDlgItemText (hwnd, IDC_ALWAYSONTOP_CHK, I18N_STR (&app, L"IDC_ALWAYSONTOP_CHK"));
+				SetDlgItemText (hwnd, IDC_INSERTBUFFER_CHK, I18N_STR (&app, L"IDC_INSERTBUFFER_CHK"));
+				SetDlgItemText (hwnd, IDC_CHECKUPDATES_CHK, I18N_STR (&app, L"IDC_CHECKUPDATES_CHK"));
+
+				SetDlgItemText (hwnd, IDC_MODULE_INTERNAL_CPP, I18N_STR (&app, L"IDS_INTERNAL_MODULE_CPP"));
+				SetDlgItemText (hwnd, IDC_MODULE_INTERNAL_DX, I18N_STR (&app, L"IDS_INTERNAL_MODULE_DX"));
+			}
+
 			if (lparam == IDD_SETTINGS_1)
 			{
 				CheckDlgButton (hwnd, IDC_ALWAYSONTOP_CHK, app.ConfigGet (L"AlwaysOnTop", 0) ? BST_CHECKED : BST_UNCHECKED);
@@ -556,24 +571,25 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				CString str = app.ConfigGet (L"SystemModule", SYSTEM_MODULES_DEFAULT);
 
 				INT pos = 0;
+				INT item = 0;
 				CString token = str.Tokenize (L";", pos);
 
 				while (!token.IsEmpty ())
 				{
-					CString bdgd = token.Trim ();
-					BOOL enabled = bdgd.GetAt (0) == L'~' ? FALSE : TRUE;
+					CString module = token.Trim ();
+					BOOL is_enabled = module.GetAt (0) == L'~' ? FALSE : TRUE;
 
-					if (!enabled)
+					if (!is_enabled)
 					{
-						bdgd = bdgd.Mid (1, bdgd.GetLength ());
+						module = module.Mid (1, module.GetLength ());
 					}
 
-					if (!bdgd.IsEmpty ())
+					if (!module.IsEmpty ())
 					{
-						_r_listview_additem (hwnd, IDC_MODULES, bdgd, -1, 0);
-						_r_listview_additem (hwnd, IDC_MODULES, _Errlib_GetModuleDescription (bdgd), -1, 1);
+						_r_listview_additem (hwnd, IDC_MODULES, module, item, 0);
+						_r_listview_additem (hwnd, IDC_MODULES, _Errlib_GetModuleDescription (module), item, 1);
 
-						ListView_SetCheckState (GetDlgItem (hwnd, IDC_MODULES), SendDlgItemMessage (hwnd, IDC_MODULES, LVM_GETITEMCOUNT, 0, NULL) - 1, enabled);
+						ListView_SetCheckState (GetDlgItem (hwnd, IDC_MODULES), item++, is_enabled);
 					}
 
 					token = str.Tokenize (L";", pos);
@@ -686,6 +702,32 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			break;
 		}
 
+		case WM_CONTEXTMENU:
+		{
+			if (GetDlgCtrlID ((HWND)wparam) == IDC_MODULES)
+			{
+				HMENU menu = LoadMenu (nullptr, MAKEINTRESOURCE (IDM_MODULES)), submenu = GetSubMenu (menu, 0);
+
+				if (app.LocaleIsExternal ())
+				{
+					app.LocaleMenu (submenu, I18N_ID (&app, IDM_ADD, 0), IDM_ADD, FALSE);
+					app.LocaleMenu (submenu, I18N_ID (&app, IDM_DELETE, 0), IDM_DELETE, FALSE);
+				}
+
+				if (!SendDlgItemMessage (hwnd, IDC_MODULES, LVM_GETSELECTEDCOUNT, 0, NULL))
+				{
+					EnableMenuItem (submenu, IDM_DELETE, MF_BYCOMMAND | MF_DISABLED);
+				}
+
+				TrackPopupMenuEx (submenu, TPM_RIGHTBUTTON | TPM_LEFTBUTTON, LOWORD (lparam), HIWORD (lparam), hwnd, nullptr);
+
+				DestroyMenu (menu);
+				DestroyMenu (submenu);
+			}
+
+			break;
+		}
+
 		case WM_NOTIFY:
 		{
 			if (((LPNMHDR)lparam)->idFrom == IDC_MODULES)
@@ -709,7 +751,9 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 						// Ok, now we create a drag-image for all selected items
 						bFirst = TRUE;
+
 						INT iPos = ListView_GetNextItem (((LPNMHDR)lparam)->hwndFrom, -1, LVNI_SELECTED);
+
 						while (iPos != -1)
 						{
 							if (bFirst)
@@ -800,6 +844,53 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				EnableWindow (GetDlgItem (GetParent (hwnd), IDC_OK), TRUE);
 			}
 
+			switch (LOWORD (wparam))
+			{
+				case IDM_ADD:
+				{
+					WCHAR file[MAX_PATH] = {0};
+
+					OPENFILENAME ofn = {0};
+
+					ofn.lStructSize = sizeof (ofn);
+					ofn.hwndOwner = hwnd;
+					ofn.lpstrFile = file;
+					ofn.lpstrFile[0] = '\0';
+					ofn.nMaxFile = _countof (file);
+					ofn.lpstrFilter = L"Modules (*.dll; *.exe)\0*.dll;*.exe\0All files (*.*)\0*.*\0";
+					ofn.nFilterIndex = 1;
+					ofn.lpstrFileTitle = nullptr;
+					ofn.nMaxFileTitle = 0;
+					ofn.lpstrInitialDir = nullptr;
+					ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+					if (GetOpenFileName (&ofn))
+					{
+						_r_listview_additem (hwnd, IDC_MODULES, file, -1, 0);
+						_r_listview_additem (hwnd, IDC_MODULES, _Errlib_GetModuleDescription (file), -1, 1);
+
+						ListView_SetCheckState (GetDlgItem (hwnd, IDC_MODULES), SendDlgItemMessage (hwnd, IDC_MODULES, LVM_GETITEMCOUNT, 0, NULL) - 1, TRUE);
+					}
+
+					break;
+				}
+
+				case IDM_DELETE:
+				{
+					INT count = SendDlgItemMessage (hwnd, IDC_MODULES, LVM_GETITEMCOUNT, 0, NULL) - 1;
+
+					for (INT i = count; i >= 0; i--)
+					{
+						if (ListView_GetItemState (GetDlgItem (hwnd, IDC_MODULES), i, LVNI_SELECTED))
+						{
+							SendDlgItemMessage (hwnd, IDC_MODULES, LVM_DELETEITEM, i, NULL);
+						}
+					}
+
+					break;
+				}
+			}
+
 			break;
 		}
 	}
@@ -819,7 +910,7 @@ INT_PTR CALLBACK SettingsDlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 			// localize
 			if (app.LocaleIsExternal ())
 			{
-				SetWindowText (hwnd, I18N_ID (&app, 0, L"IDS_SETTINGS"));
+				SetWindowText (hwnd, I18N_STR (&app, L"IDS_SETTINGS"));
 
 				SetDlgItemText (hwnd, IDC_OK, I18N_STR (&app, L"IDC_OK"));
 				SetDlgItemText (hwnd, IDC_CANCEL, I18N_STR (&app, L"IDC_CANCEL"));
