@@ -10,8 +10,8 @@
 // config
 #define APP_NAME L"Error Lookup"
 #define APP_NAME_SHORT L"errorlookup"
-#define APP_VERSION L"2.1.168"
-#define APP_VERSION_RES 2,1,168,0
+#define APP_VERSION L"2.1.1072"
+#define APP_VERSION_RES 2,1,1072,0
 #define APP_AUTHOR L"Henry++"
 #define APP_COPYRIGHT L"(c) 2011-2015 " APP_AUTHOR L". All rights reserved."
 
@@ -28,6 +28,7 @@
 
 // libs
 #pragma comment(lib, "dxerr.lib")
+#pragma comment(lib, "version.lib")
 
 // sev.
 #define STATUS_SEVERITY_SUCCESS 0x0

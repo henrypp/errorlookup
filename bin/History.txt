@@ -1,4 +1,4 @@
-v.2.1.159 (x October 2015)
+v.2.1.1072 (16 October 2015)
 + added "c/c++" error codes
 + added "polish" localization
 + support codes larger than INT32_MAX

@@ -1,4 +1,4 @@
-v.2.1.159 (x October 2015)
+v.2.1.1072 (16 October 2015)
 + added "c/c++" error codes
 + added "polish" localization
 + support codes larger than INT32_MAX
@@ -11,18 +11,18 @@ v.2.1.159 (x October 2015)
 - small ui fixes
 
 v2.0.6 (18 February 2015)
-- fixed swedish localization
+- fixed "swedish" localization
 - fixed critical memory corruption bug when read ini value length over than 1024
-- improved windows xp compatipility
+- improved windows xp compatibility
 
 v2.0.5 (11 February 2015)
-- added "swedish" localization
++ added "swedish" localization
 - improved dpi compatibility
 - small ui fixes
 
 v2.0.4 (5 February 2015)
-- added "bosnian" localization
-- added "greek" localization
++ added "bosnian" localization
++ added "greek" localization
 - fixed tooltip params
 - fixed critical copy bug
 - fixed duplicate description printing at startup
