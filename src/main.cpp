@@ -4,7 +4,6 @@
 #include <windows.h>
 #include <stdint.h>
 #include "dxerr.h"
-#include <unordered_map>
 
 #include "main.h"
 #include "application.h"
@@ -958,10 +957,6 @@ LRESULT CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		case WM_INITDIALOG:
 		{
-			// configure window
-			SetWindowText (hwnd, APP_NAME);
-			_r_windowtotop (hwnd, app.ConfigGet (L"AlwaysOnTop", 0));
-
 			// configure listview
 			_r_listview_setstyle (hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP);
 
@@ -1166,16 +1161,16 @@ INT APIENTRY wWinMain (HINSTANCE, HINSTANCE, LPWSTR, INT)
 	app.SetCopyright (APP_COPYRIGHT);
 	app.SetLinks (APP_WEBSITE, APP_GITHUB);
 
-#ifndef _WIN64
-	if (_r_system_iswow64 ())
-	{
-		_r_msg (nullptr, MB_OK | MB_ICONEXCLAMATION, APP_NAME, L"WARNING! 32-bit version may incompatible with 64-bit operating system version.");
-	}
-#endif // _WIN64
-
 	if (app.CreateMainWindow ((DLGPROC)DlgProc))
 	{
 		MSG msg = {0};
+
+#ifndef _WIN64
+		if (_r_system_iswow64 ())
+		{
+			_r_msg (nullptr, MB_OK | MB_ICONEXCLAMATION, APP_NAME, L"WARNING! 32-bit version may incompatible with 64-bit operating system version!");
+		}
+#endif // _WIN64
 
 		while (GetMessage (&msg, nullptr, 0, 0))
 		{
