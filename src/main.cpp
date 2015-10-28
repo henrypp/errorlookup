@@ -11,7 +11,7 @@
 
 #include "resource.h"
 
-CApplication app (APP_NAME, APP_NAME_SHORT, APP_VERSION, APP_AUTHOR);
+CApplication app (APP_NAME, APP_NAME_SHORT, APP_VERSION, APP_AUTHOR, APP_COPYRIGHT, APP_WEBSITE, APP_GITHUB);
 
 LCID lcid;
 
@@ -532,6 +532,8 @@ INT_PTR WINAPI PagesDlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			SetDlgItemText (hwnd, IDC_ALWAYSONTOP_CHK, I18N (&app, IDS_ALWAYSONTOP_CHK, 0));
 			SetDlgItemText (hwnd, IDC_INSERTBUFFER_CHK, I18N (&app, IDS_INSERTBUFFER_CHK, 0));
 			SetDlgItemText (hwnd, IDC_CHECKUPDATES_CHK, I18N (&app, IDS_CHECKUPDATES_CHK, 0));
+
+			SetDlgItemText (hwnd, IDC_LANGUAGE_HINT, I18N (&app, IDS_LANGUAGE_HINT, 0));
 
 			SetDlgItemText (hwnd, IDC_MODULE_INTERNAL_CPP, I18N (&app, IDS_MODULE_INTERNAL_CPP, 0));
 			SetDlgItemText (hwnd, IDC_MODULE_INTERNAL_DX, I18N (&app, IDS_MODULE_INTERNAL_DX, 0));
@@ -1158,19 +1160,9 @@ LRESULT CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 INT APIENTRY wWinMain (HINSTANCE, HINSTANCE, LPWSTR, INT)
 {
-	app.SetCopyright (APP_COPYRIGHT);
-	app.SetLinks (APP_WEBSITE, APP_GITHUB);
-
 	if (app.CreateMainWindow ((DLGPROC)DlgProc))
 	{
 		MSG msg = {0};
-
-#ifndef _WIN64
-		if (_r_system_iswow64 ())
-		{
-			_r_msg (nullptr, MB_OK | MB_ICONEXCLAMATION, APP_NAME, L"WARNING! 32-bit version may incompatible with 64-bit operating system version!");
-		}
-#endif // _WIN64
 
 		while (GetMessage (&msg, nullptr, 0, 0))
 		{

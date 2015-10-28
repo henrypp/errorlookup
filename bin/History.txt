@@ -1,3 +1,7 @@
+v.2.1.1091 (28 October 2015)
+- fixed windows xp support
+- small ui fixes
+
 v.2.1.1072 (16 October 2015)
 + added "c/c++" error codes
 + added "polish" localization
