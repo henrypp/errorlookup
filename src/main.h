@@ -10,8 +10,8 @@
 // config
 #define APP_NAME L"Error Lookup"
 #define APP_NAME_SHORT L"errorlookup"
-#define APP_VERSION L"2.1.1091"
-#define APP_VERSION_RES 2,1,1091,0
+#define APP_VERSION L"2.1.1102"
+#define APP_VERSION_RES 2,1,1102,0
 #define APP_AUTHOR L"Henry++"
 #define APP_COPYRIGHT L"(c) 2011-2015 " APP_AUTHOR L". All rights reserved."
 

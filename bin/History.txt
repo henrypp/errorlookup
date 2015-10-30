@@ -1,4 +1,4 @@
-v.2.1.1091 (28 October 2015)
+v.2.1.1102 (31 October 2015)
 - fixed windows xp support
 - small ui fixes
 
