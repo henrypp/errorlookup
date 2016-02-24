@@ -1,3 +1,12 @@
+v.2.1.1247 (24 February 2015)
++ added windows xp (64-bit) support
++ now locale applied without restart
+- updated facility list (sdk v10)
+- fixed memory leak
+- stability improvements
+- small ui fixes
+- fixed bugs
+
 v.2.1.1102 (31 October 2015)
 - fixed windows xp support
 - small ui fixes
@@ -54,7 +63,7 @@ v2.0.0 (27 January 2015)
 + new settings
 + custom modules support
 + internationalization support
-- updated facility list (ntstatus.h v8.1)
+- updated facility list (sdk v8.1)
 
 v1.6 (3 January 2012)
 + ras error codes

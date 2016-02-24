@@ -1,10 +1,10 @@
 $RECYCLE.BIN/
-Debug/
-Release/
+debug/
+release/
 x64/
 Temp/
-bin/*.exe
-bin/*.ini
+bin/32
+bin/64
 
 Thumbs.db
 ehthumbs.db
@@ -23,6 +23,8 @@ Desktop.ini
 *.exp
 *.sdf
 *.opensdf
+*.db
+*.opendb
 *.suo
 *.exp
 *.user

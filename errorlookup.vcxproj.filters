@@ -2,15 +2,15 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{D9BD4578-CFA7-4220-8F70-BCF1AE8A43D2}</UniqueIdentifier>
+      <UniqueIdentifier>{B8644408-AB25-4433-AA62-0CE1235FBEBD}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{F5BCBFFC-76EE-4EBD-870B-E433FBD5C1FE}</UniqueIdentifier>
+      <UniqueIdentifier>{0BB11517-07EF-4374-AA03-2070B96FFDF4}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{C43178FB-ED62-44CC-8851-9D8341A3DCD1}</UniqueIdentifier>
+      <UniqueIdentifier>{5248F7C2-6D8B-4C27-8524-77640B75E96D}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
@@ -21,7 +21,10 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\routine\application.cpp">
+    <ClCompile Include="..\routine\rstring.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\routine\rapp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,7 +38,13 @@
     <ClInclude Include="src\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\routine\application.h">
+    <ClInclude Include="..\routine\rconfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\routine\rstring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\routine\rapp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
