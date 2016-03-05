@@ -1,4 +1,4 @@
-v.2.1.1247 (24 February 2015)
+v2.1.1247 (24 February 2015)
 + added windows xp (64-bit) support
 + now locale applied without restart
 - updated facility list (sdk v10)
@@ -7,11 +7,11 @@ v.2.1.1247 (24 February 2015)
 - small ui fixes
 - fixed bugs
 
-v.2.1.1102 (31 October 2015)
+v2.1.1102 (31 October 2015)
 - fixed windows xp support
 - small ui fixes
 
-v.2.1.1072 (16 October 2015)
+v2.1.1072 (16 October 2015)
 + added "c/c++" error codes
 + added "polish" localization
 + support codes larger than INT32_MAX
