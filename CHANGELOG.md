@@ -1,4 +1,8 @@
-v2.1.1247 (24 February 2015)
+v2.2.0 (17 August 2016)
+- updated to the latest sdk
+- revert old icon
+
+v2.1.1247 (24 February 2016)
 + added windows xp (64-bit) support
 + now locale applied without restart
 - updated facility list (sdk v10)

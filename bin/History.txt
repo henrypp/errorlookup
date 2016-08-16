@@ -1,5 +1,6 @@
 v2.2.0 (17 August 2016)
 - updated to the latest sdk
+- revert old icon
 
 v2.1.1247 (24 February 2016)
 + added windows xp (64-bit) support
