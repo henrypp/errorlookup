@@ -55,9 +55,10 @@
 // Main Menu
 #define IDM_SETTINGS 1000
 #define IDM_WEBSITE 1001
-#define IDM_CHECKUPDATES 1002
-#define IDM_ABOUT 1003
-#define IDM_EXIT 1004
+#define IDM_DONATE 1002
+#define IDM_CHECKUPDATES 1003
+#define IDM_ABOUT 1004
+#define IDM_EXIT 1005
 
 // Listview Menu
 #define IDM_COPY 2000
