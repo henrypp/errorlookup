@@ -1,4 +1,4 @@
-###Error Lookup
+## Error Lookup
 
 ![Error Lookup](http://www.henrypp.org/images/errorlookup.jpg)
 
