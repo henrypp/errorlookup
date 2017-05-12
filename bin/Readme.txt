@@ -11,4 +11,5 @@ To activate portable mode, create "errorlookup.ini" in application folder, or mo
 Website: www.henrypp.org
 Support: support@henrypp.org
 
-(c) 2011-2016 Henry++
+(c) 2011-2017 Henry++
+

@@ -1,6 +1,6 @@
 ## Error Lookup
 
-![Error Lookup](http://www.henrypp.org/images/errorlookup.jpg)
+![Error Lookup](http://www.henrypp.org/images/errorlookup.jpg?cachefix)
 
 Portable open source tool which can help by translating error codes into a more meaningful text description. The interface is simple - just a box to type your code, and another which displays the details - so there doesn’t seem much to learn. 
 
@@ -15,4 +15,4 @@ To activate portable mode, create "errorlookup.ini" in application folder, or mo
 Website: www.henrypp.org<br />
 Support: support@henrypp.org<br />
 <br />
-(c) 2011-2016 Henry++
+(c) 2011-2017 Henry++
