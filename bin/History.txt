@@ -1,8 +1,14 @@
-v2.2.1 (x September 2016)
+v2.3 (12 May 2017)
++ new gui
++ added window sizing
++ increased startup speed
+- removed settings dialog (do not needed anymore)
+- removed internal error codes
+- updated facility list (sdk v10)
 - updated to the latest sdk
 - updated translations
 
-v2.2.0 (17 August 2016)
+v2.2 (17 August 2016)
 - updated to the latest sdk
 - revert old icon
 
