@@ -12,4 +12,3 @@ Website: www.henrypp.org
 Support: support@henrypp.org
 
 (c) 2011-2017 Henry++
-
