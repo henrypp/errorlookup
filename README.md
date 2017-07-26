@@ -1,6 +1,6 @@
 ## Error Lookup
 
-![Error Lookup](http://www.henrypp.org/images/errorlookup.jpg?anothercachefix)
+![Error Lookup](http://www.henrypp.org/images/errorlookup.png)
 
 Portable open source tool which can help by translating error codes into a more meaningful text description. The interface is simple - just a box to type your code, and another which displays the details - so there doesn’t seem much to learn. 
 
