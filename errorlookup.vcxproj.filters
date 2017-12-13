@@ -27,33 +27,33 @@
     <ClCompile Include="..\routine\rapp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\include\pugixml\pugixml.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\routine\routine.h">
+    <ClInclude Include="..\routine\rapp.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\main.h">
+    <ClInclude Include="..\routine\rconfig.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\resource.h">
+    <ClInclude Include="..\routine\routine.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\routine\rconfig.h">
+    <ClInclude Include="..\routine\rstring.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\routine\rstring.h">
+    <ClInclude Include="src\main.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\routine\rapp.h">
+    <ClInclude Include="src\resource.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\include\pugixml\pugiconfig.hpp">
+    <ClInclude Include="src\app.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\include\pugixml\pugixml.hpp">
+    <ClInclude Include="src\pugiconfig.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\pugixml\src\pugixml.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

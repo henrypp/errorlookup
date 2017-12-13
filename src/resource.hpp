@@ -1,0 +1,69 @@
+#ifndef __RESOURCE_H__
+#define __RESOURCE_H__
+
+#ifndef IDC_STATIC
+#define IDC_STATIC (-1)
+#endif
+
+// Acceleration
+#define IDA_MAIN 100
+
+// Dialogs
+#define IDD_MAIN 101
+
+// Main Dlg
+#define IDC_CODE 100
+#define IDC_CODE_CTL 101
+#define IDC_CODE_UD 102
+#define IDC_LISTVIEW 103
+#define IDC_DESCRIPTION 104
+#define IDC_DESCRIPTION_CTL 105
+#define IDC_STATUSBAR 106
+
+// Main Menu
+#define IDM_EXIT 1001
+#define IDM_ALWAYSONTOP_CHK 1002
+#define IDM_INSERTBUFFER_CHK 1003
+#define IDM_CHECKUPDATES_CHK 1004
+#define IDM_ADDMODULE 1005
+#define IDM_WEBSITE 1006
+#define IDM_CHECKUPDATES 1007
+#define IDM_ABOUT 1008
+#define IDM_ZOOM 1009
+
+#define IDM_LANGUAGE 2000
+#define IDM_MODULES 3000
+
+// Strings
+#define IDS_LCID 1000
+
+#define IDS_UPDATE_NO 1001
+#define IDS_UPDATE_YES 1002
+
+#define IDS_FILE 1003
+#define IDS_SETTINGS 1004
+#define IDS_EXIT 1005
+#define IDS_LANGUAGE 1006
+#define IDS_HELP 1007
+#define IDS_WEBSITE 1008
+#define IDS_CHECKUPDATES 1009
+#define IDS_ABOUT 1010
+#define IDS_DONATE 1011
+
+#define IDS_ALWAYSONTOP_CHK 2000
+#define IDS_INSERTBUFFER_CHK 2001
+#define IDS_CHECKUPDATES_CHK 2002
+
+#define IDS_CODE 3000
+#define IDS_MODULES 3001
+#define IDS_DESCRIPTION 3002
+#define IDS_INFORMATION 3003
+
+#define IDS_STATUS_TOTAL 4000
+#define IDS_STATUS_EMPTY 4001
+#define IDS_STATUS_EMPTY2 4002
+
+// Icons
+#define IDI_MAIN 100
+
+#endif // __RESOURCE_H__

@@ -1,3 +1,9 @@
+v2.3.1 (x January 2018)
+- updated to the latest sdk
+- fixed window resizing
+- fixed dpi support
+- fixed bugs
+
 v2.3 (12 May 2017)
 + new gui
 + added window sizing
