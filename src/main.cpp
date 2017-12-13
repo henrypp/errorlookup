@@ -45,15 +45,15 @@ DWORD _app_getcode (HWND hwnd, BOOL* is_hex)
 	return result;
 }
 
-rstring _app_formatmessage (DWORD code, HINSTANCE h, BOOL is_localized = true)
+rstring _app_formatmessage (DWORD code, HINSTANCE hinstance, BOOL is_localized = true)
 {
 	rstring result;
 
-	if (h)
+	if (hinstance)
 	{
 		HLOCAL buffer = nullptr;
 
-		if (FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, h, code, is_localized ? lcid : 0, (LPWSTR)&buffer, 0, nullptr))
+		if (FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, hinstance, code, is_localized ? lcid : 0, (LPWSTR)&buffer, 0, nullptr))
 		{
 			result = (LPCWSTR)buffer;
 
@@ -65,9 +65,7 @@ rstring _app_formatmessage (DWORD code, HINSTANCE h, BOOL is_localized = true)
 		else
 		{
 			if (is_localized)
-			{
-				result = _app_formatmessage (code, h, false);
-			}
+				result = _app_formatmessage (code, hinstance, false);
 		}
 
 		result.Trim (L"\r\n ");
@@ -123,28 +121,28 @@ VOID _app_print (HWND hwnd)
 
 	for (size_t i = 0; i < modules.size (); i++)
 	{
-		ITEM_MODULE* const ptr = &modules.at (i);
+		ITEM_MODULE* const ptr_module = &modules.at (i);
 
-		if (!ptr->h || !app.ConfigGet (ptr->path, true, SECTION_MODULE).AsBool ())
+		if (!ptr_module->hlib || !app.ConfigGet (ptr_module->path, true, SECTION_MODULE).AsBool ())
 			continue;
 
-		buffer = _app_formatmessage (code, ptr->h);
+		buffer = _app_formatmessage (code, ptr_module->hlib);
 
 		if (!buffer.IsEmpty ())
 		{
 			const size_t length = buffer.GetLength () + 1;
 
-			if (ptr->text)
+			if (ptr_module->text)
 			{
-				free (ptr->text);
-				ptr->text = nullptr;
+				delete[] ptr_module->text;
+				ptr_module->text = nullptr;
 			}
 
-			ptr->text = (LPWSTR)malloc (length * sizeof (WCHAR));
+			ptr_module->text = new WCHAR[length];
 
-			StringCchCopy (ptr->text, length, buffer);
+			StringCchCopy (ptr_module->text, length, buffer);
 
-			_r_listview_additem (hwnd, IDC_LISTVIEW, item_count, 0, ptr->description, LAST_VALUE, LAST_VALUE, i);
+			_r_listview_additem (hwnd, IDC_LISTVIEW, item_count, 0, ptr_module->description, LAST_VALUE, LAST_VALUE, i);
 			item_count += 1;
 		}
 		else
@@ -224,11 +222,17 @@ VOID _app_loaddatabase (HWND hwnd)
 					{
 						for (size_t i = 0; i < modules.size (); i++)
 						{
-							if (modules.at (i).h)
-								FreeLibrary (modules.at (i).h);
+							if (modules.at (i).hlib)
+							{
+								FreeLibrary (modules.at (i).hlib);
+								modules.at (i).hlib = nullptr;
+							}
 
 							if (modules.at (i).text)
-								free (modules.at (i).text);
+							{
+								delete[] modules.at (i).text;
+								modules.at (i).text = nullptr;
+							}
 						}
 
 						modules.clear ();
@@ -251,9 +255,9 @@ VOID _app_loaddatabase (HWND hwnd)
 							const BOOL is_enabled = app.ConfigGet (module.path, true, SECTION_MODULE).AsBool ();
 
 							if (is_enabled)
-								module.h = LoadLibraryEx (module.path, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+								module.hlib = LoadLibraryEx (module.path, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
 
-							if (!is_enabled || !module.h)
+							if (!is_enabled || !module.hlib)
 								count_unload += 1;
 
 							{
@@ -266,7 +270,7 @@ VOID _app_loaddatabase (HWND hwnd)
 								mii.fState = is_enabled ? MFS_CHECKED : MF_UNCHECKED;
 								mii.wID = IDM_MODULES + i;
 
-								if (!module.h && is_enabled)
+								if (!module.hlib && is_enabled)
 									mii.fState |= MFS_DISABLED | MF_GRAYED;
 
 								InsertMenuItem (hmenu, IDM_MODULES + i, false, &mii);
@@ -293,7 +297,7 @@ VOID _app_loaddatabase (HWND hwnd)
 							rstring text = item.attribute (L"text").as_string ();
 
 							size_t length = text.GetLength () + 1;
-							LPWSTR ptr2 = (LPWSTR)malloc (length * sizeof (WCHAR));
+							LPWSTR ptr2 = new WCHAR[length];
 
 							StringCchCopy (ptr2, length, text);
 
@@ -316,7 +320,7 @@ VOID _app_loaddatabase (HWND hwnd)
 							rstring text = item.attribute (L"text").as_string ();
 
 							size_t length = text.GetLength () + 1;
-							LPWSTR ptr2 = (LPWSTR)malloc (length * sizeof (WCHAR));
+							LPWSTR ptr2 = new WCHAR[length];
 
 							StringCchCopy (ptr2, length, text);
 
@@ -549,7 +553,6 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			if (LOWORD (wparam) == IDC_CODE_CTL && HIWORD (wparam) == EN_CHANGE)
 			{
 				_app_print (hwnd);
-
 				return false;
 			}
 
@@ -562,33 +565,33 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			{
 				const size_t idx = LOWORD (wparam) - IDM_MODULES;
 
-				ITEM_MODULE* const ptr = &modules.at (idx);
+				ITEM_MODULE *ptr_module = &modules.at (idx);
 
-				const bool is_enabled = !app.ConfigGet (ptr->path, true, SECTION_MODULE).AsBool ();
+				const bool is_enabled = !app.ConfigGet (ptr_module->path, true, SECTION_MODULE).AsBool ();
 
 				CheckMenuItem (GetMenu (hwnd), IDM_MODULES + (LOWORD (wparam) - IDM_MODULES), MF_BYCOMMAND | (is_enabled ? MF_CHECKED : MF_UNCHECKED));
 
-				app.ConfigSet (ptr->path, is_enabled, SECTION_MODULE);
+				app.ConfigSet (ptr_module->path, is_enabled, SECTION_MODULE);
 
 				if (is_enabled)
 				{
-					ptr->h = LoadLibraryEx (ptr->path, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+					ptr_module->hlib = LoadLibraryEx (ptr_module->path, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
 
-					if (ptr->h)
+					if (ptr_module->hlib)
 						count_unload -= 1;
 				}
 				else
 				{
-					if (ptr->h)
+					if (ptr_module->hlib)
 					{
-						FreeLibrary (ptr->h);
-						ptr->h = nullptr;
+						FreeLibrary (ptr_module->hlib);
+						ptr_module->hlib = nullptr;
 					}
 
-					if (ptr->text)
+					if (ptr_module->text)
 					{
-						free (ptr->text);
-						ptr->text = nullptr;
+						delete[] ptr_module->text;
+						ptr_module->text = nullptr;
 					}
 
 					count_unload += 1;

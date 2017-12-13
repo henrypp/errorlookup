@@ -24,7 +24,7 @@
 
 struct ITEM_MODULE
 {
-	HMODULE h = nullptr;
+	HMODULE hlib = nullptr;
 
 	LPWSTR text = nullptr;
 
