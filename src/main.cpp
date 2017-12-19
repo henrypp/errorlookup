@@ -114,7 +114,7 @@ VOID _app_print (HWND hwnd)
 	_r_listview_deleteallitems (hwnd, IDC_LISTVIEW);
 
 	// print information
-	StringCchPrintf (info, _countof (info), I18N (&app, IDS_INFORMATION, 0), code, code, (severity.find (severity_code) != severity.end ()) ? severity[severity_code] : L"n/a", severity_code, (facility.find (facility_code) != facility.end ()) ? facility[facility_code] : L"n/a", facility_code);
+	StringCchPrintf (info, _countof (info), app.LocaleString (IDS_INFORMATION, nullptr), code, code, (severity.find (severity_code) != severity.end ()) ? severity[severity_code] : L"n/a", severity_code, (facility.find (facility_code) != facility.end ()) ? facility[facility_code] : L"n/a", facility_code);
 
 	// print modules
 	size_t item_count = 0;
@@ -334,11 +334,11 @@ VOID _app_loaddatabase (HWND hwnd)
 
 	if (modules.empty ())
 	{
-		AppendMenu (hmenu, MF_STRING, IDM_MODULES, I18N (&app, IDS_STATUS_EMPTY2, 0));
+		AppendMenu (hmenu, MF_STRING, IDM_MODULES, app.LocaleString (IDS_STATUS_EMPTY2, nullptr));
 		EnableMenuItem (hmenu, IDM_MODULES, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
 	}
 
-	_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (I18N (&app, IDS_STATUS_TOTAL, 0), modules.size () - count_unload, modules.size ()));
+	_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
 }
 
 VOID ResizeWindow (HWND hwnd, INT width, INT height)
@@ -379,35 +379,35 @@ BOOL initializer_callback (HWND hwnd, DWORD msg, LPVOID, LPVOID)
 		case _RM_LOCALIZE:
 		{
 			// get locale id
-			lcid = wcstoul (I18N (&app, IDS_LCID, 0), nullptr, 16);
+			lcid = wcstoul (app.LocaleString(IDS_LCID, nullptr), nullptr, 16);
 
 			_r_listview_deleteallcolumns (hwnd, IDC_LISTVIEW);
-			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, I18N (&app, IDS_MODULES, 0), 95, LVCFMT_LEFT);
+			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, app.LocaleString (IDS_MODULES, nullptr), 95, LVCFMT_LEFT);
 
 			// localize
 			const HMENU menu = GetMenu (hwnd);
 
-			app.LocaleMenu (menu, I18N (&app, IDS_FILE, 0), 0, true, nullptr);
-			app.LocaleMenu (menu, I18N (&app, IDS_EXIT, 0), IDM_EXIT, false, L"\tEsc");
+			app.LocaleMenu (menu,IDS_FILE, 0, true, nullptr);
+			app.LocaleMenu (menu,IDS_EXIT, IDM_EXIT, false, L"\tEsc");
 
-			app.LocaleMenu (menu, I18N (&app, IDS_SETTINGS, 0), 1, true, nullptr);
-			app.LocaleMenu (menu, I18N (&app, IDS_ALWAYSONTOP_CHK, 0), IDM_ALWAYSONTOP_CHK, false, nullptr);
-			app.LocaleMenu (menu, I18N (&app, IDS_INSERTBUFFER_CHK, 0), IDM_INSERTBUFFER_CHK, false, nullptr);
-			app.LocaleMenu (menu, I18N (&app, IDS_CHECKUPDATES_CHK, 0), IDM_CHECKUPDATES_CHK, false, nullptr);
-			app.LocaleMenu (GetSubMenu (menu, 1), I18N (&app, IDS_MODULES, 0), MODULES_MENU, true, nullptr);
-			app.LocaleMenu (GetSubMenu (menu, 1), I18N (&app, IDS_LANGUAGE, 0), LANG_MENU, true, L" (Language)");
+			app.LocaleMenu (menu, IDS_SETTINGS, 1, true, nullptr);
+			app.LocaleMenu (menu, IDS_ALWAYSONTOP_CHK, IDM_ALWAYSONTOP_CHK, false, nullptr);
+			app.LocaleMenu (menu, IDS_INSERTBUFFER_CHK, IDM_INSERTBUFFER_CHK, false, nullptr);
+			app.LocaleMenu (menu, IDS_CHECKUPDATES_CHK, IDM_CHECKUPDATES_CHK, false, nullptr);
+			app.LocaleMenu (GetSubMenu (menu, 1), IDS_MODULES, MODULES_MENU, true, nullptr);
+			app.LocaleMenu (GetSubMenu (menu, 1), IDS_LANGUAGE, LANG_MENU, true, L" (Language)");
 
-			app.LocaleMenu (menu, I18N (&app, IDS_HELP, 0), 2, true, nullptr);
-			app.LocaleMenu (menu, I18N (&app, IDS_WEBSITE, 0), IDM_WEBSITE, false, nullptr);
-			app.LocaleMenu (menu, I18N (&app, IDS_CHECKUPDATES, 0), IDM_CHECKUPDATES, false, nullptr);
-			app.LocaleMenu (menu, I18N (&app, IDS_ABOUT, 0), IDM_ABOUT, false, L"\tF1");
+			app.LocaleMenu (menu, IDS_HELP,  2, true, nullptr);
+			app.LocaleMenu (menu, IDS_WEBSITE, IDM_WEBSITE, false, nullptr);
+			app.LocaleMenu (menu, IDS_CHECKUPDATES, IDM_CHECKUPDATES, false, nullptr);
+			app.LocaleMenu (menu, IDS_ABOUT, IDM_ABOUT, false, L"\tF1");
 
-			SetDlgItemText (hwnd, IDC_CODE, I18N (&app, IDS_CODE, 0));
-			SetDlgItemText (hwnd, IDC_DESCRIPTION, I18N (&app, IDS_DESCRIPTION, 0));
+			SetDlgItemText (hwnd, IDC_CODE, app.LocaleString(IDS_CODE, nullptr));
+			SetDlgItemText (hwnd, IDC_DESCRIPTION, app.LocaleString(IDS_DESCRIPTION, nullptr));
 
 			_app_print (hwnd);
 
-			_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (I18N (&app, IDS_STATUS_TOTAL, 0), modules.size () - count_unload, modules.size ()));
+			_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
 
 			app.LocaleEnum ((HWND)GetSubMenu (menu, 1), LANG_MENU, true, IDM_LANGUAGE); // enum localizations
 
@@ -514,7 +514,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					NMLVEMPTYMARKUP* const lpnmlv = (NMLVEMPTYMARKUP*)lparam;
 
 					lpnmlv->dwFlags = EMF_CENTERED;
-					StringCchCopy (lpnmlv->szMarkup, _countof (lpnmlv->szMarkup), I18N (&app, IDS_STATUS_EMPTY, 0));
+					StringCchCopy (lpnmlv->szMarkup, _countof (lpnmlv->szMarkup), app.LocaleString (IDS_STATUS_EMPTY, nullptr));
 
 					SetWindowLongPtr (hwnd, DWLP_MSGRESULT, true);
 					return true;
@@ -597,7 +597,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					count_unload += 1;
 				}
 
-				_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (I18N (&app, IDS_STATUS_TOTAL, 0), modules.size () - count_unload, modules.size ()));
+				_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
 
 				_app_print (hwnd);
 
@@ -662,7 +662,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				case IDM_ABOUT:
 				{
-					app.CreateAboutWindow (hwnd, I18N (&app, IDS_DONATE, 0));
+					app.CreateAboutWindow (hwnd, app.LocaleString (IDS_DONATE, nullptr));
 					break;
 				}
 
