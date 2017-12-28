@@ -268,12 +268,12 @@ VOID _app_loaddatabase (HWND hwnd)
 								mii.fType = MFT_STRING;
 								mii.dwTypeData = module.description;
 								mii.fState = is_enabled ? MFS_CHECKED : MF_UNCHECKED;
-								mii.wID = IDM_MODULES + i;
+								mii.wID = IDX_MODULES + i;
 
 								if (!module.hlib && is_enabled)
 									mii.fState |= MFS_DISABLED | MF_GRAYED;
 
-								InsertMenuItem (hmenu, IDM_MODULES + i, false, &mii);
+								InsertMenuItem (hmenu, IDX_MODULES + i, false, &mii);
 							}
 
 							modules.push_back (module);
@@ -334,8 +334,8 @@ VOID _app_loaddatabase (HWND hwnd)
 
 	if (modules.empty ())
 	{
-		AppendMenu (hmenu, MF_STRING, IDM_MODULES, app.LocaleString (IDS_STATUS_EMPTY2, nullptr));
-		EnableMenuItem (hmenu, IDM_MODULES, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
+		AppendMenu (hmenu, MF_STRING, IDX_MODULES, app.LocaleString (IDS_STATUS_EMPTY2, nullptr));
+		EnableMenuItem (hmenu, IDX_MODULES, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
 	}
 
 	_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
@@ -409,7 +409,7 @@ BOOL initializer_callback (HWND hwnd, DWORD msg, LPVOID, LPVOID)
 
 			_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
 
-			app.LocaleEnum ((HWND)GetSubMenu (menu, 1), LANG_MENU, true, IDM_LANGUAGE); // enum localizations
+			app.LocaleEnum ((HWND)GetSubMenu (menu, 1), LANG_MENU, true, IDX_LANGUAGE); // enum localizations
 
 			SendDlgItemMessage (hwnd, IDC_LISTVIEW, (LVM_FIRST + 84), 0, 0); // LVM_RESETEMPTYTEXT
 
@@ -556,20 +556,20 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				return false;
 			}
 
-			if (HIWORD (wparam) == 0 && LOWORD (wparam) >= IDM_LANGUAGE && LOWORD (wparam) <= IDM_LANGUAGE + app.LocaleGetCount ())
+			if (HIWORD (wparam) == 0 && LOWORD (wparam) >= IDX_LANGUAGE && LOWORD (wparam) <= IDX_LANGUAGE + app.LocaleGetCount ())
 			{
-				app.LocaleApplyFromMenu (GetSubMenu (GetSubMenu (GetMenu (hwnd), 1), LANG_MENU), LOWORD (wparam), IDM_LANGUAGE);
+				app.LocaleApplyFromMenu (GetSubMenu (GetSubMenu (GetMenu (hwnd), 1), LANG_MENU), LOWORD (wparam), IDX_LANGUAGE);
 				return FALSE;
 			}
-			else if ((LOWORD (wparam) >= IDM_MODULES && LOWORD (wparam) <= IDM_MODULES + modules.size ()))
+			else if ((LOWORD (wparam) >= IDX_MODULES && LOWORD (wparam) <= IDX_MODULES + modules.size ()))
 			{
-				const size_t idx = LOWORD (wparam) - IDM_MODULES;
+				const size_t idx = LOWORD (wparam) - IDX_MODULES;
 
 				ITEM_MODULE *ptr_module = &modules.at (idx);
 
 				const bool is_enabled = !app.ConfigGet (ptr_module->path, true, SECTION_MODULE).AsBool ();
 
-				CheckMenuItem (GetMenu (hwnd), IDM_MODULES + (LOWORD (wparam) - IDM_MODULES), MF_BYCOMMAND | (is_enabled ? MF_CHECKED : MF_UNCHECKED));
+				CheckMenuItem (GetMenu (hwnd), IDX_MODULES + (LOWORD (wparam) - IDX_MODULES), MF_BYCOMMAND | (is_enabled ? MF_CHECKED : MF_UNCHECKED));
 
 				app.ConfigSet (ptr_module->path, is_enabled, SECTION_MODULE);
 

@@ -38,7 +38,7 @@ IDM_MAIN MENU
 		}
 		POPUP " "
 		{
-			MENUITEM " ", IDM_LANGUAGE
+			MENUITEM " ", IDX_LANGUAGE
 		}
 	}
 	POPUP " "
