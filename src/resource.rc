@@ -90,7 +90,7 @@ STRINGTABLE
 	IDS_WEBSITE "Website"
 	IDS_CHECKUPDATES "Check for updates"
 	IDS_ABOUT "About"
-	IDS_DONATE "Donate"
+	IDS_DONATE "Give thanks!"
 
 	IDS_CODE "Error code:"
 	IDS_MODULES "Modules"
