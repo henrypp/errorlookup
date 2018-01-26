@@ -1,5 +1,6 @@
 Error Lookup
 
+Description:
 Simple tool for retrieving information about Windows errors codes with simple interface - just a box to type your code, and another which displays the details. 
 
 The program supports a wide range of codes: regular Windows errors, DirectX, NTSTATUS errors, Windows Internet errors, STOP codes, and it can probably be configured to read more (Settings > System modules).
