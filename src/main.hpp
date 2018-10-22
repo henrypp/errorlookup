@@ -10,8 +10,8 @@
 #include "resource.hpp"
 #include "app.hpp"
 
-#define MODULES_MENU 4
-#define LANG_MENU 5
+#define MODULES_MENU 5
+#define LANG_MENU 6
 
 // pugixml document configuration
 #define PUGIXML_LOAD_FLAGS (pugi::parse_escapes)
@@ -24,12 +24,12 @@
 
 struct ITEM_MODULE
 {
-	HMODULE hlib = nullptr;
+	WCHAR path[MAX_PATH] = {0};
+	WCHAR description[MAX_PATH] = {0};
 
 	LPWSTR text = nullptr;
 
-	WCHAR path[MAX_PATH] = {0};
-	WCHAR description[MAX_PATH] = {0};
+	HMODULE hlib = nullptr;
 };
 
 #endif // __MAIN_H__

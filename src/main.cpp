@@ -372,54 +372,6 @@ VOID ResizeWindow (HWND hwnd, INT width, INT height)
 	SendDlgItemMessage (hwnd, IDC_STATUSBAR, WM_SIZE, 0, 0);
 }
 
-BOOL initializer_callback (HWND hwnd, DWORD msg, LPVOID, LPVOID)
-{
-	switch (msg)
-	{
-		case _RM_LOCALIZE:
-		{
-			// get locale id
-			lcid = wcstoul (app.LocaleString(IDS_LCID, nullptr), nullptr, 16);
-
-			_r_listview_deleteallcolumns (hwnd, IDC_LISTVIEW);
-			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, app.LocaleString (IDS_MODULES, nullptr), 95, LVCFMT_LEFT);
-
-			// localize
-			const HMENU menu = GetMenu (hwnd);
-
-			app.LocaleMenu (menu,IDS_FILE, 0, true, nullptr);
-			app.LocaleMenu (menu,IDS_EXIT, IDM_EXIT, false, L"\tEsc");
-
-			app.LocaleMenu (menu, IDS_SETTINGS, 1, true, nullptr);
-			app.LocaleMenu (menu, IDS_ALWAYSONTOP_CHK, IDM_ALWAYSONTOP_CHK, false, nullptr);
-			app.LocaleMenu (menu, IDS_INSERTBUFFER_CHK, IDM_INSERTBUFFER_CHK, false, nullptr);
-			app.LocaleMenu (menu, IDS_CHECKUPDATES_CHK, IDM_CHECKUPDATES_CHK, false, nullptr);
-			app.LocaleMenu (GetSubMenu (menu, 1), IDS_MODULES, MODULES_MENU, true, nullptr);
-			app.LocaleMenu (GetSubMenu (menu, 1), IDS_LANGUAGE, LANG_MENU, true, L" (Language)");
-
-			app.LocaleMenu (menu, IDS_HELP,  2, true, nullptr);
-			app.LocaleMenu (menu, IDS_WEBSITE, IDM_WEBSITE, false, nullptr);
-			app.LocaleMenu (menu, IDS_CHECKUPDATES, IDM_CHECKUPDATES, false, nullptr);
-			app.LocaleMenu (menu, IDS_ABOUT, IDM_ABOUT, false, L"\tF1");
-
-			SetDlgItemText (hwnd, IDC_CODE, app.LocaleString(IDS_CODE, nullptr));
-			SetDlgItemText (hwnd, IDC_DESCRIPTION, app.LocaleString(IDS_DESCRIPTION, nullptr));
-
-			_app_print (hwnd);
-
-			_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
-
-			app.LocaleEnum ((HWND)GetSubMenu (menu, 1), LANG_MENU, true, IDX_LANGUAGE); // enum localizations
-
-			SendDlgItemMessage (hwnd, IDC_LISTVIEW, (LVM_FIRST + 84), 0, 0); // LVM_RESETEMPTYTEXT
-
-			break;
-		}
-	}
-
-	return false;
-}
-
 INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	switch (msg)
@@ -444,6 +396,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			CheckMenuItem (GetMenu (hwnd), IDM_ALWAYSONTOP_CHK, MF_BYCOMMAND | (app.ConfigGet (L"AlwaysOnTop", false).AsBool () ? MF_CHECKED : MF_UNCHECKED));
 			CheckMenuItem (GetMenu (hwnd), IDM_INSERTBUFFER_CHK, MF_BYCOMMAND | (app.ConfigGet (L"InsertBufferAtStartup", false).AsBool () ? MF_CHECKED : MF_UNCHECKED));
 			CheckMenuItem (GetMenu (hwnd), IDM_CHECKUPDATES_CHK, MF_BYCOMMAND | (app.ConfigGet (L"CheckUpdates", true).AsBool () ? MF_CHECKED : MF_UNCHECKED));
+			CheckMenuItem (GetMenu (hwnd), IDM_CLASSICUI_CHK, MF_BYCOMMAND | (app.ConfigGet (L"ClassicUI", _APP_CLASSICUI).AsBool () ? MF_CHECKED : MF_UNCHECKED));
 
 			// load xml database
 			_app_loaddatabase (hwnd);
@@ -469,6 +422,47 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			break;
 		}
 
+		case RM_LOCALIZE:
+		{
+			// get locale id
+			lcid = wcstoul (app.LocaleString (IDS_LCID, nullptr), nullptr, 16);
+
+			_r_listview_deleteallcolumns (hwnd, IDC_LISTVIEW);
+			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, app.LocaleString (IDS_MODULES, nullptr), 95, LVCFMT_LEFT);
+
+			// localize
+			const HMENU menu = GetMenu (hwnd);
+
+			app.LocaleMenu (menu, IDS_FILE, 0, true, nullptr);
+			app.LocaleMenu (menu, IDS_EXIT, IDM_EXIT, false, L"\tEsc");
+
+			app.LocaleMenu (menu, IDS_SETTINGS, 1, true, nullptr);
+			app.LocaleMenu (menu, IDS_ALWAYSONTOP_CHK, IDM_ALWAYSONTOP_CHK, false, nullptr);
+			app.LocaleMenu (menu, IDS_INSERTBUFFER_CHK, IDM_INSERTBUFFER_CHK, false, nullptr);
+			app.LocaleMenu (menu, IDS_CHECKUPDATES_CHK, IDM_CHECKUPDATES_CHK, false, nullptr);
+			app.LocaleMenu (menu, IDS_CLASSICUI_CHK, IDM_CLASSICUI_CHK, false, nullptr);
+			app.LocaleMenu (GetSubMenu (menu, 1), IDS_MODULES, MODULES_MENU, true, nullptr);
+			app.LocaleMenu (GetSubMenu (menu, 1), IDS_LANGUAGE, LANG_MENU, true, L" (Language)");
+
+			app.LocaleMenu (menu, IDS_HELP, 2, true, nullptr);
+			app.LocaleMenu (menu, IDS_WEBSITE, IDM_WEBSITE, false, nullptr);
+			app.LocaleMenu (menu, IDS_CHECKUPDATES, IDM_CHECKUPDATES, false, nullptr);
+			app.LocaleMenu (menu, IDS_ABOUT, IDM_ABOUT, false, L"\tF1");
+
+			SetDlgItemText (hwnd, IDC_CODE, app.LocaleString (IDS_CODE, nullptr));
+			SetDlgItemText (hwnd, IDC_DESCRIPTION, app.LocaleString (IDS_DESCRIPTION, nullptr));
+
+			_app_print (hwnd);
+
+			_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
+
+			app.LocaleEnum ((HWND)GetSubMenu (menu, 1), LANG_MENU, true, IDX_LANGUAGE); // enum localizations
+
+			SendDlgItemMessage (hwnd, IDC_LISTVIEW, (LVM_FIRST + 84), 0, 0); // LVM_RESETEMPTYTEXT
+
+			break;
+		}
+
 		case WM_NOTIFY:
 		{
 			LPNMHDR hdr = (LPNMHDR)lparam;
@@ -485,7 +479,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 						if (lpnm->iItem != -1)
 						{
-							const size_t idx = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnm->iItem);
+							const size_t idx = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, (size_t)lpnm->iItem);
 
 							_app_showdescription (hwnd, idx);
 						}
@@ -502,7 +496,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				{
 					LPNMLVGETINFOTIP const lpnmlv = (LPNMLVGETINFOTIP)lparam;
 
-					ITEM_MODULE* const ptr = &modules.at (_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnmlv->iItem));
+					ITEM_MODULE* const ptr = &modules.at (_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, (size_t)lpnmlv->iItem));
 
 					StringCchPrintf (lpnmlv->pszText, lpnmlv->cchTextMax, L"%s [%s]\r\n%s", ptr->description, ptr->path, ptr->text);
 
@@ -617,7 +611,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				{
 					const bool new_val = !app.ConfigGet (L"AlwaysOnTop", false).AsBool ();
 
-					CheckMenuItem (GetMenu (hwnd), IDM_ALWAYSONTOP_CHK, MF_BYCOMMAND | (new_val ? MF_CHECKED : MF_UNCHECKED));
+					CheckMenuItem (GetMenu (hwnd), LOWORD (wparam), MF_BYCOMMAND | (new_val ? MF_CHECKED : MF_UNCHECKED));
 					app.ConfigSet (L"AlwaysOnTop", new_val);
 
 					_r_wnd_top (hwnd, new_val);
@@ -629,7 +623,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				{
 					const bool new_val = !app.ConfigGet (L"InsertBufferAtStartup", false).AsBool ();
 
-					CheckMenuItem (GetMenu (hwnd), IDM_INSERTBUFFER_CHK, MF_BYCOMMAND | (new_val ? MF_CHECKED : MF_UNCHECKED));
+					CheckMenuItem (GetMenu (hwnd), LOWORD (wparam), MF_BYCOMMAND | (new_val ? MF_CHECKED : MF_UNCHECKED));
 					app.ConfigSet (L"InsertBufferAtStartup", new_val);
 
 					break;
@@ -639,8 +633,18 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				{
 					const bool new_val = !app.ConfigGet (L"CheckUpdates", true).AsBool ();
 
-					CheckMenuItem (GetMenu (hwnd), IDM_CHECKUPDATES_CHK, MF_BYCOMMAND | (new_val ? MF_CHECKED : MF_UNCHECKED));
+					CheckMenuItem (GetMenu (hwnd), LOWORD (wparam), MF_BYCOMMAND | (new_val ? MF_CHECKED : MF_UNCHECKED));
 					app.ConfigSet (L"CheckUpdates", new_val);
+
+					break;
+				}
+
+				case IDM_CLASSICUI_CHK:
+				{
+					const bool new_val = !app.ConfigGet (L"ClassicUI", _APP_CLASSICUI).AsBool ();
+
+					CheckMenuItem (GetMenu (hwnd), LOWORD (wparam), MF_BYCOMMAND | (new_val ? MF_CHECKED : MF_UNCHECKED));
+					app.ConfigSet (L"ClassicUI", new_val);
 
 					break;
 				}
@@ -653,16 +657,16 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				case IDM_CHECKUPDATES:
 				{
-#ifndef _APP_NO_UPDATES
-					app.CheckForUpdates (false);
-#endif // _APP_NO_UPDATES
+#ifdef _APP_HAVE_UPDATES
+					app.UpdateCheck (true);
+#endif // _APP_HAVE_UPDATES
 
 					break;
 				}
 
 				case IDM_ABOUT:
 				{
-					app.CreateAboutWindow (hwnd, app.LocaleString (IDS_DONATE, nullptr));
+					app.CreateAboutWindow (hwnd);
 					break;
 				}
 
@@ -684,24 +688,25 @@ INT APIENTRY wWinMain (HINSTANCE, HINSTANCE, LPWSTR, INT)
 {
 	MSG msg = {0};
 
-	if (app.CreateMainWindow (IDD_MAIN, IDI_MAIN, &DlgProc, &initializer_callback))
+	if (app.CreateMainWindow (IDD_MAIN, IDI_MAIN, &DlgProc))
 	{
 		const HACCEL haccel = LoadAccelerators (app.GetHINSTANCE (), MAKEINTRESOURCE (IDA_MAIN));
 
-		while (GetMessage (&msg, nullptr, 0, 0) > 0)
+		if (haccel)
 		{
-			if (haccel)
+			while (GetMessage (&msg, nullptr, 0, 0) > 0)
+			{
 				TranslateAccelerator (app.GetHWND (), haccel, &msg);
 
-			if (!IsDialogMessage (app.GetHWND (), &msg))
-			{
-				TranslateMessage (&msg);
-				DispatchMessage (&msg);
+				if (!IsDialogMessage (app.GetHWND (), &msg))
+				{
+					TranslateMessage (&msg);
+					DispatchMessage (&msg);
+				}
 			}
-		}
 
-		if (haccel)
 			DestroyAcceleratorTable (haccel);
+		}
 	}
 
 	return (INT)msg.wParam;
