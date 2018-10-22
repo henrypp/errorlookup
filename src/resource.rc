@@ -31,6 +31,7 @@ IDM_MAIN MENU
 		MENUITEM " ", IDM_ALWAYSONTOP_CHK
 		MENUITEM " ", IDM_INSERTBUFFER_CHK
 		MENUITEM " ", IDM_CHECKUPDATES_CHK
+		MENUITEM " ", IDM_CLASSICUI_CHK
 		MENUITEM SEPARATOR
 		POPUP " "
 		{
@@ -80,7 +81,12 @@ STRINGTABLE
 	IDS_LCID "0x0409"
 
 	IDS_UPDATE_NO "No updates available."
-	IDS_UPDATE_YES "New version (%s) available. Open download page?"
+	IDS_UPDATE_YES "Update available, download and install them?"
+	IDS_UPDATE_DOWNLOAD "Downloading update..."
+	IDS_UPDATE_DONE "Downloading update finished."
+	IDS_UPDATE_ERROR "Update server connection error."
+	IDS_UPDATE_INIT "Checking for new releases..."
+	IDS_UPDATE_INSTALL "Update available, do you want to install them?"
 
 	IDS_FILE "File"
 	IDS_SETTINGS "Settings"
@@ -104,6 +110,9 @@ STRINGTABLE
 	IDS_STATUS_TOTAL "Loaded modules: %d of %d"
 	IDS_STATUS_EMPTY "No description found."
 	IDS_STATUS_EMPTY2 "No database found."
+
+	IDS_CLASSICUI_CHK "Use classic interface (restart required)"
+	IDS_CLOSE "Close"
 }
 
 //
