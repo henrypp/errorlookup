@@ -1,4 +1,5 @@
-## Error Lookup
+Error Lookup [![Github All Releases](https://img.shields.io/github/downloads/henrypp/errorlookup/total.svg)](https://github.com/henrypp/errorlookup/releases) [![Licence](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
+=======
 
 ![Error Lookup](https://www.henrypp.org/images/errorlookup.png)
 
