@@ -1,5 +1,9 @@
+v2.3.2 (x November 2018)
+- updated project sdk
+- updated windows sdk
+
 v2.3.1 (4 January 2018)
-- updated to the latest sdk
+- updated project sdk
 - fixed window resizing
 - fixed dpi support
 - fixed bugs
@@ -11,11 +15,11 @@ v2.3 (12 May 2017)
 - removed settings dialog (do not needed anymore)
 - removed internal error codes
 - updated facility list (sdk v10)
-- updated to the latest sdk
+- updated project sdk
 - updated translations
 
 v2.2 (17 August 2016)
-- updated to the latest sdk
+- updated project sdk
 - revert old icon
 
 v2.1.1247 (24 February 2016)
