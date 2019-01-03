@@ -541,7 +541,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case WM_SIZE:
 		{
 			ResizeWindow (hwnd, LOWORD (lparam), HIWORD (lparam));
-			InvalidateRect (hwnd, nullptr, TRUE);
+			RedrawWindow (hwnd, nullptr, nullptr, RDW_NOFRAME | RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN);
 
 			break;
 		}
