@@ -357,9 +357,13 @@ VOID ResizeWindow (HWND hwnd, INT width, INT height)
 	INT edit_height = (height - (rc.top - rc.bottom) - statusbar_height) - app.GetDPI (42);
 	edit_height -= _R_RECT_HEIGHT (&rc);
 
-	SetWindowPos (GetDlgItem (hwnd, IDC_LISTVIEW), nullptr, 0, 0, listview_width, listview_height, SWP_NOMOVE | SWP_NOCOPYBITS | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE);
-	SetWindowPos (GetDlgItem (hwnd, IDC_DESCRIPTION), nullptr, 0, 0, edit_width, app.GetDPI (14), SWP_NOMOVE | SWP_NOCOPYBITS | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE);
-	SetWindowPos (GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), nullptr, 0, 0, edit_width, edit_height, SWP_NOMOVE | SWP_NOCOPYBITS | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE);
+	HDWP hwdp = BeginDeferWindowPos (3);
+
+	_r_wnd_resize (&hwdp,GetDlgItem (hwnd, IDC_LISTVIEW), nullptr, 0, 0, listview_width, listview_height, SWP_NOMOVE);
+	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION), nullptr, 0, 0, edit_width, app.GetDPI (14), SWP_NOMOVE);
+	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), nullptr, 0, 0, edit_width, edit_height, SWP_NOMOVE);
+
+	EndDeferWindowPos (hwdp);
 
 	// resize statusbar parts
 	INT parts[] = {listview_width + app.GetDPI (24), -1};
@@ -498,7 +502,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 					ITEM_MODULE* const ptr = &modules.at (_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, (size_t)lpnmlv->iItem));
 
-					StringCchPrintf (lpnmlv->pszText, lpnmlv->cchTextMax, L"%s [%s]\r\n%s", ptr->description, ptr->path, ptr->text);
+					StringCchCopy (lpnmlv->pszText, lpnmlv->cchTextMax, ptr->path);
 
 					break;
 				}
@@ -537,7 +541,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case WM_SIZE:
 		{
 			ResizeWindow (hwnd, LOWORD (lparam), HIWORD (lparam));
-			RedrawWindow (hwnd, nullptr, nullptr, RDW_ALLCHILDREN | RDW_ERASE | RDW_INVALIDATE);
+			InvalidateRect (hwnd, nullptr, TRUE);
 
 			break;
 		}
