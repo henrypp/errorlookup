@@ -1,5 +1,5 @@
 // Error Lookup
-// Copyright (c) 2011-2018 Henry++
+// Copyright (c) 2011-2019 Henry++
 
 #include <windows.h>
 
