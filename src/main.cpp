@@ -70,7 +70,7 @@ rstring _app_formatmessage (DWORD code, HINSTANCE hinstance, BOOL is_localized =
 
 		result.Trim (L"\r\n ");
 
-		LocalFree (buffer);
+		SAFE_LOCAL_FREE (buffer);
 	}
 
 	return result;
