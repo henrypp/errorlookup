@@ -1,4 +1,4 @@
-v2.3.2 (x November 2018)
+v2.3.2 (x February 2019)
 - updated project sdk
 - updated windows sdk
 
