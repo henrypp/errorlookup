@@ -491,7 +491,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					PITEM_MODULE ptr_module = modules.at (_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, (size_t)lpnmlv->iItem));
 
 					if (ptr_module)
-						StringCchCopy (lpnmlv->pszText, lpnmlv->cchTextMax, ptr_module->path);
+						StringCchPrintf (lpnmlv->pszText, lpnmlv->cchTextMax, L"%s\r\n%s", ptr_module->description, ptr_module->path);
 
 					break;
 				}
