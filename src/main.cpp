@@ -14,7 +14,7 @@
 
 rapp app (APP_NAME, APP_NAME_SHORT, APP_VERSION, APP_COPYRIGHT);
 
-std::vector<ITEM_MODULE> modules;
+std::vector<PITEM_MODULE> modules;
 
 std::unordered_map<size_t, LPWSTR> facility;
 std::unordered_map<size_t, LPWSTR> severity;
@@ -53,7 +53,7 @@ rstring _app_formatmessage (DWORD code, HINSTANCE hinstance, BOOL is_localized =
 	{
 		HLOCAL buffer = nullptr;
 
-		if (FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, hinstance, code, is_localized ? lcid : 0, (LPWSTR)&buffer, 0, nullptr))
+		if (FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, hinstance, code, is_localized ? lcid : 0, (LPWSTR)& buffer, 0, nullptr))
 		{
 			result = (LPCWSTR)buffer;
 
@@ -76,15 +76,18 @@ rstring _app_formatmessage (DWORD code, HINSTANCE hinstance, BOOL is_localized =
 	return result;
 }
 
-VOID _app_showdescription (HWND hwnd, size_t idx)
+void _app_showdescription (HWND hwnd, size_t idx)
 {
 	if (idx != LAST_VALUE)
 	{
-		ITEM_MODULE* const ptr = &modules.at (idx);
+		PITEM_MODULE ptr_module = modules.at (idx);
 
-		_r_ctrl_settext (hwnd, IDC_DESCRIPTION_CTL, L"%s\r\n\r\n%s", info, ptr->text);
+		if (ptr_module)
+		{
+			_r_ctrl_settext (hwnd, IDC_DESCRIPTION_CTL, L"%s\r\n\r\n%s", info, ptr_module->text);
 
-		_r_status_settext (hwnd, IDC_STATUSBAR, 1, _r_fmt (L"%s [%s]", ptr->description, ptr->path));
+			_r_status_settext (hwnd, IDC_STATUSBAR, 1, _r_fmt (L"%s - %s", ptr_module->description, ptr_module->path));
+		}
 	}
 	else
 	{
@@ -93,15 +96,15 @@ VOID _app_showdescription (HWND hwnd, size_t idx)
 	}
 }
 
-VOID _app_listviewresize (HWND hwnd)
+void _app_listviewresize (HWND hwnd)
 {
 	RECT rc = {0};
 	GetClientRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rc);
 
-	_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, nullptr, rc.right);
+	_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, nullptr, _R_RECT_WIDTH (&rc));
 }
 
-VOID _app_print (HWND hwnd)
+void _app_print (HWND hwnd)
 {
 	const DWORD code = _app_getcode (hwnd, nullptr);
 
@@ -121,26 +124,16 @@ VOID _app_print (HWND hwnd)
 
 	for (size_t i = 0; i < modules.size (); i++)
 	{
-		ITEM_MODULE* const ptr_module = &modules.at (i);
+		PITEM_MODULE ptr_module = modules.at (i);
 
-		if (!ptr_module->hlib || !app.ConfigGet (ptr_module->path, true, SECTION_MODULE).AsBool ())
+		if (!ptr_module || !ptr_module->hlib || !app.ConfigGet (ptr_module->path, true, SECTION_MODULE).AsBool ())
 			continue;
 
 		buffer = _app_formatmessage (code, ptr_module->hlib);
 
 		if (!buffer.IsEmpty ())
 		{
-			const size_t length = buffer.GetLength () + 1;
-
-			if (ptr_module->text)
-			{
-				delete[] ptr_module->text;
-				ptr_module->text = nullptr;
-			}
-
-			ptr_module->text = new WCHAR[length];
-
-			StringCchCopy (ptr_module->text, length, buffer);
+			_r_str_alloc (&ptr_module->text, buffer.GetLength (), buffer);
 
 			_r_listview_additem (hwnd, IDC_LISTVIEW, item_count, 0, ptr_module->description, LAST_VALUE, LAST_VALUE, i);
 			item_count += 1;
@@ -195,7 +188,7 @@ LPVOID _app_loadresource (PDWORD size)
 	return nullptr;
 }
 
-VOID _app_loaddatabase (HWND hwnd)
+void _app_loaddatabase (HWND hwnd)
 {
 	DWORD rc_length = 0;
 	LPVOID da = _app_loadresource (&rc_length);
@@ -218,25 +211,10 @@ VOID _app_loaddatabase (HWND hwnd)
 
 				// load modules information
 				{
-					// clear it first
-					{
-						for (size_t i = 0; i < modules.size (); i++)
-						{
-							if (modules.at (i).hlib)
-							{
-								FreeLibrary (modules.at (i).hlib);
-								modules.at (i).hlib = nullptr;
-							}
+					for (auto &p : modules)
+						SAFE_DELETE (p);
 
-							if (modules.at (i).text)
-							{
-								delete[] modules.at (i).text;
-								modules.at (i).text = nullptr;
-							}
-						}
-
-						modules.clear ();
-					}
+					modules.clear ();
 
 					sub_root = root.child (L"module");
 
@@ -244,20 +222,24 @@ VOID _app_loaddatabase (HWND hwnd)
 					{
 						UINT i = 0;
 
+						static const DWORD load_flags = _r_sys_validversion (6, 0) ? LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE : LOAD_LIBRARY_AS_DATAFILE;
+
 						for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
 						{
-							ITEM_MODULE module;
-							SecureZeroMemory (&module, sizeof (module));
+							PITEM_MODULE ptr_module = new ITEM_MODULE;
 
-							StringCchCopy (module.path, _countof (module.path), item.attribute (L"file").as_string ());
-							StringCchCopy (module.description, _countof (module.description), !item.attribute (L"text").empty () ? item.attribute (L"text").as_string () : module.path);
+							const rstring path = item.attribute (L"file").as_string ();
+							const rstring description = !item.attribute (L"text").empty () ? item.attribute (L"text").as_string () : path;
 
-							const BOOL is_enabled = app.ConfigGet (module.path, true, SECTION_MODULE).AsBool ();
+							_r_str_alloc (&ptr_module->path, path.GetLength (), path);
+							_r_str_alloc (&ptr_module->description, description.GetLength (), description);
+
+							const bool is_enabled = app.ConfigGet (ptr_module->path, true, SECTION_MODULE).AsBool ();
 
 							if (is_enabled)
-								module.hlib = LoadLibraryEx (module.path, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+								ptr_module->hlib = LoadLibraryEx (ptr_module->path, nullptr, load_flags);
 
-							if (!is_enabled || !module.hlib)
+							if (!is_enabled || !ptr_module->hlib)
 								count_unload += 1;
 
 							{
@@ -266,17 +248,17 @@ VOID _app_loaddatabase (HWND hwnd)
 								mii.cbSize = sizeof (mii);
 								mii.fMask = MIIM_ID | MIIM_STATE | MIIM_STRING;
 								mii.fType = MFT_STRING;
-								mii.dwTypeData = module.description;
+								mii.dwTypeData = ptr_module->description;
 								mii.fState = is_enabled ? MFS_CHECKED : MF_UNCHECKED;
 								mii.wID = IDX_MODULES + i;
 
-								if (!module.hlib && is_enabled)
+								if (!ptr_module->hlib && is_enabled)
 									mii.fState |= MFS_DISABLED | MF_GRAYED;
 
 								InsertMenuItem (hmenu, IDX_MODULES + i, false, &mii);
 							}
 
-							modules.push_back (module);
+							modules.push_back (ptr_module);
 
 							i += 1;
 						}
@@ -285,6 +267,9 @@ VOID _app_loaddatabase (HWND hwnd)
 
 				// load facility information
 				{
+					for (auto &p : facility)
+						SAFE_DELETE_ARRAY (p.second);
+
 					facility.clear ();
 
 					sub_root = root.child (L"facility");
@@ -293,21 +278,22 @@ VOID _app_loaddatabase (HWND hwnd)
 					{
 						for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
 						{
-							const size_t code = item.attribute (L"code").as_uint ();
-							rstring text = item.attribute (L"text").as_string ();
+							const size_t code = item.attribute (L"code").as_ullong ();
+							const rstring text = item.attribute (L"text").as_string ();
 
-							size_t length = text.GetLength () + 1;
-							LPWSTR ptr2 = new WCHAR[length];
+							LPWSTR ptr_text = nullptr;
 
-							StringCchCopy (ptr2, length, text);
-
-							(facility)[code] = ptr2;
+							if (_r_str_alloc (&ptr_text, text.GetLength (), text))
+								facility[code] = ptr_text;
 						}
 					}
 				}
 
 				// load severity information
 				{
+					for (auto &p : severity)
+						SAFE_DELETE_ARRAY (p.second);
+
 					severity.clear ();
 
 					sub_root = root.child (L"severity");
@@ -316,15 +302,13 @@ VOID _app_loaddatabase (HWND hwnd)
 					{
 						for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
 						{
-							const size_t code = item.attribute (L"code").as_uint ();
-							rstring text = item.attribute (L"text").as_string ();
+							const size_t code = item.attribute (L"code").as_ullong ();
+							const rstring text = item.attribute (L"text").as_string ();
 
-							size_t length = text.GetLength () + 1;
-							LPWSTR ptr2 = new WCHAR[length];
+							LPWSTR ptr_text = nullptr;
 
-							StringCchCopy (ptr2, length, text);
-
-							(severity)[code] = ptr2;
+							if (_r_str_alloc (&ptr_text, text.GetLength (), text))
+								severity[code] = ptr_text;
 						}
 					}
 				}
@@ -341,7 +325,7 @@ VOID _app_loaddatabase (HWND hwnd)
 	_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
 }
 
-VOID ResizeWindow (HWND hwnd, INT width, INT height)
+void _app_resizewindow (HWND hwnd, INT width, INT height)
 {
 	RECT rc = {0};
 	GetWindowRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rc);
@@ -354,12 +338,12 @@ VOID ResizeWindow (HWND hwnd, INT width, INT height)
 	GetClientRect (GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), &rc);
 
 	const INT edit_width = (width - listview_width) - app.GetDPI (36);
-	INT edit_height = (height - (rc.top - rc.bottom) - statusbar_height) - app.GetDPI (42);
+	INT edit_height = (height - (rc.top - rc.bottom) - statusbar_height) - app.GetDPI (40);
 	edit_height -= _R_RECT_HEIGHT (&rc);
 
 	HDWP hwdp = BeginDeferWindowPos (3);
 
-	_r_wnd_resize (&hwdp,GetDlgItem (hwnd, IDC_LISTVIEW), nullptr, 0, 0, listview_width, listview_height, SWP_NOMOVE);
+	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_LISTVIEW), nullptr, 0, 0, listview_width, listview_height, SWP_NOMOVE);
 	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION), nullptr, 0, 0, edit_width, app.GetDPI (14), SWP_NOMOVE);
 	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), nullptr, 0, 0, edit_width, edit_height, SWP_NOMOVE);
 
@@ -389,12 +373,14 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			// configure listview
 			_r_listview_setstyle (hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP);
 
+			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, app.LocaleString (IDS_MODULES, nullptr), -95, LVCFMT_LEFT);
+
 			// resize support
 			{
 				RECT rc = {0};
 				GetClientRect (GetDlgItem (hwnd, IDC_STATUSBAR), &rc);
 
-				statusbar_height = rc.bottom;
+				statusbar_height = _R_RECT_HEIGHT (&rc);
 			}
 
 			// configure controls
@@ -433,10 +419,9 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case RM_LOCALIZE:
 		{
 			// get locale id
-			lcid = wcstoul (app.LocaleString (IDS_LCID, nullptr), nullptr, 16);
+			lcid = app.LocaleString (IDS_LCID, nullptr).AsUlong (16);
 
-			_r_listview_deleteallcolumns (hwnd, IDC_LISTVIEW);
-			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, app.LocaleString (IDS_MODULES, nullptr), 95, LVCFMT_LEFT);
+			_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, app.LocaleString (IDS_MODULES, nullptr), 0);
 
 			// localize
 			const HMENU menu = GetMenu (hwnd);
@@ -466,7 +451,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 			app.LocaleEnum ((HWND)GetSubMenu (menu, 1), LANG_MENU, true, IDX_LANGUAGE); // enum localizations
 
-			SendDlgItemMessage (hwnd, IDC_LISTVIEW, (LVM_FIRST + 84), 0, 0); // LVM_RESETEMPTYTEXT
+			SendDlgItemMessage (hwnd, IDC_LISTVIEW, LVM_RESETEMPTYTEXT, 0, 0);
 
 			break;
 		}
@@ -480,7 +465,6 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				case NM_CLICK:
 				case LVN_ITEMCHANGED:
 				{
-
 					if (hdr->idFrom == IDC_LISTVIEW)
 					{
 						LPNMITEMACTIVATE const lpnm = (LPNMITEMACTIVATE)lparam;
@@ -504,22 +488,23 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				{
 					LPNMLVGETINFOTIP const lpnmlv = (LPNMLVGETINFOTIP)lparam;
 
-					ITEM_MODULE* const ptr = &modules.at (_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, (size_t)lpnmlv->iItem));
+					PITEM_MODULE ptr_module = modules.at (_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, (size_t)lpnmlv->iItem));
 
-					StringCchCopy (lpnmlv->pszText, lpnmlv->cchTextMax, ptr->path);
+					if (ptr_module)
+						StringCchCopy (lpnmlv->pszText, lpnmlv->cchTextMax, ptr_module->path);
 
 					break;
 				}
 
 				case LVN_GETEMPTYMARKUP:
 				{
-					NMLVEMPTYMARKUP* const lpnmlv = (NMLVEMPTYMARKUP*)lparam;
+					NMLVEMPTYMARKUP* lpnmlv = (NMLVEMPTYMARKUP*)lparam;
 
 					lpnmlv->dwFlags = EMF_CENTERED;
 					StringCchCopy (lpnmlv->szMarkup, _countof (lpnmlv->szMarkup), app.LocaleString (IDS_STATUS_EMPTY, nullptr));
 
-					SetWindowLongPtr (hwnd, DWLP_MSGRESULT, true);
-					return true;
+					SetWindowLongPtr (hwnd, DWLP_MSGRESULT, TRUE);
+					return TRUE;
 				}
 
 				case UDN_DELTAPOS:
@@ -532,7 +517,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 						_r_ctrl_settext (hwnd, IDC_CODE_CTL, is_hex ? FORMAT_HEX : FORMAT_DEC, code + LPNMUPDOWN (lparam)->iDelta);
 						_app_print (hwnd);
 
-						return true;
+						return TRUE;
 					}
 
 					break;
@@ -544,8 +529,8 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 		case WM_SIZE:
 		{
-			ResizeWindow (hwnd, LOWORD (lparam), HIWORD (lparam));
-			RedrawWindow (hwnd, nullptr, nullptr, RDW_NOFRAME | RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN);
+			_app_resizewindow (hwnd, LOWORD (lparam), HIWORD (lparam));
+			RedrawWindow (hwnd, nullptr, nullptr, RDW_NOFRAME | RDW_NOINTERNALPAINT | RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN);
 
 			break;
 		}
@@ -555,7 +540,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			if (LOWORD (wparam) == IDC_CODE_CTL && HIWORD (wparam) == EN_CHANGE)
 			{
 				_app_print (hwnd);
-				return false;
+				return FALSE;
 			}
 
 			if (HIWORD (wparam) == 0 && LOWORD (wparam) >= IDX_LANGUAGE && LOWORD (wparam) <= IDX_LANGUAGE + app.LocaleGetCount ())
@@ -566,8 +551,10 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			else if ((LOWORD (wparam) >= IDX_MODULES && LOWORD (wparam) <= IDX_MODULES + modules.size ()))
 			{
 				const size_t idx = LOWORD (wparam) - IDX_MODULES;
+				PITEM_MODULE ptr_module = modules.at (idx);
 
-				ITEM_MODULE *ptr_module = &modules.at (idx);
+				if (!ptr_module)
+					return FALSE;
 
 				const bool is_enabled = !app.ConfigGet (ptr_module->path, true, SECTION_MODULE).AsBool ();
 
@@ -577,7 +564,9 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				if (is_enabled)
 				{
-					ptr_module->hlib = LoadLibraryEx (ptr_module->path, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+					static const DWORD load_flags = _r_sys_validversion (6, 0) ? LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE : LOAD_LIBRARY_AS_DATAFILE;
+
+					ptr_module->hlib = LoadLibraryEx (ptr_module->path, nullptr, load_flags);
 
 					if (ptr_module->hlib)
 						count_unload -= 1;
@@ -590,11 +579,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 						ptr_module->hlib = nullptr;
 					}
 
-					if (ptr_module->text)
-					{
-						delete[] ptr_module->text;
-						ptr_module->text = nullptr;
-					}
+					SAFE_DELETE_ARRAY (ptr_module->text);
 
 					count_unload += 1;
 				}
@@ -689,7 +674,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 	}
 
-	return false;
+	return FALSE;
 }
 
 INT APIENTRY wWinMain (HINSTANCE, HINSTANCE, LPWSTR, INT)
