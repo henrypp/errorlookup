@@ -78,7 +78,7 @@ rstring _app_formatmessage (DWORD code, HINSTANCE hinstance, BOOL is_localized =
 
 void _app_showdescription (HWND hwnd, size_t idx)
 {
-	if (idx != LAST_VALUE)
+	if (idx != INVALID_SIZE_T)
 	{
 		PITEM_MODULE ptr_module = modules.at (idx);
 
@@ -120,7 +120,7 @@ void _app_print (HWND hwnd)
 	StringCchPrintf (info, _countof (info), app.LocaleString (IDS_INFORMATION, nullptr), code, code, (severity.find (severity_code) != severity.end ()) ? severity[severity_code] : L"n/a", severity_code, (facility.find (facility_code) != facility.end ()) ? facility[facility_code] : L"n/a", facility_code);
 
 	// print modules
-	size_t item_count = 0;
+	INT item_count = 0;
 
 	for (size_t i = 0; i < modules.size (); i++)
 	{
@@ -135,7 +135,7 @@ void _app_print (HWND hwnd)
 		{
 			_r_str_alloc (&ptr_module->text, buffer.GetLength (), buffer);
 
-			_r_listview_additem (hwnd, IDC_LISTVIEW, item_count, 0, ptr_module->description, LAST_VALUE, LAST_VALUE, i);
+			_r_listview_additem (hwnd, IDC_LISTVIEW, item_count, 0, ptr_module->description, INVALID_INT, INVALID_INT, i);
 			item_count += 1;
 		}
 		else
@@ -149,7 +149,7 @@ void _app_print (HWND hwnd)
 	// show description for first item
 	if (!item_count)
 	{
-		_app_showdescription (hwnd, LAST_VALUE);
+		_app_showdescription (hwnd, INVALID_SIZE_T);
 	}
 	else
 	{
@@ -471,13 +471,13 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 						if (lpnm->iItem != -1)
 						{
-							const size_t idx = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, (size_t)lpnm->iItem);
+							const size_t idx = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnm->iItem);
 
 							_app_showdescription (hwnd, idx);
 						}
 						else
 						{
-							_app_showdescription (hwnd, LAST_VALUE);
+							_app_showdescription (hwnd, INVALID_SIZE_T);
 						}
 					}
 
@@ -488,7 +488,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				{
 					LPNMLVGETINFOTIP const lpnmlv = (LPNMLVGETINFOTIP)lparam;
 
-					PITEM_MODULE ptr_module = modules.at (_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, (size_t)lpnmlv->iItem));
+					PITEM_MODULE ptr_module = modules.at (_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnmlv->iItem));
 
 					if (ptr_module)
 						StringCchPrintf (lpnmlv->pszText, lpnmlv->cchTextMax, L"%s\r\n%s", ptr_module->description, ptr_module->path);
