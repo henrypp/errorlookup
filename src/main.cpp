@@ -57,10 +57,8 @@ rstring _app_formatmessage (DWORD code, HINSTANCE hinstance, BOOL is_localized =
 		{
 			result = (LPCWSTR)buffer;
 
-			if (_wcsnicmp (result, L"%1", 2) == 0)
-			{
+			if (result[0] == L'%')
 				result.Clear (); // clear
-			}
 		}
 		else
 		{
@@ -68,9 +66,9 @@ rstring _app_formatmessage (DWORD code, HINSTANCE hinstance, BOOL is_localized =
 				result = _app_formatmessage (code, hinstance, false);
 		}
 
-		result.Trim (L"\r\n ");
-
 		SAFE_LOCAL_FREE (buffer);
+
+		_r_str_trim (result, L"\r\n ");
 	}
 
 	return result;
@@ -332,25 +330,25 @@ void _app_resizewindow (HWND hwnd, INT width, INT height)
 	const INT listview_width = _R_RECT_WIDTH (&rc);
 
 	GetClientRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rc);
-	INT listview_height = (height - (rc.top - rc.bottom) - statusbar_height) - app.GetDPI (80);
+	INT listview_height = (height - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (80);
 	listview_height -= _R_RECT_HEIGHT (&rc);
 
 	GetClientRect (GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), &rc);
 
-	const INT edit_width = (width - listview_width) - app.GetDPI (36);
-	INT edit_height = (height - (rc.top - rc.bottom) - statusbar_height) - app.GetDPI (40);
+	const INT edit_width = (width - listview_width) - _r_dc_getdpi (36);
+	INT edit_height = (height - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (40);
 	edit_height -= _R_RECT_HEIGHT (&rc);
 
 	HDWP hwdp = BeginDeferWindowPos (3);
 
 	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_LISTVIEW), nullptr, 0, 0, listview_width, listview_height, SWP_NOMOVE);
-	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION), nullptr, 0, 0, edit_width, app.GetDPI (14), SWP_NOMOVE);
+	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION), nullptr, 0, 0, edit_width, _r_dc_getdpi (14), SWP_NOMOVE);
 	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), nullptr, 0, 0, edit_width, edit_height, SWP_NOMOVE);
 
 	EndDeferWindowPos (hwdp);
 
 	// resize statusbar parts
-	INT parts[] = {listview_width + app.GetDPI (24), -1};
+	INT parts[] = {listview_width + _r_dc_getdpi (24), -1};
 	SendDlgItemMessage (hwnd, IDC_STATUSBAR, SB_SETPARTS, 2, (LPARAM)parts);
 
 	// resize column width
@@ -469,7 +467,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					{
 						LPNMITEMACTIVATE const lpnm = (LPNMITEMACTIVATE)lparam;
 
-						if (lpnm->iItem != -1)
+						if (lpnm->iItem != INVALID_INT)
 						{
 							const size_t idx = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnm->iItem);
 
@@ -486,7 +484,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				case LVN_GETINFOTIP:
 				{
-					LPNMLVGETINFOTIP const lpnmlv = (LPNMLVGETINFOTIP)lparam;
+					LPNMLVGETINFOTIP lpnmlv = (LPNMLVGETINFOTIP)lparam;
 
 					PITEM_MODULE ptr_module = modules.at (_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnmlv->iItem));
 
