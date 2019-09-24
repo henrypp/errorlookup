@@ -16,8 +16,8 @@ rapp app (APP_NAME, APP_NAME_SHORT, APP_VERSION, APP_COPYRIGHT);
 
 std::vector<PITEM_MODULE> modules;
 
-std::unordered_map<size_t, LPWSTR> facility;
-std::unordered_map<size_t, LPWSTR> severity;
+std::unordered_map<DWORD, LPWSTR> facility;
+std::unordered_map<DWORD, LPWSTR> severity;
 
 LCID lcid = 0;
 
@@ -276,7 +276,7 @@ void _app_loaddatabase (HWND hwnd)
 					{
 						for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
 						{
-							const size_t code = item.attribute (L"code").as_ullong ();
+							const DWORD code = (DWORD)item.attribute (L"code").as_ullong ();
 							const rstring text = item.attribute (L"text").as_string ();
 
 							LPWSTR ptr_text = nullptr;
@@ -300,7 +300,7 @@ void _app_loaddatabase (HWND hwnd)
 					{
 						for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
 						{
-							const size_t code = item.attribute (L"code").as_ullong ();
+							const DWORD code = (DWORD)item.attribute (L"code").as_ullong ();
 							const rstring text = item.attribute (L"text").as_string ();
 
 							LPWSTR ptr_text = nullptr;
