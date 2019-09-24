@@ -58,7 +58,7 @@ rstring _app_formatmessage (DWORD code, HINSTANCE hinstance, BOOL is_localized =
 			result = (LPCWSTR)buffer;
 
 			if (result[0] == L'%')
-				result.Clear (); // clear
+				result.Release (); // clear
 		}
 		else
 		{
@@ -115,7 +115,7 @@ void _app_print (HWND hwnd)
 	_r_listview_deleteallitems (hwnd, IDC_LISTVIEW);
 
 	// print information
-	StringCchPrintf (info, _countof (info), app.LocaleString (IDS_INFORMATION, nullptr), code, code, (severity.find (severity_code) != severity.end ()) ? severity[severity_code] : L"n/a", severity_code, (facility.find (facility_code) != facility.end ()) ? facility[facility_code] : L"n/a", facility_code);
+	_r_str_printf (info, _countof (info), app.LocaleString (IDS_INFORMATION, nullptr), code, code, (severity.find (severity_code) != severity.end ()) ? severity[severity_code] : L"n/a", severity_code, (facility.find (facility_code) != facility.end ()) ? facility[facility_code] : L"n/a", facility_code);
 
 	// print modules
 	INT item_count = 0;
@@ -489,7 +489,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					PITEM_MODULE ptr_module = modules.at (_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnmlv->iItem));
 
 					if (ptr_module)
-						StringCchPrintf (lpnmlv->pszText, lpnmlv->cchTextMax, L"%s\r\n%s", ptr_module->description, ptr_module->path);
+						_r_str_printf (lpnmlv->pszText, lpnmlv->cchTextMax, L"%s\r\n%s", ptr_module->description, ptr_module->path);
 
 					break;
 				}
@@ -499,7 +499,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					NMLVEMPTYMARKUP* lpnmlv = (NMLVEMPTYMARKUP*)lparam;
 
 					lpnmlv->dwFlags = EMF_CENTERED;
-					StringCchCopy (lpnmlv->szMarkup, _countof (lpnmlv->szMarkup), app.LocaleString (IDS_STATUS_EMPTY, nullptr));
+					_r_str_copy (lpnmlv->szMarkup, _countof (lpnmlv->szMarkup), app.LocaleString (IDS_STATUS_EMPTY, nullptr));
 
 					SetWindowLongPtr (hwnd, DWLP_MSGRESULT, TRUE);
 					return TRUE;
@@ -510,7 +510,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					if (hdr->idFrom == IDC_CODE_UD)
 					{
 						BOOL is_hex = false;
-						const DWORD code = _app_getcode (hwnd, &is_hex);
+						DWORD code = _app_getcode (hwnd, &is_hex);
 
 						_r_ctrl_settext (hwnd, IDC_CODE_CTL, is_hex ? FORMAT_HEX : FORMAT_DEC, code + LPNMUPDOWN (lparam)->iDelta);
 						_app_print (hwnd);
