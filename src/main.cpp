@@ -84,13 +84,13 @@ void _app_showdescription (HWND hwnd, size_t idx)
 		{
 			_r_ctrl_settext (hwnd, IDC_DESCRIPTION_CTL, L"%s\r\n\r\n%s", info, ptr_module->text);
 
-			_r_status_settext (hwnd, IDC_STATUSBAR, 1, _r_fmt (L"%s - %s", ptr_module->description, ptr_module->path));
+			_r_status_settext (hwnd, IDC_STATUSBAR, 1, _r_fmt (L"%s - %s", ptr_module->description, ptr_module->path), nullptr);
 		}
 	}
 	else
 	{
 		SetDlgItemText (hwnd, IDC_DESCRIPTION_CTL, info);
-		_r_status_settext (hwnd, IDC_STATUSBAR, 1, nullptr);
+		_r_status_settext (hwnd, IDC_STATUSBAR, 1, nullptr, nullptr);
 	}
 }
 
@@ -320,7 +320,7 @@ void _app_loaddatabase (HWND hwnd)
 		EnableMenuItem (hmenu, IDX_MODULES, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
 	}
 
-	_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
+	_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()), nullptr);
 }
 
 void _app_resizewindow (HWND hwnd, INT width, INT height)
@@ -445,7 +445,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 			_app_print (hwnd);
 
-			_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
+			_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()), nullptr);
 
 			app.LocaleEnum ((HWND)GetSubMenu (menu, 1), LANG_MENU, true, IDX_LANGUAGE); // enum localizations
 
@@ -582,7 +582,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 					count_unload += 1;
 				}
 
-				_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
+				_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()), nullptr);
 
 				_app_print (hwnd);
 
