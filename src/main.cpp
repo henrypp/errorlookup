@@ -21,7 +21,6 @@ std::unordered_map<DWORD, LPWSTR> severity;
 
 LCID lcid = 0;
 
-INT statusbar_height = 0;
 size_t count_unload = 0;
 
 WCHAR info[MAX_PATH] = {0};
@@ -326,10 +325,16 @@ void _app_loaddatabase (HWND hwnd)
 void _app_resizewindow (HWND hwnd, INT width, INT height)
 {
 	RECT rc = {0};
+	SendDlgItemMessage (hwnd, IDC_STATUSBAR, SB_GETRECT, 0, (LPARAM)&rc);
+
+	const INT statusbar_height = _R_RECT_HEIGHT (&rc);
+
 	GetWindowRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rc);
+
 	const INT listview_width = _R_RECT_WIDTH (&rc);
 
 	GetClientRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rc);
+
 	INT listview_height = (height - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (80);
 	listview_height -= _R_RECT_HEIGHT (&rc);
 
@@ -372,14 +377,6 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			_r_listview_setstyle (hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP);
 
 			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, app.LocaleString (IDS_MODULES, nullptr), -95, LVCFMT_LEFT);
-
-			// resize support
-			{
-				RECT rc = {0};
-				GetClientRect (GetDlgItem (hwnd, IDC_STATUSBAR), &rc);
-
-				statusbar_height = _R_RECT_HEIGHT (&rc);
-			}
 
 			// configure controls
 			SendDlgItemMessage (hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, INT32_MAX);
