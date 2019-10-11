@@ -335,25 +335,25 @@ void _app_resizewindow (HWND hwnd, INT width, INT height)
 
 	GetClientRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rc);
 
-	INT listview_height = (height - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (80);
+	INT listview_height = (height - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (hwnd, 80);
 	listview_height -= _R_RECT_HEIGHT (&rc);
 
 	GetClientRect (GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), &rc);
 
-	const INT edit_width = (width - listview_width) - _r_dc_getdpi (36);
-	INT edit_height = (height - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (40);
+	const INT edit_width = (width - listview_width) - _r_dc_getdpi (hwnd, 36);
+	INT edit_height = (height - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (hwnd, 40);
 	edit_height -= _R_RECT_HEIGHT (&rc);
 
 	HDWP hwdp = BeginDeferWindowPos (3);
 
 	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_LISTVIEW), nullptr, 0, 0, listview_width, listview_height, SWP_NOMOVE);
-	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION), nullptr, 0, 0, edit_width, _r_dc_getdpi (14), SWP_NOMOVE);
+	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION), nullptr, 0, 0, edit_width, _r_dc_getdpi (hwnd, 14), SWP_NOMOVE);
 	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), nullptr, 0, 0, edit_width, edit_height, SWP_NOMOVE);
 
 	EndDeferWindowPos (hwdp);
 
 	// resize statusbar parts
-	INT parts[] = {listview_width + _r_dc_getdpi (24), -1};
+	INT parts[] = {listview_width + _r_dc_getdpi (hwnd, 24), -1};
 	SendDlgItemMessage (hwnd, IDC_STATUSBAR, SB_SETPARTS, 2, (LPARAM)parts);
 
 	// resize column width
