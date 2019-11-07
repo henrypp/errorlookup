@@ -219,7 +219,7 @@ void _app_loaddatabase (HWND hwnd)
 					{
 						UINT i = 0;
 
-						static const DWORD load_flags = _r_sys_validversion (6, 0) ? LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE : LOAD_LIBRARY_AS_DATAFILE;
+						const DWORD load_flags = _r_sys_validversion (6, 0) ? LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE : LOAD_LIBRARY_AS_DATAFILE;
 
 						for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
 						{
@@ -565,7 +565,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				if (is_enabled)
 				{
-					static const DWORD load_flags = _r_sys_validversion (6, 0) ? LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE : LOAD_LIBRARY_AS_DATAFILE;
+					const DWORD load_flags = _r_sys_validversion (6, 0) ? LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE : LOAD_LIBRARY_AS_DATAFILE;
 
 					ptr_module->hlib = LoadLibraryEx (ptr_module->path, nullptr, load_flags);
 
