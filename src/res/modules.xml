@@ -112,6 +112,7 @@
 		<item code="66" text="FACILITY_EAP" />
 		<item code="67" text="FACILITY_SECUREBOOT" />
 		<item code="68" text="FACILITY_AUDIO_KERNEL" />
+		<item code="69" text="FACILITY_VSM" />
 		<item code="80" text="FACILITY_WINDOWS_DEFENDER" />
 		<item code="81" text="FACILITY_OPC" />
 		<item code="82" text="FACILITY_XPS" />
@@ -119,6 +120,8 @@
 		<item code="84" text="FACILITY_MBN" />
 		<item code="85" text="FACILITY_EAS" />
 		<item code="92" text="FACILITY_SHARED_VHDX" />
+		<item code="93" text="FACILITY_SMB" />
+		<item code="94" text="FACILITY_XVS" />
 		<item code="98" text="FACILITY_P2P_INT" />
 		<item code="99" text="FACILITY_P2P" />
 		<item code="100" text="FACILITY_DAF" />
@@ -137,13 +140,18 @@
 		<item code="131" text="FACILITY_TIERING" />
 		<item code="133" text="FACILITY_WSB_ONLINE" />
 		<item code="134" text="FACILITY_ONLINE_ID" />
+		<item code="135" text="FACILITY_DEVICE_UPDATE_AGENT" />
+		<item code="136" text="FACILITY_DRVSERVICING" />
 		<item code="153" text="FACILITY_DLS" />
 		<item code="160" text="FACILITY_SOS" />
 		<item code="176" text="FACILITY_DEBUGGERS" />
 		<item code="208" text="FACILITY_DELIVERY_OPTIMIZATION" />
 		<item code="231" text="FACILITY_USERMODE_SPACES" />
 		<item code="232" text="FACILITY_USER_MODE_SECURITY_CORE" />
+		<item code="233" text="FACILITY_SYSTEM_INTEGRITY" />
 		<item code="234" text="FACILITY_USERMODE_LICENSING" />
+		<item code="235" text="FACILITY_PLATFORM_MANIFEST" />
+		<item code="236" text="FACILITY_APP_EXEC" />
 		<item code="256" text="FACILITY_SPP" />
 		<item code="257" text="FACILITY_DEPLOYMENT_SERVICES_SERVER" />
 		<item code="258" text="FACILITY_DEPLOYMENT_SERVICES_IMAGING" />
@@ -181,6 +189,7 @@
 		<item code="2175" text="FACILITY_DIRECT3D12_DEBUG" />
 		<item code="2184" text="FACILITY_LEAP" />
 		<item code="2185" text="FACILITY_AUDCLNT" />
+		<item code="2192" text="FACILITY_WINML" />
 		<item code="2198" text="FACILITY_XAUDIO2" />
 		<item code="2199" text="FACILITY_XAPO" />
 		<item code="2200" text="FACILITY_WINCODEC_DWRITE_DWM" />
@@ -189,6 +198,7 @@
 		<item code="2305" text="FACILITY_USERMODE_SDBUS" />
 		<item code="2306" text="FACILITY_JSCRIPT" />
 		<item code="2339" text="FACILITY_XBOX" />
+		<item code="2340" text="FACILITY_GAME" />
 		<item code="2561" text="FACILITY_PIDGENX" />
 		<item code="2748" text="FACILITY_PIX" />
 		<item code="2759" text="FACILITY_XACTENGINE" />
