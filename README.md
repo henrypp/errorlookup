@@ -1,7 +1,7 @@
 Error Lookup [![Github All Releases](https://img.shields.io/github/downloads/henrypp/errorlookup/total.svg)](https://github.com/henrypp/errorlookup/releases) [![Licence](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 =======
 
-![Error Lookup](https://www.henrypp.org/images/errorlookup.png)
+![Error Lookup](https://www.henrypp.org/images/errorlookup.png?cachefix)
 
 ### Description:
 Portable open source tool which can help by translating error codes into a more meaningful text description. The interface is simple - just a box to type your code, and another which displays the details - so there doesn’t seem much to learn. 
