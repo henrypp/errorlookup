@@ -193,126 +193,132 @@ void _app_loaddatabase (HWND hwnd)
 	const HMENU hmenu = GetSubMenu (GetSubMenu (GetMenu (hwnd), 1), MODULES_MENU);
 	DeleteMenu (hmenu, 0, MF_BYPOSITION); // delete separator
 
-	if (da)
+	pugi::xml_document doc;
+	pugi::xml_parse_result result;
+
+	WCHAR database_path[MAX_PATH] = {0};
+	_r_str_printf (database_path, _countof (database_path), L"%s\\modules.xml", app.GetDirectory ());
+
+	if (_r_fs_exists (database_path))
+		result = doc.load_file (database_path, PUGIXML_LOAD_FLAGS, PUGIXML_LOAD_ENCODING);
+
+	if (result.status != pugi::status_ok && da)
+		result = doc.load_buffer (da, rc_length, PUGIXML_LOAD_FLAGS, PUGIXML_LOAD_ENCODING);
+
+	if (result.status == pugi::status_ok)
 	{
-		pugi::xml_document doc;
-		pugi::xml_parse_result result = doc.load_buffer (da, rc_length, PUGIXML_LOAD_FLAGS, PUGIXML_LOAD_ENCODING);
+		pugi::xml_node root = doc.child (L"root");
 
-		if (result)
+		if (root)
 		{
-			pugi::xml_node root = doc.child (L"root");
+			pugi::xml_node sub_root;
 
-			if (root)
+			// load modules information
 			{
-				pugi::xml_node sub_root;
+				for (auto &p : modules)
+					SAFE_DELETE (p);
 
-				// load modules information
+				modules.clear ();
+
+				sub_root = root.child (L"module");
+
+				if (sub_root)
 				{
-					for (auto &p : modules)
-						SAFE_DELETE (p);
+					UINT i = 0;
 
-					modules.clear ();
+					const DWORD load_flags = _r_sys_validversion (6, 0) ? LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE : LOAD_LIBRARY_AS_DATAFILE;
 
-					sub_root = root.child (L"module");
-
-					if (sub_root)
+					for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
 					{
-						UINT i = 0;
+						PITEM_MODULE ptr_module = new ITEM_MODULE;
 
-						const DWORD load_flags = _r_sys_validversion (6, 0) ? LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE : LOAD_LIBRARY_AS_DATAFILE;
+						const rstring path = item.attribute (L"file").as_string ();
+						const rstring description = !item.attribute (L"text").empty () ? item.attribute (L"text").as_string () : path;
 
-						for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
+						_r_str_alloc (&ptr_module->path, path.GetLength (), path);
+						_r_str_alloc (&ptr_module->description, description.GetLength (), description);
+
+						const bool is_enabled = app.ConfigGet (ptr_module->path, true, SECTION_MODULE).AsBool ();
+
+						if (is_enabled)
+							ptr_module->hlib = LoadLibraryEx (ptr_module->path, nullptr, load_flags);
+
+						if (!is_enabled || !ptr_module->hlib)
+							count_unload += 1;
+
 						{
-							PITEM_MODULE ptr_module = new ITEM_MODULE;
+							MENUITEMINFO mii = {0};
 
-							const rstring path = item.attribute (L"file").as_string ();
-							const rstring description = !item.attribute (L"text").empty () ? item.attribute (L"text").as_string () : path;
+							mii.cbSize = sizeof (mii);
+							mii.fMask = MIIM_ID | MIIM_STATE | MIIM_STRING;
+							mii.fType = MFT_STRING;
+							mii.dwTypeData = ptr_module->description;
+							mii.fState = is_enabled ? MFS_CHECKED : MF_UNCHECKED;
+							mii.wID = IDX_MODULES + i;
 
-							_r_str_alloc (&ptr_module->path, path.GetLength (), path);
-							_r_str_alloc (&ptr_module->description, description.GetLength (), description);
+							if (!ptr_module->hlib && is_enabled)
+								mii.fState |= MFS_DISABLED | MF_GRAYED;
 
-							const bool is_enabled = app.ConfigGet (ptr_module->path, true, SECTION_MODULE).AsBool ();
-
-							if (is_enabled)
-								ptr_module->hlib = LoadLibraryEx (ptr_module->path, nullptr, load_flags);
-
-							if (!is_enabled || !ptr_module->hlib)
-								count_unload += 1;
-
-							{
-								MENUITEMINFO mii = {0};
-
-								mii.cbSize = sizeof (mii);
-								mii.fMask = MIIM_ID | MIIM_STATE | MIIM_STRING;
-								mii.fType = MFT_STRING;
-								mii.dwTypeData = ptr_module->description;
-								mii.fState = is_enabled ? MFS_CHECKED : MF_UNCHECKED;
-								mii.wID = IDX_MODULES + i;
-
-								if (!ptr_module->hlib && is_enabled)
-									mii.fState |= MFS_DISABLED | MF_GRAYED;
-
-								InsertMenuItem (hmenu, IDX_MODULES + i, false, &mii);
-							}
-
-							modules.push_back (ptr_module);
-
-							i += 1;
+							InsertMenuItem (hmenu, IDX_MODULES + i, false, &mii);
 						}
+
+						modules.push_back (ptr_module);
+
+						i += 1;
 					}
 				}
+			}
 
-				// load facility information
+			// load facility information
+			{
+				for (auto &p : facility)
+					SAFE_DELETE_ARRAY (p.second);
+
+				facility.clear ();
+
+				sub_root = root.child (L"facility");
+
+				if (sub_root)
 				{
-					for (auto &p : facility)
-						SAFE_DELETE_ARRAY (p.second);
-
-					facility.clear ();
-
-					sub_root = root.child (L"facility");
-
-					if (sub_root)
+					for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
 					{
-						for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
-						{
-							const DWORD code = (DWORD)item.attribute (L"code").as_ullong ();
+						const DWORD code = (DWORD)item.attribute (L"code").as_ullong ();
 
-							// prevent duplicates
-							if (facility.find (code) != facility.end ())
-								continue;
+						// prevent duplicates
+						if (facility.find (code) != facility.end ())
+							continue;
 
-							LPWSTR ptr_text = nullptr;
+						LPWSTR ptr_text = nullptr;
 
-							_r_str_alloc (&ptr_text, INVALID_SIZE_T, item.attribute (L"text").as_string ());
-							facility[code] = ptr_text;
-						}
+						_r_str_alloc (&ptr_text, INVALID_SIZE_T, item.attribute (L"text").as_string ());
+						facility[code] = ptr_text;
 					}
 				}
+			}
 
-				// load severity information
+			// load severity information
+			{
+				for (auto &p : severity)
+					SAFE_DELETE_ARRAY (p.second);
+
+				severity.clear ();
+
+				sub_root = root.child (L"severity");
+
+				if (sub_root)
 				{
-					for (auto &p : severity)
-						SAFE_DELETE_ARRAY (p.second);
-
-					severity.clear ();
-
-					sub_root = root.child (L"severity");
-
-					if (sub_root)
+					for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
 					{
-						for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
-						{
-							const DWORD code = (DWORD)item.attribute (L"code").as_ullong ();
+						const DWORD code = (DWORD)item.attribute (L"code").as_ullong ();
 
-							// prevent duplicates
-							if (severity.find (code) != severity.end ())
-								continue;
+						// prevent duplicates
+						if (severity.find (code) != severity.end ())
+							continue;
 
-							LPWSTR ptr_text = nullptr;
+						LPWSTR ptr_text = nullptr;
 
-							_r_str_alloc (&ptr_text, INVALID_SIZE_T, item.attribute (L"text").as_string ());
-							severity[code] = ptr_text;
-						}
+						_r_str_alloc (&ptr_text, INVALID_SIZE_T, item.attribute (L"text").as_string ());
+						severity[code] = ptr_text;
 					}
 				}
 			}
