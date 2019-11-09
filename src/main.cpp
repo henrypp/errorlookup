@@ -353,7 +353,7 @@ void _app_resizewindow (HWND hwnd, INT width, INT height)
 	GetClientRect (GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), &rc);
 
 	const INT edit_width = (width - listview_width) - _r_dc_getdpi (hwnd, 36);
-	INT edit_height = (height - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (hwnd, 40);
+	INT edit_height = (height - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (hwnd, 42);
 	edit_height -= _R_RECT_HEIGHT (&rc);
 
 	HDWP hwdp = BeginDeferWindowPos (3);
