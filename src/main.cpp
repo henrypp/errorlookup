@@ -276,12 +276,17 @@ void _app_loaddatabase (HWND hwnd)
 						for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
 						{
 							const DWORD code = (DWORD)item.attribute (L"code").as_ullong ();
+
+							// prevent duplicates
+							if (facility.find (code) != facility.end ())
+								continue;
+
 							const rstring text = item.attribute (L"text").as_string ();
 
 							LPWSTR ptr_text = nullptr;
 
-							if (_r_str_alloc (&ptr_text, text.GetLength (), text))
-								facility[code] = ptr_text;
+							_r_str_alloc (&ptr_text, text.GetLength (), text);
+							facility[code] = ptr_text;
 						}
 					}
 				}
@@ -300,12 +305,17 @@ void _app_loaddatabase (HWND hwnd)
 						for (pugi::xml_node item = sub_root.child (L"item"); item; item = item.next_sibling (L"item"))
 						{
 							const DWORD code = (DWORD)item.attribute (L"code").as_ullong ();
+
+							// prevent duplicates
+							if (severity.find (code) != severity.end ())
+								continue;
+
 							const rstring text = item.attribute (L"text").as_string ();
 
 							LPWSTR ptr_text = nullptr;
 
-							if (_r_str_alloc (&ptr_text, text.GetLength (), text))
-								severity[code] = ptr_text;
+							_r_str_alloc (&ptr_text, text.GetLength (), text);
+							severity[code] = ptr_text;
 						}
 					}
 				}
