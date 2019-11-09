@@ -101,7 +101,6 @@ STRINGTABLE
 	IDS_CODE "Error code:"
 	IDS_MODULES "Modules"
 	IDS_DESCRIPTION "Description:"
-	IDS_INFORMATION "Code (dec.): %lu\r\nCode (hex.): 0x%.8lx\r\nSeverity: %s (0x%02x)\r\nFacility: %s (0x%02x)"
 
 	IDS_ALWAYSONTOP_CHK "Always on top"
 	IDS_INSERTBUFFER_CHK "Insert buffer at startup"
