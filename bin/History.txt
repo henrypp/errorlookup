@@ -1,4 +1,7 @@
-v2.3.2 (x February 2019)
+v2.3.2 (9 November 2019)
+- added per-monitor dpi support (win10+)
+- fixed windows xp support
+- updated facility list
 - updated project sdk
 - updated windows sdk
 
