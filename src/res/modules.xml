@@ -144,6 +144,7 @@
 		<item code="136" text="FACILITY_DRVSERVICING" />
 		<item code="153" text="FACILITY_DLS" />
 		<item code="160" text="FACILITY_SOS" />
+		<item code="170" text="FACILITY_IMAPI2" />
 		<item code="176" text="FACILITY_DEBUGGERS" />
 		<item code="208" text="FACILITY_DELIVERY_OPTIMIZATION" />
 		<item code="231" text="FACILITY_USERMODE_SPACES" />
@@ -152,6 +153,9 @@
 		<item code="234" text="FACILITY_USERMODE_LICENSING" />
 		<item code="235" text="FACILITY_PLATFORM_MANIFEST" />
 		<item code="236" text="FACILITY_APP_EXEC" />
+		<item code="238" text="FACILITY_RTC_INTERFACE" />
+		<item code="239" text="FACILITY_SIP_STATUS_CODE" />
+		<item code="240" text="FACILITY_PINT_STATUS_CODE" />
 		<item code="256" text="FACILITY_SPP" />
 		<item code="257" text="FACILITY_DEPLOYMENT_SERVICES_SERVER" />
 		<item code="258" text="FACILITY_DEPLOYMENT_SERVICES_IMAGING" />
@@ -176,6 +180,7 @@
 		<item code="1996" text="FACILITY_WMAAECMA" />
 		<item code="2049" text="FACILITY_WEP" />
 		<item code="2050" text="FACILITY_SYNCENGINE" />
+		<item code="2067" text="FACILITY_SB" />
 		<item code="2114" text="FACILITY_EAP_MESSAGE" />
 		<item code="2166" text="FACILITY_D3D" />
 		<item code="2167" text="FACILITY_D3DX" />
@@ -199,9 +204,11 @@
 		<item code="2306" text="FACILITY_JSCRIPT" />
 		<item code="2339" text="FACILITY_XBOX" />
 		<item code="2340" text="FACILITY_GAME" />
+		<item code="2457" text="FACILITY_WPC" />
 		<item code="2561" text="FACILITY_PIDGENX" />
 		<item code="2748" text="FACILITY_PIX" />
 		<item code="2759" text="FACILITY_XACTENGINE" />
+		<item code="3527" text="FACILITY_JsDEBUG" />
 	</facility>
 	<severity>
 		<item code="0" text="STATUS_SEVERITY_SUCCESS" />
