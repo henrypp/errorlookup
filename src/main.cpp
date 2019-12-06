@@ -154,41 +154,10 @@ void _app_print (HWND hwnd)
 	}
 }
 
-LPVOID _app_loadresource (PDWORD size)
-{
-	const HINSTANCE hinst = app.GetHINSTANCE ();
-	HRSRC hResource = FindResource (hinst, MAKEINTRESOURCE (1), RT_RCDATA);
-
-	if (hResource)
-	{
-		HGLOBAL hLoadedResource = LoadResource (hinst, hResource);
-
-		if (hLoadedResource)
-		{
-			LPVOID pLockedResource = LockResource (hLoadedResource);
-
-			if (pLockedResource)
-			{
-				DWORD dwResourceSize = SizeofResource (hinst, hResource);
-
-				if (dwResourceSize != 0)
-				{
-					if (size)
-						*size = dwResourceSize;
-
-					return pLockedResource;
-				}
-			}
-		}
-	}
-
-	return nullptr;
-}
-
 void _app_loaddatabase (HWND hwnd)
 {
 	DWORD rc_length = 0;
-	LPVOID da = _app_loadresource (&rc_length);
+	LPVOID pres = _r_loadresource (app.GetHINSTANCE (), MAKEINTRESOURCE (1), RT_RCDATA, &rc_length);
 
 	const HMENU hmenu = GetSubMenu (GetSubMenu (GetMenu (hwnd), 1), MODULES_MENU);
 	DeleteMenu (hmenu, 0, MF_BYPOSITION); // delete separator
@@ -202,8 +171,8 @@ void _app_loaddatabase (HWND hwnd)
 	if (_r_fs_exists (database_path))
 		result = doc.load_file (database_path, PUGIXML_LOAD_FLAGS, PUGIXML_LOAD_ENCODING);
 
-	if (result.status != pugi::status_ok && da)
-		result = doc.load_buffer (da, rc_length, PUGIXML_LOAD_FLAGS, PUGIXML_LOAD_ENCODING);
+	if (result.status != pugi::status_ok && pres)
+		result = doc.load_buffer (pres, rc_length, PUGIXML_LOAD_FLAGS, PUGIXML_LOAD_ENCODING);
 
 	if (result.status == pugi::status_ok)
 	{
