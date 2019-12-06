@@ -19,12 +19,12 @@
 
 #define SECTION_MODULE L"module"
 
-#define FORMAT_DEC L"%lu"
-#define FORMAT_HEX L"0x%.8lx"
+#define FORMAT_DEC L"%" PRIu32
+#define FORMAT_HEX L"0x%08" PRIX32
 
 typedef struct tagITEM_MODULE
 {
-	~tagITEM_MODULE()
+	~tagITEM_MODULE ()
 	{
 		if (hlib)
 		{

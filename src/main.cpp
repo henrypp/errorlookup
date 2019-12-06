@@ -114,7 +114,7 @@ void _app_print (HWND hwnd)
 	_r_listview_deleteallitems (hwnd, IDC_LISTVIEW);
 
 	// print information
-	_r_str_printf (info, _countof (info), L"Code (dec.): %" PRIu32 L"\r\nCode (hex.): 0x%.8" PRIX32 L"\r\nSeverity: %s (0x%02" PRIX32 L")\r\nFacility: %s (0x%02" PRIX32 L")", code, code, (severity.find (severity_code) != severity.end ()) ? severity[severity_code] : L"n/a", severity_code, (facility.find (facility_code) != facility.end ()) ? facility[facility_code] : L"n/a", facility_code);
+	_r_str_printf (info, _countof (info), L"Code (dec.): " FORMAT_DEC L"\r\nCode (hex.): " FORMAT_HEX L"\r\nSeverity: %s (0x%02" PRIX32 L")\r\nFacility: %s (0x%02" PRIX32 L")", code, code, (severity.find (severity_code) != severity.end ()) ? severity[severity_code] : L"n/a", severity_code, (facility.find (facility_code) != facility.end ()) ? facility[facility_code] : L"n/a", facility_code);
 
 	// print modules
 	INT item_count = 0;
