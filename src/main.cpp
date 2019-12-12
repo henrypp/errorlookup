@@ -365,7 +365,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			// configure menu
 			HMENU hmenu = GetMenu (hwnd);
 
-			CheckMenuItem (hmenu, IDM_ALWAYSONTOP_CHK, MF_BYCOMMAND | (app.ConfigGet (L"AlwaysOnTop", false).AsBool () ? MF_CHECKED : MF_UNCHECKED));
+			CheckMenuItem (hmenu, IDM_ALWAYSONTOP_CHK, MF_BYCOMMAND | (app.ConfigGet (L"AlwaysOnTop", _APP_ALWAYSONTOP).AsBool () ? MF_CHECKED : MF_UNCHECKED));
 			CheckMenuItem (hmenu, IDM_INSERTBUFFER_CHK, MF_BYCOMMAND | (app.ConfigGet (L"InsertBufferAtStartup", false).AsBool () ? MF_CHECKED : MF_UNCHECKED));
 			CheckMenuItem (hmenu, IDM_CHECKUPDATES_CHK, MF_BYCOMMAND | (app.ConfigGet (L"CheckUpdates", true).AsBool () ? MF_CHECKED : MF_UNCHECKED));
 			CheckMenuItem (hmenu, IDM_CLASSICUI_CHK, MF_BYCOMMAND | (app.ConfigGet (L"ClassicUI", _APP_CLASSICUI).AsBool () ? MF_CHECKED : MF_UNCHECKED));
@@ -586,7 +586,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				case IDM_ALWAYSONTOP_CHK:
 				{
-					const bool new_val = !app.ConfigGet (L"AlwaysOnTop", false).AsBool ();
+					const bool new_val = !app.ConfigGet (L"AlwaysOnTop", _APP_ALWAYSONTOP).AsBool ();
 
 					CheckMenuItem (GetMenu (hwnd), LOWORD (wparam), MF_BYCOMMAND | (new_val ? MF_CHECKED : MF_UNCHECKED));
 					app.ConfigSet (L"AlwaysOnTop", new_val);
