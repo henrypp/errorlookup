@@ -132,7 +132,7 @@ void _app_print (HWND hwnd)
 		{
 			_r_str_alloc (&ptr_module->text, buffer.GetLength (), buffer);
 
-			_r_listview_additem (hwnd, IDC_LISTVIEW, item_count, 0, ptr_module->description, INVALID_INT, INVALID_INT, i);
+			_r_listview_additem (hwnd, IDC_LISTVIEW, item_count, 0, ptr_module->description, I_IMAGENONE, I_GROUPIDNONE, i);
 			item_count += 1;
 		}
 		else
