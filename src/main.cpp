@@ -93,14 +93,6 @@ void _app_showdescription (HWND hwnd, size_t idx)
 	}
 }
 
-void _app_listviewresize (HWND hwnd)
-{
-	RECT rc = {0};
-	GetClientRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rc);
-
-	_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, nullptr, _R_RECT_WIDTH (&rc));
-}
-
 void _app_print (HWND hwnd)
 {
 	const DWORD code = _app_getcode (hwnd, nullptr);
@@ -141,7 +133,7 @@ void _app_print (HWND hwnd)
 		}
 	}
 
-	_app_listviewresize (hwnd);
+	_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, nullptr, -100);
 
 	// show description for first item
 	if (!item_count)
@@ -303,7 +295,7 @@ void _app_loaddatabase (HWND hwnd)
 	_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
 }
 
-void _app_resizewindow (HWND hwnd, INT width, INT height)
+void _app_resizewindow (HWND hwnd, LPARAM lparam)
 {
 	RECT rc = {0};
 	SendDlgItemMessage (hwnd, IDC_STATUSBAR, SB_GETRECT, 0, (LPARAM)&rc);
@@ -316,13 +308,13 @@ void _app_resizewindow (HWND hwnd, INT width, INT height)
 
 	GetClientRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rc);
 
-	INT listview_height = (height - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (hwnd, 80);
+	INT listview_height = (HIWORD (lparam) - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (hwnd, 80);
 	listview_height -= _R_RECT_HEIGHT (&rc);
 
 	GetClientRect (GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), &rc);
 
-	const INT edit_width = (width - listview_width) - _r_dc_getdpi (hwnd, 36);
-	INT edit_height = (height - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (hwnd, 42);
+	const INT edit_width = (LOWORD (lparam) - listview_width) - _r_dc_getdpi (hwnd, 36);
+	INT edit_height = (HIWORD (lparam) - (rc.top - rc.bottom) - statusbar_height) - _r_dc_getdpi (hwnd, 42);
 	edit_height -= _R_RECT_HEIGHT (&rc);
 
 	HDWP hwdp = BeginDeferWindowPos (3);
@@ -338,7 +330,7 @@ void _app_resizewindow (HWND hwnd, INT width, INT height)
 	SendDlgItemMessage (hwnd, IDC_STATUSBAR, SB_SETPARTS, 2, (LPARAM)parts);
 
 	// resize column width
-	_app_listviewresize (hwnd);
+	_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, nullptr, -100);
 
 	// resize statusbar
 	SendDlgItemMessage (hwnd, IDC_STATUSBAR, WM_SIZE, 0, 0);
@@ -513,9 +505,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 		case WM_SIZE:
 		{
-			_app_resizewindow (hwnd, LOWORD (lparam), HIWORD (lparam));
-			RedrawWindow (hwnd, nullptr, nullptr, RDW_NOFRAME | RDW_NOINTERNALPAINT | RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN);
-
+			_app_resizewindow (hwnd, lparam);
 			break;
 		}
 
