@@ -668,9 +668,9 @@ INT APIENTRY wWinMain (HINSTANCE, HINSTANCE, LPWSTR, INT)
 			{
 				while (GetMessage (&msg, nullptr, 0, 0) > 0)
 				{
-					TranslateAccelerator (app.GetHWND (), haccel, &msg);
+					HWND hwnd = GetActiveWindow ();
 
-					if (!IsDialogMessage (app.GetHWND (), &msg))
+					if (!TranslateAccelerator (hwnd, haccel, &msg) && !IsDialogMessage (hwnd, &msg))
 					{
 						TranslateMessage (&msg);
 						DispatchMessage (&msg);
