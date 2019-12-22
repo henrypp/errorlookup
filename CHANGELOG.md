@@ -1,3 +1,8 @@
+v2.3.3 (23 December 2019)
+- changed compiler build settings
+- fixed update checker bug (issue #16)
+- updated locales
+
 v2.3.2 (9 November 2019)
 - added per-monitor dpi support (win10+)
 - fixed windows xp support
