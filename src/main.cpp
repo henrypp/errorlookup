@@ -25,7 +25,7 @@ size_t count_unload = 0;
 
 WCHAR info[MAX_PATH] = {0};
 
-DWORD _app_getcode (HWND hwnd, BOOL* is_hex)
+DWORD _app_getcode (HWND hwnd, bool* is_hex)
 {
 	rstring buffer = _r_ctrl_gettext (hwnd, IDC_CODE_CTL);
 	DWORD result = 0;
@@ -487,7 +487,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				{
 					if (hdr->idFrom == IDC_CODE_UD)
 					{
-						BOOL is_hex = false;
+						bool is_hex = false;
 						DWORD code = _app_getcode (hwnd, &is_hex);
 
 						_r_ctrl_settext (hwnd, IDC_CODE_CTL, is_hex ? FORMAT_HEX : FORMAT_DEC, code + LPNMUPDOWN (lparam)->iDelta);
