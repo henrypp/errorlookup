@@ -520,12 +520,12 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				return FALSE;
 			}
 
-			if (notify_code == 0 && ctrl_id >= IDX_LANGUAGE && ctrl_id <= IDX_LANGUAGE + app.LocaleGetCount ())
+			if (notify_code == 0 && ctrl_id >= IDX_LANGUAGE && ctrl_id <= INT (IDX_LANGUAGE + app.LocaleGetCount ()))
 			{
 				app.LocaleApplyFromMenu (GetSubMenu (GetSubMenu (GetMenu (hwnd), 1), LANG_MENU), ctrl_id, IDX_LANGUAGE);
 				return FALSE;
 			}
-			else if ((ctrl_id >= IDX_MODULES && ctrl_id <= IDX_MODULES + modules.size ()))
+			else if ((ctrl_id >= IDX_MODULES && ctrl_id <= INT (IDX_MODULES + modules.size ())))
 			{
 				const size_t idx = ctrl_id - IDX_MODULES;
 				PITEM_MODULE ptr_module = modules.at (idx);
