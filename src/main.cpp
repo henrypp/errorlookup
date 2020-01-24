@@ -355,12 +355,15 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			SendDlgItemMessage (hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, INT32_MAX);
 
 			// configure menu
-			HMENU hmenu = GetMenu (hwnd);
+			const HMENU hmenu = GetMenu (hwnd);
 
-			CheckMenuItem (hmenu, IDM_ALWAYSONTOP_CHK, MF_BYCOMMAND | (app.ConfigGet (L"AlwaysOnTop", _APP_ALWAYSONTOP).AsBool () ? MF_CHECKED : MF_UNCHECKED));
-			CheckMenuItem (hmenu, IDM_INSERTBUFFER_CHK, MF_BYCOMMAND | (app.ConfigGet (L"InsertBufferAtStartup", false).AsBool () ? MF_CHECKED : MF_UNCHECKED));
-			CheckMenuItem (hmenu, IDM_CHECKUPDATES_CHK, MF_BYCOMMAND | (app.ConfigGet (L"CheckUpdates", true).AsBool () ? MF_CHECKED : MF_UNCHECKED));
-			CheckMenuItem (hmenu, IDM_CLASSICUI_CHK, MF_BYCOMMAND | (app.ConfigGet (L"ClassicUI", _APP_CLASSICUI).AsBool () ? MF_CHECKED : MF_UNCHECKED));
+			if (hmenu)
+			{
+				CheckMenuItem (hmenu, IDM_ALWAYSONTOP_CHK, MF_BYCOMMAND | (app.ConfigGet (L"AlwaysOnTop", _APP_ALWAYSONTOP).AsBool () ? MF_CHECKED : MF_UNCHECKED));
+				CheckMenuItem (hmenu, IDM_INSERTBUFFER_CHK, MF_BYCOMMAND | (app.ConfigGet (L"InsertBufferAtStartup", false).AsBool () ? MF_CHECKED : MF_UNCHECKED));
+				CheckMenuItem (hmenu, IDM_CLASSICUI_CHK, MF_BYCOMMAND | (app.ConfigGet (L"ClassicUI", _APP_CLASSICUI).AsBool () ? MF_CHECKED : MF_UNCHECKED));
+				CheckMenuItem (hmenu, IDM_CHECKUPDATES_CHK, MF_BYCOMMAND | (app.ConfigGet (L"CheckUpdates", true).AsBool () ? MF_CHECKED : MF_UNCHECKED));
+			}
 
 			// load xml database
 			_app_loaddatabase (hwnd);
@@ -402,21 +405,26 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			// localize
 			const HMENU hmenu = GetMenu (hwnd);
 
-			app.LocaleMenu (hmenu, IDS_FILE, 0, true, nullptr);
-			app.LocaleMenu (hmenu, IDS_EXIT, IDM_EXIT, false, L"\tEsc");
+			if (hmenu)
+			{
+				app.LocaleMenu (hmenu, IDS_FILE, 0, true, nullptr);
+				app.LocaleMenu (hmenu, IDS_EXIT, IDM_EXIT, false, L"\tEsc");
 
-			app.LocaleMenu (hmenu, IDS_SETTINGS, 1, true, nullptr);
-			app.LocaleMenu (hmenu, IDS_ALWAYSONTOP_CHK, IDM_ALWAYSONTOP_CHK, false, nullptr);
-			app.LocaleMenu (hmenu, IDS_INSERTBUFFER_CHK, IDM_INSERTBUFFER_CHK, false, nullptr);
-			app.LocaleMenu (hmenu, IDS_CHECKUPDATES_CHK, IDM_CHECKUPDATES_CHK, false, nullptr);
-			app.LocaleMenu (hmenu, IDS_CLASSICUI_CHK, IDM_CLASSICUI_CHK, false, nullptr);
-			app.LocaleMenu (GetSubMenu (hmenu, 1), IDS_MODULES, MODULES_MENU, true, nullptr);
-			app.LocaleMenu (GetSubMenu (hmenu, 1), IDS_LANGUAGE, LANG_MENU, true, L" (Language)");
+				app.LocaleMenu (hmenu, IDS_SETTINGS, 1, true, nullptr);
+				app.LocaleMenu (hmenu, IDS_ALWAYSONTOP_CHK, IDM_ALWAYSONTOP_CHK, false, nullptr);
+				app.LocaleMenu (hmenu, IDS_INSERTBUFFER_CHK, IDM_INSERTBUFFER_CHK, false, nullptr);
+				app.LocaleMenu (hmenu, IDS_CLASSICUI_CHK, IDM_CLASSICUI_CHK, false, L"*");
+				app.LocaleMenu (hmenu, IDS_CHECKUPDATES_CHK, IDM_CHECKUPDATES_CHK, false, nullptr);
+				app.LocaleMenu (GetSubMenu (hmenu, 1), IDS_MODULES, MODULES_MENU, true, nullptr);
+				app.LocaleMenu (GetSubMenu (hmenu, 1), IDS_LANGUAGE, LANG_MENU, true, L" (Language)");
 
-			app.LocaleMenu (hmenu, IDS_HELP, 2, true, nullptr);
-			app.LocaleMenu (hmenu, IDS_WEBSITE, IDM_WEBSITE, false, nullptr);
-			app.LocaleMenu (hmenu, IDS_CHECKUPDATES, IDM_CHECKUPDATES, false, nullptr);
-			app.LocaleMenu (hmenu, IDS_ABOUT, IDM_ABOUT, false, L"\tF1");
+				app.LocaleMenu (hmenu, IDS_HELP, 2, true, nullptr);
+				app.LocaleMenu (hmenu, IDS_WEBSITE, IDM_WEBSITE, false, nullptr);
+				app.LocaleMenu (hmenu, IDS_CHECKUPDATES, IDM_CHECKUPDATES, false, nullptr);
+				app.LocaleMenu (hmenu, IDS_ABOUT, IDM_ABOUT, false, L"\tF1");
+
+				app.LocaleEnum ((HWND)GetSubMenu (hmenu, 1), LANG_MENU, true, IDX_LANGUAGE); // enum localizations
+			}
 
 			SetDlgItemText (hwnd, IDC_CODE, app.LocaleString (IDS_CODE, nullptr));
 			SetDlgItemText (hwnd, IDC_DESCRIPTION, app.LocaleString (IDS_DESCRIPTION, nullptr));
@@ -424,8 +432,6 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			_app_print (hwnd);
 
 			_r_status_settext (hwnd, IDC_STATUSBAR, 0, _r_fmt (app.LocaleString (IDS_STATUS_TOTAL, nullptr), modules.size () - count_unload, modules.size ()));
-
-			app.LocaleEnum ((HWND)GetSubMenu (hmenu, 1), LANG_MENU, true, IDX_LANGUAGE); // enum localizations
 
 			SendDlgItemMessage (hwnd, IDC_LISTVIEW, LVM_RESETEMPTYTEXT, 0, 0);
 
@@ -615,6 +621,8 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 					CheckMenuItem (GetMenu (hwnd), ctrl_id, MF_BYCOMMAND | (new_val ? MF_CHECKED : MF_UNCHECKED));
 					app.ConfigSet (L"ClassicUI", new_val);
+
+					app.Restart (hwnd);
 
 					break;
 				}
