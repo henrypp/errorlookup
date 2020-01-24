@@ -30,8 +30,8 @@ IDM_MAIN MENU
 	{
 		MENUITEM " ", IDM_ALWAYSONTOP_CHK
 		MENUITEM " ", IDM_INSERTBUFFER_CHK
-		MENUITEM " ", IDM_CHECKUPDATES_CHK
 		MENUITEM " ", IDM_CLASSICUI_CHK
+		MENUITEM " ", IDM_CHECKUPDATES_CHK
 		MENUITEM SEPARATOR
 		POPUP " "
 		{
@@ -110,7 +110,7 @@ STRINGTABLE
 	IDS_STATUS_EMPTY "No description found."
 	IDS_STATUS_EMPTY2 "No database found."
 
-	IDS_CLASSICUI_CHK "Use classic interface (restart required)"
+	IDS_CLASSICUI_CHK "Use classic interface"
 	IDS_CLOSE "Close"
 }
 
