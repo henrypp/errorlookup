@@ -319,9 +319,9 @@ void _app_resizewindow (HWND hwnd, LPARAM lparam)
 
 	HDWP hwdp = BeginDeferWindowPos (3);
 
-	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_LISTVIEW), nullptr, 0, 0, listview_width, listview_height, SWP_NOMOVE);
-	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION), nullptr, 0, 0, edit_width, _r_dc_getdpi (hwnd, 14), SWP_NOMOVE);
-	_r_wnd_resize (&hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), nullptr, 0, 0, edit_width, edit_height, SWP_NOMOVE);
+	hwdp = DeferWindowPos (hwdp, GetDlgItem (hwnd, IDC_LISTVIEW), nullptr, 0, 0, listview_width, listview_height, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+	hwdp = DeferWindowPos (hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION), nullptr, 0, 0, edit_width, _r_dc_getdpi (hwnd, 14), SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+	hwdp = DeferWindowPos (hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), nullptr, 0, 0, edit_width, edit_height, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
 	EndDeferWindowPos (hwdp);
 
