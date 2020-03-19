@@ -108,7 +108,7 @@
 		<item code="62" text="FACILITY_WPN" />
 		<item code="63" text="FACILITY_WINDOWS_STORE" />
 		<item code="64" text="FACILITY_INPUT" />
-		<item code="65" text="FACILITY_RDBSS" />
+		<item code="65" text="FACILITY_QUIC" />
 		<item code="66" text="FACILITY_EAP" />
 		<item code="67" text="FACILITY_SECUREBOOT" />
 		<item code="68" text="FACILITY_AUDIO_KERNEL" />
@@ -173,6 +173,7 @@
 		<item code="885" text="FACILITY_WEB" />
 		<item code="886" text="FACILITY_WEB_SOCKET" />
 		<item code="1094" text="FACILITY_AUDIOSTREAMING" />
+		<item code="1490" text="FACILITY_TTD" />
 		<item code="1536" text="FACILITY_ACCELERATOR" />
 		<item code="1793" text="FACILITY_MOBILE" />
 		<item code="1967" text="FACILITY_SQLITE" />
@@ -192,6 +193,7 @@
 		<item code="2173" text="FACILITY_DIRECT3D11_DEBUG" />
 		<item code="2174" text="FACILITY_DIRECT3D12" />
 		<item code="2175" text="FACILITY_DIRECT3D12_DEBUG" />
+		<item code="2176" text="FACILITY_DXCORE" />
 		<item code="2184" text="FACILITY_LEAP" />
 		<item code="2185" text="FACILITY_AUDCLNT" />
 		<item code="2192" text="FACILITY_WINML" />
