@@ -48,47 +48,47 @@
 	</module>
 	<facility>
 		<item code="0" text="FACILITY_NULL" />
-		<item code="1" text="FACILITY_RPC" />
-		<item code="2" text="FACILITY_DISPATCH" />
-		<item code="3" text="FACILITY_STORAGE" />
-		<item code="4" text="FACILITY_ITF" />
+		<item code="1" text="FACILITY_DEBUGGER" />
+		<item code="2" text="FACILITY_RPC_RUNTIME" />
+		<item code="3" text="FACILITY_RPC_STUBS" />
+		<item code="4" text="FACILITY_IO_ERROR_CODE" />
 		<item code="6" text="FACILITY_CODCLASS_ERROR_CODE" />
-		<item code="7" text="FACILITY_WIN32" />
-		<item code="8" text="FACILITY_WINDOWS" />
-		<item code="9" text="FACILITY_SSPI" />
-		<item code="10" text="FACILITY_CONTROL" />
-		<item code="11" text="FACILITY_CERT" />
+		<item code="7" text="FACILITY_NTWIN32" />
+		<item code="8" text="FACILITY_NTCERT" />
+		<item code="9" text="FACILITY_NTSSPI" />
+		<item code="10" text="FACILITY_TERMINAL_SERVER" />
+		<item code="11" text="FACILTIY_MUI_ERROR_CODE" />
 		<item code="12" text="FACILITY_INTERNET" />
 		<item code="13" text="FACILITY_MEDIASERVER" />
 		<item code="14" text="FACILITY_MSMQ" />
 		<item code="15" text="FACILITY_SETUPAPI" />
-		<item code="16" text="FACILITY_SCARD" />
-		<item code="17" text="FACILITY_COMPLUS" />
-		<item code="18" text="FACILITY_AAF" />
-		<item code="19" text="FACILITY_URT" />
-		<item code="20" text="FACILITY_ACS" />
-		<item code="21" text="FACILITY_DPLAY" />
+		<item code="16" text="FACILITY_USB_ERROR_CODE" />
+		<item code="17" text="FACILITY_HID_ERROR_CODE" />
+		<item code="18" text="FACILITY_FIREWIRE_ERROR_CODE" />
+		<item code="19" text="FACILITY_CLUSTER_ERROR_CODE" />
+		<item code="20" text="FACILITY_ACPI_ERROR_CODE" />
+		<item code="21" text="FACILITY_SXS_ERROR_CODE" />
 		<item code="22" text="FACILITY_UMI" />
 		<item code="23" text="FACILITY_SXS" />
 		<item code="24" text="FACILITY_WINDOWS_CE" />
-		<item code="25" text="FACILITY_HTTP" />
-		<item code="26" text="FACILITY_USERMODE_COMMONLOG" />
-		<item code="27" text="FACILITY_WER" />
+		<item code="25" text="FACILITY_TRANSACTION" />
+		<item code="26" text="FACILITY_COMMONLOG" />
+		<item code="27" text="FACILITY_VIDEO" />
 		<item code="28" text="FACILITY_FILTER_MANAGER" />
 		<item code="29" text="FACILITY_MONITOR" />
 		<item code="30" text="FACILITY_GRAPHICS_KERNEL" />
 		<item code="31" text="FACILITY_USERMODE_FILTER_MANAGER" />
-		<item code="32" text="FACILITY_BACKGROUNDCOPY" />
-		<item code="33" text="FACILITY_CONFIGURATION" />
-		<item code="34" text="FACILITY_STATE_MANAGEMENT" />
-		<item code="35" text="FACILITY_METADIRECTORY" />
-		<item code="36" text="FACILITY_WINDOWSUPDATE" />
+		<item code="32" text="FACILITY_DRIVER_FRAMEWORK" />
+		<item code="33" text="FACILITY_FVE_ERROR_CODE" />
+		<item code="34" text="FACILITY_FWP_ERROR_CODE" />
+		<item code="35" text="FACILITY_NDIS_ERROR_CODE" />
+		<item code="36" text="FACILITY_QUIC_ERROR_CODE" />
 		<item code="37" text="FACILITY_DIRECTORYSERVICE" />
 		<item code="38" text="FACILITY_GRAPHICS" />
 		<item code="39" text="FACILITY_SHELL" />
 		<item code="40" text="FACILITY_TPM_SERVICES" />
-		<item code="41" text="FACILITY_TPM_SOFTWARE" />
-		<item code="42" text="FACILITY_UI" />
+		<item code="41" text="FACILITY_TPM" />
+		<item code="42" text="FACILITY_RTPM" />
 		<item code="43" text="FACILITY_XAML" />
 		<item code="44" text="FACILITY_ACTION_QUEUE" />
 		<item code="48" text="FACILITY_PLA" />
@@ -96,25 +96,25 @@
 		<item code="50" text="FACILITY_FWP" />
 		<item code="51" text="FACILITY_WINRM" />
 		<item code="52" text="FACILITY_NDIS" />
-		<item code="53" text="FACILITY_USERMODE_HYPERVISOR" />
-		<item code="54" text="FACILITY_CMI" />
-		<item code="55" text="FACILITY_USERMODE_VIRTUALIZATION" />
-		<item code="56" text="FACILITY_USERMODE_VOLMGR" />
-		<item code="57" text="FACILITY_BCD" />
+		<item code="53" text="FACILITY_HYPERVISOR" />
+		<item code="54" text="FACILITY_IPSEC" />
+		<item code="55" text="FACILITY_VIRTUALIZATION" />
+		<item code="56" text="FACILITY_VOLMGR" />
+		<item code="57" text="FACILITY_BCD_ERROR_CODE" />
 		<item code="58" text="FACILITY_USERMODE_VHD" />
 		<item code="59" text="FACILITY_USERMODE_HNS" />
 		<item code="60" text="FACILITY_SDIAG" />
 		<item code="61" text="FACILITY_WEBSERVICES" />
-		<item code="62" text="FACILITY_WPN" />
-		<item code="63" text="FACILITY_WINDOWS_STORE" />
-		<item code="64" text="FACILITY_INPUT" />
-		<item code="65" text="FACILITY_QUIC" />
-		<item code="66" text="FACILITY_EAP" />
+		<item code="62" text="FACILITY_WIN32K_NTUSER" />
+		<item code="63" text="FACILITY_WIN32K_NTGDI" />
+		<item code="64" text="FACILITY_RESUME_KEY_FILTER" />
+		<item code="65" text="FACILITY_RDBSS" />
+		<item code="66" text="FACILITY_BTH_ATT" />
 		<item code="67" text="FACILITY_SECUREBOOT" />
 		<item code="68" text="FACILITY_AUDIO_KERNEL" />
 		<item code="69" text="FACILITY_VSM" />
-		<item code="80" text="FACILITY_WINDOWS_DEFENDER" />
-		<item code="81" text="FACILITY_OPC" />
+		<item code="80" text="FACILITY_VOLSNAP" />
+		<item code="81" text="FACILITY_SDBUS" />
 		<item code="82" text="FACILITY_XPS" />
 		<item code="83" text="FACILITY_RAS" />
 		<item code="84" text="FACILITY_MBN" />
@@ -142,15 +142,15 @@
 		<item code="134" text="FACILITY_ONLINE_ID" />
 		<item code="135" text="FACILITY_DEVICE_UPDATE_AGENT" />
 		<item code="136" text="FACILITY_DRVSERVICING" />
-		<item code="153" text="FACILITY_DLS" />
+		<item code="153" text="FACILITY_INTERIX" />
 		<item code="160" text="FACILITY_SOS" />
 		<item code="170" text="FACILITY_IMAPI2" />
 		<item code="176" text="FACILITY_DEBUGGERS" />
 		<item code="208" text="FACILITY_DELIVERY_OPTIMIZATION" />
-		<item code="231" text="FACILITY_USERMODE_SPACES" />
-		<item code="232" text="FACILITY_USER_MODE_SECURITY_CORE" />
+		<item code="231" text="FACILITY_SPACES" />
+		<item code="232" text="FACILITY_SECURITY_CORE" />
 		<item code="233" text="FACILITY_SYSTEM_INTEGRITY" />
-		<item code="234" text="FACILITY_USERMODE_LICENSING" />
+		<item code="234" text="FACILITY_LICENSING" />
 		<item code="235" text="FACILITY_PLATFORM_MANIFEST" />
 		<item code="236" text="FACILITY_APP_EXEC" />
 		<item code="238" text="FACILITY_RTC_INTERFACE" />
