@@ -219,8 +219,11 @@ VOID _app_loaddatabase (HWND hwnd)
 	mxml_node_t *root_node;
 	mxml_node_t *items_node;
 
-	PR_HASHTABLE temporary_facility_table = _r_obj_createhashtableex (sizeof (R_KEYSTORE), 64, &_r_util_dereferencekeystoreprocedure);
-	PR_HASHTABLE temporary_severity_table = _r_obj_createhashtableex (sizeof (R_KEYSTORE), 64, &_r_util_dereferencekeystoreprocedure);
+	if (!facility)
+		facility = _r_obj_createhashtableex (sizeof (R_KEYSTORE), 64, &_r_util_dereferencekeystoreprocedure);
+
+	if (!severity)
+		severity = _r_obj_createhashtableex (sizeof (R_KEYSTORE), 64, &_r_util_dereferencekeystoreprocedure);
 
 	WCHAR database_path[MAX_PATH];
 	_r_str_printf (database_path, RTL_NUMBER_OF (database_path), L"%s\\modules.xml", _r_app_getdirectory ());
@@ -324,7 +327,7 @@ VOID _app_loaddatabase (HWND hwnd)
 					if (!keystore.value_string)
 						continue;
 
-					_r_obj_addhashtableitem (temporary_facility_table, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &keystore);
+					_r_obj_addhashtableitem (facility, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &keystore);
 				}
 			}
 
@@ -345,16 +348,13 @@ VOID _app_loaddatabase (HWND hwnd)
 					if (!keystore.value_string)
 						continue;
 
-					_r_obj_addhashtableitem (temporary_severity_table, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &keystore);
+					_r_obj_addhashtableitem (severity, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &keystore);
 				}
 			}
 		}
 
 		mxmlDelete (xml_node);
 	}
-
-	_r_obj_movereference (&facility, temporary_facility_table);
-	_r_obj_movereference (&severity, temporary_severity_table);
 
 	if (_r_obj_isarrayempty (modules))
 	{
