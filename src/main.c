@@ -143,8 +143,8 @@ VOID _app_showdescription (HWND hwnd, SIZE_T idx)
 VOID _app_print (HWND hwnd)
 {
 	PITEM_MODULE ptr_module;
-	PR_KEYSTORE facility_table;
-	PR_KEYSTORE severity_table;
+	PR_HASHSTORE facility_table;
+	PR_HASHSTORE severity_table;
 	PR_STRING buffer;
 	ULONG error_code;
 	ULONG severity_code;
@@ -220,10 +220,10 @@ VOID _app_loaddatabase (HWND hwnd)
 	mxml_node_t *items_node;
 
 	if (!facility)
-		facility = _r_obj_createhashtableex (sizeof (R_KEYSTORE), 64, &_r_util_dereferencekeystoreprocedure);
+		facility = _r_obj_createhashtableex (sizeof (R_HASHSTORE), 64, &_r_util_dereferencehashstoreprocedure);
 
 	if (!severity)
-		severity = _r_obj_createhashtableex (sizeof (R_KEYSTORE), 64, &_r_util_dereferencekeystoreprocedure);
+		severity = _r_obj_createhashtableex (sizeof (R_HASHSTORE), 64, &_r_util_dereferencehashstoreprocedure);
 
 	WCHAR database_path[MAX_PATH];
 	_r_str_printf (database_path, RTL_NUMBER_OF (database_path), L"%s\\modules.xml", _r_app_getdirectory ());
@@ -250,7 +250,7 @@ VOID _app_loaddatabase (HWND hwnd)
 		{
 			// load modules information
 			MENUITEMINFO mii;
-			R_KEYSTORE keystore;
+			R_HASHSTORE hashstore;
 			UINT index;
 			LPCSTR text;
 			BOOLEAN is_enabled;
@@ -276,7 +276,7 @@ VOID _app_loaddatabase (HWND hwnd)
 					if (_r_str_isempty_a (text))
 						continue;
 
-					memset (&module, 0, sizeof (module));
+					RtlSecureZeroMemory (&module, sizeof (module));
 
 					module.path = _r_str_multibyte2unicode (text);
 					module.description = _r_str_multibyte2unicode (mxmlElementGetAttr (item, "text"));
@@ -290,7 +290,7 @@ VOID _app_loaddatabase (HWND hwnd)
 						count_unload += 1;
 
 					// insert menu
-					memset (&mii, 0, sizeof (mii));
+					RtlSecureZeroMemory (&mii, sizeof (mii));
 
 					mii.cbSize = sizeof (mii);
 					mii.fMask = MIIM_ID | MIIM_STATE | MIIM_STRING;
@@ -322,12 +322,9 @@ VOID _app_loaddatabase (HWND hwnd)
 					if (_r_str_isempty_a (text))
 						continue;
 
-					keystore.value_string = _r_str_multibyte2unicode (text);
+					_r_obj_initializehashstore (&hashstore, _r_str_multibyte2unicode (text));
 
-					if (!keystore.value_string)
-						continue;
-
-					_r_obj_addhashtableitem (facility, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &keystore);
+					_r_obj_addhashtableitem (facility, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &hashstore);
 				}
 			}
 
@@ -343,12 +340,9 @@ VOID _app_loaddatabase (HWND hwnd)
 					if (_r_str_isempty_a (text))
 						continue;
 
-					keystore.value_string = _r_str_multibyte2unicode (text);
+					_r_obj_initializehashstore (&hashstore, _r_str_multibyte2unicode (text));
 
-					if (!keystore.value_string)
-						continue;
-
-					_r_obj_addhashtableitem (severity, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &keystore);
+					_r_obj_addhashtableitem (severity, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &hashstore);
 				}
 			}
 		}
