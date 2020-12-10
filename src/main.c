@@ -220,10 +220,10 @@ VOID _app_loaddatabase (HWND hwnd)
 	mxml_node_t *items_node;
 
 	if (!facility)
-		facility = _r_obj_createhashtableex (sizeof (R_HASHSTORE), 64, &_r_util_dereferencehashstoreprocedure);
+		facility = _r_obj_createhashtable (sizeof (R_HASHSTORE), &_r_util_dereferencehashstoreprocedure);
 
 	if (!severity)
-		severity = _r_obj_createhashtableex (sizeof (R_HASHSTORE), 64, &_r_util_dereferencehashstoreprocedure);
+		severity = _r_obj_createhashtable (sizeof (R_HASHSTORE), &_r_util_dereferencehashstoreprocedure);
 
 	WCHAR database_path[MAX_PATH];
 	_r_str_printf (database_path, RTL_NUMBER_OF (database_path), L"%s\\modules.xml", _r_app_getdirectory ());
@@ -404,7 +404,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		case WM_INITDIALOG:
 		{
-			modules = _r_obj_createarrayex (sizeof (ITEM_MODULE), 64, &_app_dereferencemoduleprocedure);
+			modules = _r_obj_createarray (sizeof (ITEM_MODULE), &_app_dereferencemoduleprocedure);
 
 			// configure listview
 			_r_listview_setstyle (hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP, FALSE);
