@@ -164,13 +164,13 @@ VOID _app_print (HWND hwnd)
 
 	// print information
 	_r_str_printf (info, RTL_NUMBER_OF (info),
-		L"Code (dec.): " FORMAT_DEC L"\r\nCode (hex.): " FORMAT_HEX L"\r\nFacility: %s (0x%02" TEXT (PRIX32) L")\r\nSeverity: %s (0x%02" TEXT (PRIX32) L")",
-		error_code,
-		error_code,
-		facility_table ? _r_obj_getstringorempty (facility_table->value_string) : L"n/a",
-		facility_code,
-		severity_table ? _r_obj_getstringorempty (severity_table->value_string) : L"n/a",
-		severity_code
+				   L"Code (dec.): " FORMAT_DEC L"\r\nCode (hex.): " FORMAT_HEX L"\r\nFacility: %s (0x%02" TEXT (PRIX32) L")\r\nSeverity: %s (0x%02" TEXT (PRIX32) L")",
+				   error_code,
+				   error_code,
+				   facility_table ? _r_obj_getstringorempty (facility_table->value_string) : L"n/a",
+				   facility_code,
+				   severity_table ? _r_obj_getstringorempty (severity_table->value_string) : L"n/a",
+				   severity_code
 	);
 
 	// print modules
@@ -703,7 +703,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 				case IDM_WEBSITE:
 				{
-					ShellExecute (hwnd, NULL, APP_WEBSITE_URL, NULL, NULL, SW_SHOWDEFAULT);
+					ShellExecute (hwnd, NULL, _r_app_getwebsite_url (), NULL, NULL, SW_SHOWDEFAULT);
 					break;
 				}
 
@@ -737,7 +737,7 @@ INT APIENTRY wWinMain (_In_ HINSTANCE hinst, _In_opt_ HINSTANCE prev_hinst, _In_
 {
 	MSG msg;
 
-	if (_r_app_initialize (APP_NAME, APP_NAME_SHORT, APP_VERSION, APP_COPYRIGHT))
+	if (_r_app_initialize ())
 	{
 		if (_r_app_createwindow (IDD_MAIN, IDI_MAIN, &DlgProc))
 		{
