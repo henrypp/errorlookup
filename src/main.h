@@ -8,8 +8,7 @@
 #include "resource.h"
 #include "app.h"
 
-#define MODULES_MENU 5
-#define LANG_MENU 6
+#define LANG_MENU 5
 
 #define SECTION_MODULE L"module"
 
@@ -18,8 +17,9 @@
 
 typedef struct _ITEM_MODULE
 {
-	PR_STRING text;
-	PR_STRING description;
 	PR_STRING path;
+	PR_STRING full_path;
+	PR_STRING description;
+	PR_STRING text;
 	HMODULE hlib;
 } ITEM_MODULE, *PITEM_MODULE;
