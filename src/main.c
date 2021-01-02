@@ -628,6 +628,58 @@ INT_PTR CALLBACK SettingsProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 					break;
 				}
 
+				case NM_CUSTOMDRAW:
+				{
+					if (lphdr->idFrom != IDC_MODULES)
+						break;
+
+					LPNMLVCUSTOMDRAW lpnmlv = (LPNMLVCUSTOMDRAW)lparam;
+					LONG_PTR result = CDRF_DODEFAULT;
+
+					switch (lpnmlv->nmcd.dwDrawStage)
+					{
+						case CDDS_PREPAINT:
+						{
+							result = CDRF_NOTIFYITEMDRAW;
+							break;
+						}
+
+						case CDDS_ITEMPREPAINT:
+						{
+							if (lpnmlv->dwItemType != LVCDI_ITEM)
+								break;
+
+							SIZE_T module_hash = lpnmlv->nmcd.lItemlParam;
+							PITEM_MODULE ptr_module = _r_obj_findhashtable (modules, module_hash);
+
+							if (ptr_module)
+							{
+								ULONG new_clr = 0;
+
+								if (!ptr_module->hlib && _r_config_getbooleanex (_r_obj_getstring (ptr_module->path), TRUE, SECTION_MODULE))
+								{
+									new_clr = GetSysColor (COLOR_GRAYTEXT);
+								}
+
+								if (new_clr)
+								{
+									lpnmlv->clrTextBk = new_clr;
+									lpnmlv->clrText = _r_dc_getcolorbrightness (new_clr);
+
+									result = CDRF_NEWFONT;
+								}
+							}
+
+							break;
+						}
+
+						break;
+					}
+
+					SetWindowLongPtr (hwnd, DWLP_MSGRESULT, result);
+					return result;
+				}
+
 				case LVN_ITEMCHANGED:
 				{
 					LPNMLISTVIEW lpnmlv = (LPNMLISTVIEW)lparam;
