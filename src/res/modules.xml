@@ -5,46 +5,111 @@
 		<item file="ntdll.dll" text="Windows (Kernel-Mode)" />
 		<item file="ntoskrnl.exe" text="BSOD (Blue Screen of Death)" />
 		<item file="crypt32.dll" text="Cryptographic API" />
-		<item file="kerberos.dll" text="Kerberos" />
+		<item file="kerberos.dll" text="Kerberos Security API" />
 		<item file="adtschema.dll" text="Security Audit" />
-		<item file="mpssvc.dll" text="Windows Firewall" />
-		<item file="msimsg.dll" text="Windows Installer" />
-		<item file="wmerror.dll" text="Windows Media" />
-		<item file="mferror.dll" text="Media Foundation" />
-		<item file="netevent.dll" text="Network Events" />
-		<item file="netmsg.dll" text="Network Messages" />
+		<item file="mpssvc.dll" text="Protection Service API" />
+		<item file="msimsg.dll" text="Windows Installer API" />
+		<item file="wmerror.dll" text="Windows Media Error" />
+		<item file="mferror.dll" text="Media Foundation Error API" />
+		<item file="netevent.dll" text="Network Events API" />
+		<item file="netmsg.dll" text="Network Messages API" />
 		<item file="ntshrui.dll" text="Network Share" />
-		<item file="qmgr.dll" text="BITS (Background Intelligent Transfer Service)" />
-		<item file="winhttp.dll" text="HTTP Services" />
-		<item file="wininet.dll" text="Windows Internet" />
+		<item file="qmgr.dll" text="BITS API" />
+		<item file="winhttp.dll" text="WinHTTP Service" />
+		<item file="wininet.dll" text="WinInet Service" />
 		<item file="wsock32.dll" text="Socket Library" />
 		<item file="rpcrt4.dll" text="RPC (Remote Procedure Call)" />
-		<item file="dhcpsapi.dll" text="DHCP Server API" />
 		<item file="dhcpcore.dll" text="DHCP v4" />
 		<item file="dhcpcore6.dll" text="DHCP v6" />
-		<item file="p2p.dll" text="P2P (Peer-to-peer)" />
+		<item file="dhcpsapi.dll" text="DHCP Server API" />
+		<item file="p2p.dll" text="Peer-to-Peer Grouping API" />
 		<item file="iphlpapi.dll" text="IP Helper API" />
+		<item file="iphlpsvc.dll" text="IP Helper Service API" />
 		<item file="ipnathlp.dll" text="NAT Helper API" />
 		<item file="winbio.dll" text="Biometric API" />
-		<item file="pdh.dll" text="PDH (Performance Data Helper)" />
-		<item file="loadperf.dll" text="Performance Counter Library" />
-		<item file="pshed.dll" text="PSHED (Platform Specific Hardware Error)" />
+		<item file="pdh.dll" text="Performance Data Helper API" />
+		<item file="loadperf.dll" text="Performance Counter API" />
+		<item file="pshed.dll" text="Platform Specific Hardware Error Messages" />
 		<item file="comres.dll" text="COM+ Library" />
 		<item file="ole32.dll" text="OLE (Object Linking and Embedding)" />
-		<item file="schedsvc.dll" text="Task Scheduler" />
+		<item file="schedsvc.dll" text="Task Scheduler Service API" />
 		<item file="twinui.dll" text="Twin UI" />
 		<item file="ddputils.dll" text="Data Deduplication Library" />
-		<item file="efscore.dll" text="EFS (Encrypting File System)" />
-		<item file="msxml3r.dll" text="MSXML v3" />
-		<item file="msxml6r.dll" text="MSXML v6" />
-		<item file="blbres.dll" text="Backup Engine" />
-		<item file="dmutil.dll" text="Disk Manager" />
-		<item file="imapi2.dll" text="IMAPIv2" />
-		<item file="imapi2fs.dll" text="IMAPIv2 (FS)" />
-		<item file="mprmsg.dll" text="Multi-Protocol Router (MPR)" />
+		<item file="msxml3r.dll" text="Microsoft XML API v3" />
+		<item file="msxml6r.dll" text="Microsoft XML API v6" />
+		<item file="blbres.dll" text="Backup Engine Service" />
+		<item file="dmutil.dll" text="Disk Manager Library API" />
+		<item file="imapi2.dll" text="Image Mastering API v2" />
+		<item file="imapi2fs.dll" text="Image Mastering File System Imaging API v2" />
+		<item file="mprmsg.dll" text="Multi-Protocol Router API" />
 		<item file="msobjs.dll" text="System objects" />
-		<item file="mswsock.dll" text="Windows Sockets" />
+		<item file="mswsock.dll" text="Windows Sockets Service API v2" />
 		<item file="ntprint.dll" text="Spooler API" />
+		<item file="ci.dll" text="Code Integrity" />
+		<item file="coreuicomponents.dll" text="Core UI Components" />
+		<item file="deviceaccess.dll" text="Device Broker And Policy COM Server" />
+		<item file="dism.exe" text="Dism Image Servicing Utility" />
+		<item file="dismapi.dll" text="DISM API Framework" />
+		<item file="activeds.dll" text="ADs Router Layer DLL" />
+		<item file="appmgr.dll" text="Software Installation Snapin Extenstion" />
+		<item file="asferror.dll" text="ASF Error Definitions" />
+		<item file="auditcse.dll" text="Windows Audit Settings CSE" />
+		<item file="bdeunlock.exe" text="BitLocker Unlock" />
+		<item file="bisrv.dll" text="Background Tasks Infrastructure Service" />
+		<item file="blbevents.dll" text="Blb Publisher" />
+		<item file="clipc.dll" text="Client Licensing Platform Client" />
+		<item file="clipsvc.dll" text="Client License Service" />
+		<item file="combase.dll" text="Microsoft COM for Windows" />
+		<item file="cryptxml.dll" text="XML DigSig API" />
+		<item file="cscsvc.dll" text="CSC Service API" />
+		<item file="csrsrv.dll" text="Client Server Runtime Process" />
+		<item file="das.dll" text="Device Association Service" />
+		<item file="defragsvc.dll" text="Microsoft\Drive Optimizer" />
+		<item file="dnsapi.dll" text="DNS Client API" />
+		<item file="dsreg.dll" text="Active Directory Device Registration" />
+		<item file="dwm.exe" text="Desktop Window Manager API" />
+		<item file="eapsvc.dll" text="EAPHost API" />
+		<item file="eapphost.dll" text="EAPHost Peer API" />
+		<item file="efscore.dll" text="EFS Core API" />
+		<item file="ehstorapi.dll" text="Enhanced Storage API" />
+		<item file="ehstorauthn.exe" text="Enhanced Storage Authentication API" />
+		<item file="fcon.dll" text="Feature Configuration API" />
+		<item file="fdeploy.dll" text="Folder Redirection API" />
+		<item file="fveapi.dll" text="BitLocker Encryption API" />
+		<item file="fvewiz.dll" text="BitLocker Encryption Wizard API" />
+		<item file="gpsvc.dll" text="Group Policy Client API" />
+		<item file="idlisten.dll" text="Identity Listener API" />
+		<item file="iscsidsc.dll" text="iSCSI Discovery API" />
+		<item file="lsasrv.dll" text="LSA Server API" />
+		<item file="mf.dll" text="Media Foundation API" />
+		<item file="msaudite.dll" text="Security Audit Events API" />
+		<item file="msmpeg2enc.dll" text="Microsoft MPEG-2 Encoder API" />
+		<item file="mstscax.dll" text="Remote Desktop Client API" />
+		<item file="netdiagfx.dll" text="Network Diagnostic Framework API" />
+		<item file="perfos.dll" text="System Performance Objects API" />
+		<item file="profsvc.dll" text="ProfSvc" />
+		<item file="quartz.dll" text="DirectShow Runtime" />
+		<item file="radardt.dll" text="Resource Exhaustion Detector" />
+		<item file="rdpendp.dll" text="RDP Audio Endpoint" />
+		<item file="reagent.dll" text="Windows Recovery Agent" />
+		<item file="reseteng.dll" text="Windows Reset Engine" />
+		<item file="rtm.dll" text="Routing Table Manager" />
+		<item file="samsrv.dll" text="SAM Server API" />
+		<item file="scripto.dll" text="Microsoft ScriptO" />
+		<item file="slc.dll" text="Software Licensing Client API" />
+		<item file="slcext.dll" text="Software Licensing Client Extension API" />
+		<item file="spp.dll" text="Shared Protection Point Library API" />
+		<item file="srcore.dll" text="System Restore Core Library API" />
+		<item file="srm.dll" text="File Server Resource Manager Common Library API" />
+		<item file="storagewmi.dll" text="WMI Provider for Storage Management" />
+		<item file="syncreg.dll" text="Synchronization Framework Registration" />
+		<item file="vdsutil.dll" text="Virtual Disk Service Utility" />
+		<item file="w32time.dll" text="Windows Time Service" />
+		<item file="wcmsvc.dll" text="Windows Connection Manager Service" />
+		<item file="webservices.dll" text="Windows Web Services" />
+		<item file="websocket.dll" text="Web Socket API" />
+		<item file="wsl.exe" text="Windows Subsystem for Linux" />
+		<item file="wuaueng.dll" text="Windows Update" />
 	</module>
 	<facility>
 		<item code="0" text="FACILITY_NULL" />
