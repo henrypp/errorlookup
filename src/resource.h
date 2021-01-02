@@ -10,6 +10,7 @@
 
 // Dialogs
 #define IDD_MAIN 100
+#define IDD_MODULES 101
 
 // Main Dlg
 #define IDC_CODE 100
@@ -19,21 +20,24 @@
 #define IDC_DESCRIPTION 104
 #define IDC_DESCRIPTION_CTL 105
 #define IDC_STATUSBAR 106
+#define IDC_NAV 107
+#define IDC_MODULES 108
+#define IDC_RESET 109
+#define IDC_CLOSE 110
 
 // Main Menu
-#define IDM_EXIT 107
-#define IDM_ALWAYSONTOP_CHK 108
-#define IDM_INSERTBUFFER_CHK 109
-#define IDM_CHECKUPDATES_CHK 110
-#define IDM_CLASSICUI_CHK 111
-#define IDM_ADDMODULE 112
-#define IDM_WEBSITE 113
-#define IDM_CHECKUPDATES 114
-#define IDM_ABOUT 115
-#define IDM_ZOOM 116
+#define IDM_SETTINGS 111
+#define IDM_EXIT 112
+#define IDM_ALWAYSONTOP_CHK 113
+#define IDM_INSERTBUFFER_CHK 114
+#define IDM_CHECKUPDATES_CHK 115
+#define IDM_CLASSICUI_CHK 116
+#define IDM_WEBSITE 117
+#define IDM_CHECKUPDATES 118
+#define IDM_ABOUT 119
+#define IDM_ZOOM 120
 
-#define IDX_MODULES 1000
-#define IDX_LANGUAGE 2000
+#define IDX_LANGUAGE 1000
 
 // Strings
 #define IDS_LCID 1
@@ -72,6 +76,7 @@
 
 #define IDS_CLASSICUI_CHK 28
 #define IDS_CLOSE 29
+#define IDS_RESET 30
 
 // Icons
 #define IDI_MAIN 100
