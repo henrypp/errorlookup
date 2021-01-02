@@ -400,14 +400,22 @@ VOID _app_loaddatabase (HWND hwnd)
 	mxml_node_t *root_node;
 	mxml_node_t *items_node;
 
+	count_unload = 0;
+
 	if (!modules)
 		modules = _r_obj_createhashtableex (sizeof (ITEM_MODULE), 128, &_app_dereferencemoduleprocedure);
+	else
+		_r_obj_clearhashtable (modules);
 
 	if (!facility)
 		facility = _r_obj_createhashtableex (sizeof (R_HASHSTORE), 64, &_r_util_dereferencehashstoreprocedure);
+	else
+		_r_obj_clearhashtable (facility);
 
 	if (!severity)
 		severity = _r_obj_createhashtableex (sizeof (R_HASHSTORE), 64, &_r_util_dereferencehashstoreprocedure);
+	else
+		_r_obj_clearhashtable (severity);
 
 	WCHAR database_path[MAX_PATH];
 	_r_str_printf (database_path, RTL_NUMBER_OF (database_path), L"%s\\modules.xml", _r_app_getdirectory ());
@@ -547,6 +555,9 @@ INT_PTR CALLBACK SettingsProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 					SIZE_T enum_key = 0;
 					SIZE_T module_hash;
 					INT index = 0;
+
+					_r_listview_deleteallitems (hwnd, IDC_MODULES);
+					_r_listview_deleteallcolumns (hwnd, IDC_MODULES);
 
 					_r_listview_setstyle (hwnd, IDC_MODULES, LVS_EX_CHECKBOXES | LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP, FALSE);
 
@@ -787,9 +798,6 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			// configure controls
 			SendDlgItemMessage (hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, INT32_MAX);
 
-			// load xml database
-			_app_loaddatabase (hwnd);
-
 			if (_r_config_getboolean (L"InsertBufferAtStartup", FALSE))
 			{
 				PR_STRING clipboard_text = _r_clipboard_get (hwnd);
@@ -819,6 +827,9 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 		case RM_INITIALIZE:
 		{
+			// load xml database
+			_app_loaddatabase (hwnd);
+
 			// configure menu
 			HMENU hmenu = GetMenu (hwnd);
 
@@ -887,8 +898,6 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			_app_print (hwnd);
 
 			_app_refreshstatus (hwnd);
-
-			SendDlgItemMessage (hwnd, IDC_LISTVIEW, LVM_RESETEMPTYTEXT, 0, 0);
 
 			break;
 		}
