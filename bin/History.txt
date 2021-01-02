@@ -1,3 +1,10 @@
+v2.4 (3 January 2021)
+- open module location on double-click
+- updated error modules list
+- updated facility list
+- updated project sdk
+- updated locales
+
 v2.3.3 (23 December 2019)
 - changed compiler build settings
 - fixed update checker bug (issue #16)
