@@ -1,7 +1,18 @@
-Error Lookup [![Github All Releases](https://img.shields.io/github/downloads/henrypp/errorlookup/total.svg)](https://github.com/henrypp/errorlookup/releases) [![GitHub issues](https://img.shields.io/github/issues-raw/henrypp/errorlookup.svg)](https://github.com/henrypp/errorlookup/issues) [![Donate via PayPal](https://img.shields.io/badge/donate-paypal-red.svg)](https://www.paypal.me/henrypp/15) [![Donate via Bitcoin](https://img.shields.io/badge/donate-bitcoin-red.svg)](https://blockchain.info/address/1LrRTXPsvHcQWCNZotA9RcwjsGcRghG96c) [![Licence](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
-=======
+<h1 align="center">Error Lookup</h1>
 
-![Error Lookup](https://www.henrypp.org/images/errorlookup.png?newpik)
+<p align="center">
+	<a href="https://github.com/henrypp/errorlookup/releases"><img src="https://img.shields.io/github/v/release/henrypp/errorlookup?style=flat-square&include_prereleases&label=version" /></a>
+	<a href="https://github.com/henrypp/errorlookup/releases"><img src="https://img.shields.io/github/downloads/henrypp/errorlookup/total.svg?style=flat-square" /></a>
+	<a href="https://github.com/henrypp/errorlookup/issues"><img src="https://img.shields.io/github/issues-raw/henrypp/errorlookup.svg?style=flat-square&label=issues" /></a>
+	<a href="https://github.com/henrypp/errorlookup/graphs/contributors"><img src="https://img.shields.io/github/contributors/henrypp/errorlookup?style=flat-square" /></a>
+	<a href="https://github.com/henrypp/errorlookup/blob/master/LICENSE"><img src="https://img.shields.io/github/license/henrypp/errorlookup?style=flat-square" /></a>
+</p>
+
+-------
+
+<p align="center">
+	<img src="https://www.henrypp.org/images/errorlookup.png" />
+</p>
 
 ### Description:
 Portable open source tool which can help by translating error codes into a more meaningful text description. The interface is simple - just a box to type your code, and another which displays the details - so there doesn’t seem much to learn. 
