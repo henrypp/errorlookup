@@ -1,3 +1,7 @@
+v2.4.1 (10 January 2021)
+- fixed incorrect strings in russian locale
+- fixed locale update checking
+
 v2.4 (3 January 2021)
 - open module location on double-click
 - updated error modules list
