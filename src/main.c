@@ -102,25 +102,20 @@ INT CALLBACK _app_listviewcompare_callback (LPARAM lparam1, LPARAM lparam2, LPAR
 
 	INT column_id = _r_config_getintegerex (L"SortColumn", 0, config_name);
 	BOOLEAN is_descend = _r_config_getbooleanex (L"SortIsDescending", FALSE, config_name);
-
+	PR_STRING item_text_1 = _r_listview_getitemtext (hwnd, listview_id, item1, column_id);
+	PR_STRING item_text_2 = _r_listview_getitemtext (hwnd, listview_id, item2, column_id);
 	INT result = 0;
 
-	if (!result)
+	if (item_text_1 && item_text_2)
 	{
-		PR_STRING item_text_1 = _r_listview_getitemtext (hwnd, listview_id, item1, column_id);
-		PR_STRING item_text_2 = _r_listview_getitemtext (hwnd, listview_id, item2, column_id);
-
-		if (item_text_1 && item_text_2)
-		{
-			result = _r_str_compare_logical (item_text_1->buffer, item_text_2->buffer);
-		}
-
-		if (item_text_1)
-			_r_obj_dereference (item_text_1);
-
-		if (item_text_2)
-			_r_obj_dereference (item_text_2);
+		result = _r_str_compare_logical (item_text_1->buffer, item_text_2->buffer);
 	}
+
+	if (item_text_1)
+		_r_obj_dereference (item_text_1);
+
+	if (item_text_2)
+		_r_obj_dereference (item_text_2);
 
 	return is_descend ? -result : result;
 }
@@ -719,7 +714,7 @@ INT_PTR CALLBACK SettingsProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 
 							if (ptr_module)
 							{
-								_r_config_setbooleanex (_r_obj_getstring (ptr_module->path), is_enabled, SECTION_MODULE);
+								_r_config_setbooleanex (ptr_module->path->buffer, is_enabled, SECTION_MODULE);
 
 								SAFE_DELETE_LIBRARY (ptr_module->hlib);
 
@@ -727,7 +722,7 @@ INT_PTR CALLBACK SettingsProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 								{
 									ULONG load_flags = _r_sys_isosversiongreaterorequal (WINDOWS_VISTA) ? LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE : LOAD_LIBRARY_AS_DATAFILE;
 
-									ptr_module->hlib = LoadLibraryEx (_r_obj_getstring (ptr_module->path), NULL, load_flags);
+									ptr_module->hlib = LoadLibraryEx (ptr_module->path->buffer, NULL, load_flags);
 
 									if (ptr_module->hlib)
 										config.count_unload -= 1;
