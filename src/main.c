@@ -10,15 +10,9 @@
 
 #include "resource.h"
 
-PR_HASHTABLE modules = NULL;
-PR_HASHTABLE facility = NULL;
-PR_HASHTABLE severity = NULL;
+STATIC_DATA config;
 
 R_SPINLOCK lock_checkbox;
-
-LCID lcid = 0;
-SIZE_T count_unload = 0;
-WCHAR info[MAX_PATH];
 
 VOID NTAPI _app_dereferencemoduleprocedure (PVOID entry)
 {
@@ -44,9 +38,9 @@ ULONG _app_getcode (HWND hwnd, PBOOLEAN is_hex)
 
 	if (text)
 	{
-		if ((result = _r_str_toulongex (_r_obj_getstring (text), 10)) == 0)
+		if ((result = _r_str_toulongex (text->buffer, 10)) == 0)
 		{
-			result = _r_str_toulongex (_r_obj_getstring (text), 16);
+			result = _r_str_toulongex (text->buffer, 16);
 
 			if (is_hex)
 				*is_hex = TRUE;
@@ -60,7 +54,7 @@ ULONG _app_getcode (HWND hwnd, PBOOLEAN is_hex)
 
 VOID _app_moduleopendirectory (SIZE_T module_hash)
 {
-	PITEM_MODULE ptr_module = _r_obj_findhashtable (modules, module_hash);
+	PITEM_MODULE ptr_module = _r_obj_findhashtable (config.modules, module_hash);
 
 	if (!ptr_module)
 		return;
@@ -83,7 +77,7 @@ VOID _app_moduleopendirectory (SIZE_T module_hash)
 
 VOID _app_modulegettooltip (LPWSTR buffer, SIZE_T length, SIZE_T module_hash)
 {
-	PITEM_MODULE ptr_module = _r_obj_findhashtable (modules, module_hash);
+	PITEM_MODULE ptr_module = _r_obj_findhashtable (config.modules, module_hash);
 
 	if (!ptr_module)
 		return;
@@ -172,9 +166,9 @@ VOID _app_listviewsort (HWND hwnd, INT listview_id, INT column_id, BOOLEAN is_no
 
 VOID _app_refreshstatus (HWND hwnd)
 {
-	SIZE_T modules_count = _r_obj_gethashtablesize (modules);
+	SIZE_T modules_count = _r_obj_gethashtablesize (config.modules);
 
-	_r_status_settextformat (hwnd, IDC_STATUSBAR, 0, _r_locale_getstring (IDS_STATUS_TOTAL), modules_count - count_unload, modules_count);
+	_r_status_settextformat (hwnd, IDC_STATUSBAR, 0, _r_locale_getstring (IDS_STATUS_TOTAL), modules_count - config.count_unload, modules_count);
 }
 
 VOID _app_resizewindow (HWND hwnd, LPARAM lparam)
@@ -304,18 +298,18 @@ VOID _app_showdescription (HWND hwnd, SIZE_T module_hash)
 
 	if (module_hash != SIZE_MAX)
 	{
-		ptr_module = _r_obj_findhashtable (modules, module_hash);
+		ptr_module = _r_obj_findhashtable (config.modules, module_hash);
 
 		if (ptr_module)
 		{
-			_r_ctrl_settextformat (hwnd, IDC_DESCRIPTION_CTL, L"%s\r\n\r\n%s", info, _r_obj_getstringorempty (ptr_module->text));
+			_r_ctrl_settextformat (hwnd, IDC_DESCRIPTION_CTL, L"%s\r\n\r\n%s", config.info, _r_obj_getstringorempty (ptr_module->text));
 
 			_r_status_settextformat (hwnd, IDC_STATUSBAR, 1, L"%s - %s", _r_obj_getstringorempty (ptr_module->description), _r_obj_getstringorempty (ptr_module->path));
 		}
 	}
 	else
 	{
-		_r_ctrl_settext (hwnd, IDC_DESCRIPTION_CTL, info);
+		_r_ctrl_settext (hwnd, IDC_DESCRIPTION_CTL, config.info);
 
 		_r_status_settext (hwnd, IDC_STATUSBAR, 1, NULL);
 	}
@@ -337,14 +331,14 @@ VOID _app_print (HWND hwnd)
 	severity_code = HRESULT_SEVERITY (error_code);
 	facility_code = HRESULT_FACILITY (error_code);
 
-	facility_table = _r_obj_findhashtable (facility, facility_code);
-	severity_table = _r_obj_findhashtable (severity, severity_code);
+	facility_table = _r_obj_findhashtable (config.facility, facility_code);
+	severity_table = _r_obj_findhashtable (config.severity, severity_code);
 
 	// clear first
 	_r_listview_deleteallitems (hwnd, IDC_LISTVIEW);
 
 	// print information
-	_r_str_printf (info, RTL_NUMBER_OF (info),
+	_r_str_printf (config.info, RTL_NUMBER_OF (config.info),
 				   L"Code (dec.): " FORMAT_DEC L"\r\nCode (hex.): " FORMAT_HEX L"\r\nFacility: %s (0x%02" TEXT (PRIX32) L")\r\nSeverity: %s (0x%02" TEXT (PRIX32) L")",
 				   error_code,
 				   error_code,
@@ -358,12 +352,12 @@ VOID _app_print (HWND hwnd)
 	SIZE_T enum_key = 0;
 	SIZE_T module_hash;
 
-	while (_r_obj_enumhashtable (modules, &ptr_module, &module_hash, &enum_key))
+	while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
 	{
 		if (!ptr_module->hlib || !_r_config_getbooleanex (_r_obj_getstring (ptr_module->path), TRUE, SECTION_MODULE))
 			continue;
 
-		buffer = _app_formatmessage (error_code, ptr_module->hlib, lcid);
+		buffer = _app_formatmessage (error_code, ptr_module->hlib, config.lcid);
 		_r_obj_movereference (&ptr_module->text, buffer);
 
 		if (buffer)
@@ -373,7 +367,7 @@ VOID _app_print (HWND hwnd)
 		}
 		else
 		{
-			_r_ctrl_settext (hwnd, IDC_DESCRIPTION_CTL, info);
+			_r_ctrl_settext (hwnd, IDC_DESCRIPTION_CTL, config.info);
 		}
 	}
 
@@ -400,22 +394,34 @@ VOID _app_loaddatabase (HWND hwnd)
 	mxml_node_t *root_node;
 	mxml_node_t *items_node;
 
-	count_unload = 0;
+	config.count_unload = 0;
 
-	if (!modules)
-		modules = _r_obj_createhashtableex (sizeof (ITEM_MODULE), 128, &_app_dereferencemoduleprocedure);
+	if (!config.modules)
+	{
+		config.modules = _r_obj_createhashtableex (sizeof (ITEM_MODULE), 128, &_app_dereferencemoduleprocedure);
+	}
 	else
-		_r_obj_clearhashtable (modules);
+	{
+		_r_obj_clearhashtable (config.modules);
+	}
 
-	if (!facility)
-		facility = _r_obj_createhashtableex (sizeof (R_HASHSTORE), 64, &_r_util_dereferencehashstoreprocedure);
+	if (!config.facility)
+	{
+		config.facility = _r_obj_createhashtableex (sizeof (R_HASHSTORE), 64, &_r_util_dereferencehashstoreprocedure);
+	}
 	else
-		_r_obj_clearhashtable (facility);
+	{
+		_r_obj_clearhashtable (config.facility);
+	}
 
-	if (!severity)
-		severity = _r_obj_createhashtableex (sizeof (R_HASHSTORE), 64, &_r_util_dereferencehashstoreprocedure);
+	if (!config.severity)
+	{
+		config.severity = _r_obj_createhashtableex (sizeof (R_HASHSTORE), 64, &_r_util_dereferencehashstoreprocedure);
+	}
 	else
-		_r_obj_clearhashtable (severity);
+	{
+		_r_obj_clearhashtable (config.severity);
+	}
 
 	WCHAR database_path[MAX_PATH];
 	_r_str_printf (database_path, RTL_NUMBER_OF (database_path), L"%s\\modules.xml", _r_app_getdirectory ());
@@ -445,7 +451,7 @@ VOID _app_loaddatabase (HWND hwnd)
 			LPCSTR text;
 			BOOLEAN is_enabled;
 
-			_r_obj_clearhashtable (modules);
+			_r_obj_clearhashtable (config.modules);
 
 			items_node = mxmlFindElement (root_node, root_node, "module", NULL, NULL, MXML_DESCEND);
 
@@ -473,7 +479,7 @@ VOID _app_loaddatabase (HWND hwnd)
 
 					module_hash = _r_obj_getstringhash (path_string);
 
-					if (!module_hash || _r_obj_findhashtable (modules, module_hash))
+					if (!module_hash || _r_obj_findhashtable (config.modules, module_hash))
 					{
 						_r_obj_dereference (path_string);
 						continue;
@@ -490,9 +496,9 @@ VOID _app_loaddatabase (HWND hwnd)
 						module.hlib = LoadLibraryEx (module.path->buffer, NULL, load_flags);
 
 					if (!is_enabled || !module.hlib)
-						count_unload += 1;
+						config.count_unload += 1;
 
-					_r_obj_addhashtableitem (modules, module_hash, &module);
+					_r_obj_addhashtableitem (config.modules, module_hash, &module);
 				}
 			}
 
@@ -510,7 +516,7 @@ VOID _app_loaddatabase (HWND hwnd)
 
 					_r_obj_initializehashstore (&hashstore, _r_str_multibyte2unicode (text));
 
-					_r_obj_addhashtableitem (facility, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &hashstore);
+					_r_obj_addhashtableitem (config.facility, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &hashstore);
 				}
 			}
 
@@ -528,7 +534,7 @@ VOID _app_loaddatabase (HWND hwnd)
 
 					_r_obj_initializehashstore (&hashstore, _r_str_multibyte2unicode (text));
 
-					_r_obj_addhashtableitem (severity, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &hashstore);
+					_r_obj_addhashtableitem (config.severity, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &hashstore);
 				}
 			}
 		}
@@ -566,7 +572,7 @@ INT_PTR CALLBACK SettingsProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 
 					_r_spinlock_acquireshared (&lock_checkbox);
 
-					while (_r_obj_enumhashtable (modules, &ptr_module, &module_hash, &enum_key))
+					while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
 					{
 						_r_listview_additemex (hwnd, IDC_MODULES, index, 0, _r_obj_getstring (ptr_module->path), I_IMAGENONE, I_GROUPIDNONE, module_hash);
 						_r_listview_setitem (hwnd, IDC_MODULES, index, 1, _r_obj_getstring (ptr_module->description));
@@ -661,7 +667,7 @@ INT_PTR CALLBACK SettingsProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 								break;
 
 							SIZE_T module_hash = lpnmlv->nmcd.lItemlParam;
-							PITEM_MODULE ptr_module = _r_obj_findhashtable (modules, module_hash);
+							PITEM_MODULE ptr_module = _r_obj_findhashtable (config.modules, module_hash);
 
 							if (ptr_module)
 							{
@@ -709,7 +715,7 @@ INT_PTR CALLBACK SettingsProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 							BOOLEAN is_enabled = (lpnmlv->uNewState & LVIS_STATEIMAGEMASK) == INDEXTOSTATEIMAGEMASK (2);
 
 							SIZE_T module_hash = lpnmlv->lParam;
-							PITEM_MODULE ptr_module = _r_obj_findhashtable (modules, module_hash);
+							PITEM_MODULE ptr_module = _r_obj_findhashtable (config.modules, module_hash);
 
 							if (ptr_module)
 							{
@@ -724,13 +730,13 @@ INT_PTR CALLBACK SettingsProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 									ptr_module->hlib = LoadLibraryEx (_r_obj_getstring (ptr_module->path), NULL, load_flags);
 
 									if (ptr_module->hlib)
-										count_unload -= 1;
+										config.count_unload -= 1;
 								}
 								else
 								{
 									SAFE_DELETE_REFERENCE (ptr_module->text);
 
-									count_unload += 1;
+									config.count_unload += 1;
 								}
 
 								HWND hmain = _r_app_gethwnd ();
@@ -863,7 +869,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case RM_LOCALIZE:
 		{
 			// get locale id
-			lcid = _r_str_toulongex (_r_locale_getstring (IDS_LCID), 16);
+			config.lcid = _r_str_toulongex (_r_locale_getstring (IDS_LCID), 16);
 
 			_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, _r_locale_getstring (IDS_MODULES), 0);
 
@@ -1112,6 +1118,8 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 INT APIENTRY wWinMain (_In_ HINSTANCE hinst, _In_opt_ HINSTANCE prev_hinst, _In_ LPWSTR cmdline, _In_ INT show_cmd)
 {
 	MSG msg;
+
+	RtlSecureZeroMemory (&config, sizeof (config));
 
 	if (_r_app_initialize ())
 	{

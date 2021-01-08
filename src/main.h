@@ -15,6 +15,19 @@
 #define FORMAT_DEC L"%" TEXT (PR_ULONG)
 #define FORMAT_HEX L"0x%08" TEXT (PRIX32)
 
+typedef struct _STATIC_DATA
+{
+	WCHAR info[MAX_PATH];
+
+	PR_HASHTABLE modules;
+	PR_HASHTABLE facility;
+	PR_HASHTABLE severity;
+
+	SIZE_T count_unload;
+
+	LCID lcid;
+} STATIC_DATA, *PSTATIC_DATA;
+
 typedef struct _ITEM_MODULE
 {
 	PR_STRING path;
