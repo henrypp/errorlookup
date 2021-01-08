@@ -1,4 +1,4 @@
-// // Error Lookup
+// Error Lookup
 // Copyright (c) 2011-2021 Henry++
 
 #pragma once
