@@ -432,7 +432,7 @@ VOID _app_loaddatabase (HWND hwnd)
 		}
 	}
 
-	if (!xml_node && (buffer = _r_loadresource (NULL, MAKEINTRESOURCE (1), RT_RCDATA, NULL)))
+	if (!xml_node && (buffer = _r_res_loadresource (NULL, MAKEINTRESOURCE (1), RT_RCDATA, NULL)))
 		xml_node = mxmlLoadString (NULL, buffer, MXML_OPAQUE_CALLBACK);
 
 	if (xml_node)
