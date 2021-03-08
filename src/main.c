@@ -166,44 +166,6 @@ VOID _app_refreshstatus (HWND hwnd)
 	_r_status_settextformat (hwnd, IDC_STATUSBAR, 0, _r_locale_getstring (IDS_STATUS_TOTAL), modules_count - config.count_unload, modules_count);
 }
 
-VOID _app_resizewindow (HWND hwnd, LPARAM lparam)
-{
-	RECT rect = {0};
-	SendDlgItemMessage (hwnd, IDC_STATUSBAR, SB_GETRECT, 0, (LPARAM)&rect);
-
-	INT statusbar_height = _r_calc_rectheight (&rect);
-
-	GetWindowRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rect);
-	INT listview_width = _r_calc_rectwidth (&rect);
-
-	GetClientRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rect);
-	INT listview_height = (HIWORD (lparam) - (rect.top - rect.bottom) - statusbar_height) - _r_dc_getdpi (hwnd, 80);
-	listview_height -= _r_calc_rectheight (&rect);
-
-	GetClientRect (GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), &rect);
-	INT edit_width = (LOWORD (lparam) - listview_width) - _r_dc_getdpi (hwnd, 36);
-	INT edit_height = (HIWORD (lparam) - (rect.top - rect.bottom) - statusbar_height) - _r_dc_getdpi (hwnd, 42);
-	edit_height -= _r_calc_rectheight (&rect);
-
-	HDWP hwdp = BeginDeferWindowPos (3);
-
-	hwdp = DeferWindowPos (hwdp, GetDlgItem (hwnd, IDC_LISTVIEW), NULL, 0, 0, listview_width, listview_height, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
-	hwdp = DeferWindowPos (hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION), NULL, 0, 0, edit_width, _r_dc_getdpi (hwnd, 14), SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
-	hwdp = DeferWindowPos (hwdp, GetDlgItem (hwnd, IDC_DESCRIPTION_CTL), NULL, 0, 0, edit_width, edit_height, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
-
-	EndDeferWindowPos (hwdp);
-
-	// resize statusbar parts
-	INT parts[] = {listview_width + _r_dc_getdpi (hwnd, 24), -1};
-	SendDlgItemMessage (hwnd, IDC_STATUSBAR, SB_SETPARTS, 2, (LPARAM)parts);
-
-	// resize column width
-	_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, NULL, -100);
-
-	// resize statusbar
-	SendDlgItemMessage (hwnd, IDC_STATUSBAR, WM_SIZE, 0, 0);
-}
-
 FORCEINLINE BOOLEAN _app_isstringblacklisted (LPCWSTR string)
 {
 	LPCWSTR blacklist[] = {
@@ -597,20 +559,36 @@ INT_PTR CALLBACK SettingsProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 			{
 				case IDD_MODULES:
 				{
-					HWND hctrl = GetDlgItem (hwnd, IDC_MODULES);
+					HWND hlistview;
 
-					if (hctrl)
+					hlistview = GetDlgItem (hwnd, IDC_MODULES);
+
+					if (hlistview)
 					{
-						RECT rect = {0};
-
-						GetClientRect (hwnd, &rect);
-						SetWindowPos (hctrl, NULL, 0, 0, _r_calc_rectwidth (&rect), _r_calc_rectheight (&rect), SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
+						_r_listview_setcolumn (hwnd, IDC_MODULES, 0, _r_locale_getstring (IDS_FILE), -36);
+						_r_listview_setcolumn (hwnd, IDC_MODULES, 1, _r_locale_getstring (IDS_DESCRIPTION), -64);
 					}
 
-					_r_listview_setcolumn (hwnd, IDC_MODULES, 0, _r_locale_getstring (IDS_FILE), -36);
-					_r_listview_setcolumn (hwnd, IDC_MODULES, 1, _r_locale_getstring (IDS_DESCRIPTION), -64);
-
 					break;
+				}
+			}
+
+			break;
+		}
+
+		case WM_SIZE:
+		{
+			HWND hlistview;
+			RECT rect;
+
+			hlistview = GetDlgItem (hwnd, IDC_MODULES);
+
+			if (hlistview)
+			{
+				if (GetClientRect (hlistview, &rect))
+				{
+					_r_listview_setcolumn (hwnd, IDC_MODULES, 0, NULL, _r_calc_percentval (34, rect.right));
+					_r_listview_setcolumn (hwnd, IDC_MODULES, 1, NULL, _r_calc_percentval (64, rect.right));
 				}
 			}
 
@@ -785,6 +763,8 @@ INT_PTR CALLBACK SettingsProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 
 INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
+	static R_LAYOUT_MANAGER layout_manager = {0};
+
 	switch (msg)
 	{
 		case WM_INITDIALOG:
@@ -794,7 +774,7 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			// configure listview
 			_r_listview_setstyle (hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP, FALSE);
 
-			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, _r_locale_getstring (IDS_MODULES), -95, LVCFMT_LEFT);
+			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, _r_locale_getstring (IDS_MODULES), 100, LVCFMT_LEFT);
 
 			// configure controls
 			SendDlgItemMessage (hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, INT32_MAX);
@@ -815,7 +795,11 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				_r_ctrl_settext (hwnd, IDC_CODE_CTL, _r_config_getstring (L"LatestCode", L"0x00000000"));
 			}
 
+			// configure settings
 			_r_settings_addpage (IDD_MODULES, IDS_MODULES);
+
+			// initialize layout manager
+			_r_layout_initializemanager (&layout_manager, hwnd);
 
 			break;
 		}
@@ -998,7 +982,27 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 		case WM_SIZE:
 		{
-			_app_resizewindow (hwnd, lparam);
+			RECT rect;
+
+			if (!_r_layout_resize (&layout_manager, wparam))
+				break;
+
+			// resize statusbar parts
+			if (!GetClientRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rect))
+				break;
+
+			INT parts[] = {rect.right + _r_dc_getdpi (hwnd, 24), -1};
+			SendDlgItemMessage (hwnd, IDC_STATUSBAR, SB_SETPARTS, 2, (LPARAM)parts);
+
+			// resize column width
+			_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, NULL, rect.right);
+
+			break;
+		}
+
+		case WM_GETMINMAXINFO:
+		{
+			_r_layout_resizeminimumsize (&layout_manager, lparam);
 			break;
 		}
 
@@ -1007,15 +1011,14 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			INT ctrl_id = LOWORD (wparam);
 			INT notify_code = HIWORD (wparam);
 
-			if (ctrl_id == IDC_CODE_CTL && notify_code == EN_CHANGE)
-			{
-				_app_print (hwnd);
-				return FALSE;
-			}
-
-			if (notify_code == 0 && ctrl_id >= IDX_LANGUAGE && ctrl_id <= IDX_LANGUAGE + (INT)_r_locale_getcount ())
+			if (!notify_code && ctrl_id >= IDX_LANGUAGE && ctrl_id <= IDX_LANGUAGE + (INT)_r_locale_getcount ())
 			{
 				_r_locale_applyfrommenu (GetSubMenu (GetSubMenu (GetMenu (hwnd), 1), LANG_MENU), ctrl_id);
+				return FALSE;
+			}
+			else if (ctrl_id == IDC_CODE_CTL && notify_code == EN_CHANGE)
+			{
+				_app_print (hwnd);
 				return FALSE;
 			}
 
