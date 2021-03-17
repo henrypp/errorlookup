@@ -72,7 +72,7 @@ VOID _app_moduleopendirectory (SIZE_T module_hash)
 	}
 
 	if (ptr_module->full_path)
-		_r_path_explore (ptr_module->full_path->buffer);
+		_r_shell_openfile (ptr_module->full_path->buffer);
 }
 
 VOID _app_modulegettooltip (LPWSTR buffer, SIZE_T length, SIZE_T module_hash)
@@ -587,7 +587,7 @@ INT_PTR CALLBACK SettingsProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 			{
 				if (GetClientRect (hlistview, &rect))
 				{
-					_r_listview_setcolumn (hwnd, IDC_MODULES, 0, NULL, _r_calc_percentval (34, rect.right));
+					_r_listview_setcolumn (hwnd, IDC_MODULES, 0, NULL, _r_calc_percentval (36, rect.right));
 					_r_listview_setcolumn (hwnd, IDC_MODULES, 1, NULL, _r_calc_percentval (64, rect.right));
 				}
 			}
@@ -983,12 +983,15 @@ INT_PTR CALLBACK DlgProc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case WM_SIZE:
 		{
 			RECT rect;
+			HWND hlistview = GetDlgItem (hwnd, IDC_MODULES);
 
 			if (!_r_layout_resize (&layout_manager, wparam))
 				break;
 
 			// resize statusbar parts
-			if (!GetClientRect (GetDlgItem (hwnd, IDC_LISTVIEW), &rect))
+			hlistview = GetDlgItem (hwnd, IDC_LISTVIEW);
+
+			if (!hlistview || !GetClientRect (hlistview, &rect))
 				break;
 
 			INT parts[] = {rect.right + _r_dc_getdpi (hwnd, 24), -1};
