@@ -471,7 +471,7 @@ VOID _app_loaddatabase (HWND hwnd)
 					if (_r_str_isempty_a (text))
 						continue;
 
-					_r_obj_initializehashstore (&hashstore, _r_str_multibyte2unicode (text));
+					_r_obj_initializehashstore (&hashstore, _r_str_multibyte2unicode (text), 0);
 
 					_r_obj_addhashtableitem (config.facility, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &hashstore);
 				}
@@ -489,7 +489,7 @@ VOID _app_loaddatabase (HWND hwnd)
 					if (_r_str_isempty_a (text))
 						continue;
 
-					_r_obj_initializehashstore (&hashstore, _r_str_multibyte2unicode (text));
+					_r_obj_initializehashstore (&hashstore, _r_str_multibyte2unicode (text), 0);
 
 					_r_obj_addhashtableitem (config.severity, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &hashstore);
 				}
