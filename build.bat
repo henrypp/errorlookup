@@ -1,4 +1,6 @@
 @echo off
 
 cd ..\builder
-build "Error Lookup" errorlookup 2.4.2
+call build errorlookup 2.4.2 "Error Lookup"
+
+pause
