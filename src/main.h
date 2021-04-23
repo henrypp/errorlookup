@@ -12,8 +12,8 @@
 
 #define SECTION_MODULE L"module"
 
-#define FORMAT_DEC L"%" TEXT (PR_ULONG)
-#define FORMAT_HEX L"0x%08" TEXT (PRIX32)
+#define FORMAT_DEC L"%" PR_ULONG
+#define FORMAT_HEX L"0x%08" PRIX32
 
 typedef struct _STATIC_DATA
 {
