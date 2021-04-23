@@ -6,8 +6,6 @@
 #include "main.h"
 #include "rapp.h"
 
-#include "..\..\mxml\mxml.h"
-
 #include "resource.h"
 
 STATIC_DATA config;
@@ -343,13 +341,77 @@ VOID _app_print (HWND hwnd)
 	}
 }
 
+VOID _app_parsemodulescallback (_Inout_ PR_XML_LIBRARY xml_library, _In_ PVOID lparam)
+{
+	LPCWSTR file_value;
+	LPCWSTR text_value;
+	UINT file_length;
+	UINT text_length;
+	BOOLEAN is_enabled;
+	PR_HASHTABLE hashtable;
+
+	if (!_r_xml_getattribute (xml_library, L"file", &file_value, &file_length))
+		return;
+
+	if (!_r_xml_getattribute (xml_library, L"text", &text_value, &text_length))
+		return;
+
+	ITEM_MODULE module;
+	SIZE_T module_hash;
+	ULONG load_flags = LOAD_LIBRARY_AS_DATAFILE;
+
+	if (_r_sys_isosversiongreaterorequal (WINDOWS_VISTA))
+		load_flags |= LOAD_LIBRARY_AS_IMAGE_RESOURCE;
+
+	module_hash = _r_str_hash (file_value);
+	hashtable = (PR_HASHTABLE)lparam;
+
+	if (!module_hash || _r_obj_findhashtable (hashtable, module_hash))
+		return;
+
+	memset (&module, 0, sizeof (module));
+
+	module.path = _r_obj_createstringex (file_value, file_length * sizeof (WCHAR));
+	module.description = _r_obj_createstringex (text_value, text_length * sizeof (WCHAR));
+
+	is_enabled = _r_config_getbooleanex (module.path->buffer, TRUE, SECTION_MODULE);
+
+	if (is_enabled)
+		module.hlib = LoadLibraryEx (module.path->buffer, NULL, load_flags);
+
+	if (!is_enabled || !module.hlib)
+		config.count_unload += 1;
+
+	_r_obj_addhashtableitem (hashtable, module_hash, &module);
+}
+
+VOID _app_parsecodescallback (_Inout_ PR_XML_LIBRARY xml_library, _In_ PVOID lparam)
+{
+	LPCWSTR text_value;
+	LONG64 code;
+	UINT text_length;
+	R_HASHSTORE hashstore;
+	PR_HASHTABLE hashtable;
+
+	code = _r_xml_getattribute_long64 (xml_library, L"code");
+
+	if (!_r_xml_getattribute (xml_library, L"text", &text_value, &text_length))
+		return;
+
+	hashtable = (PR_HASHTABLE)lparam;
+
+	_r_obj_initializehashstore (&hashstore, _r_obj_createstringex (text_value, text_length * sizeof (WCHAR)), 0);
+
+	_r_obj_addhashtableitem (hashtable, (SIZE_T)code, &hashstore);
+}
+
 VOID _app_loaddatabase (HWND hwnd)
 {
-	PVOID buffer;
+	R_XML_LIBRARY xml_library;
+	HRESULT hr;
 
-	mxml_node_t *xml_node = NULL;
-	mxml_node_t *root_node;
-	mxml_node_t *items_node;
+	PVOID buffer;
+	ULONG buffer_size;
 
 	config.count_unload = 0;
 
@@ -380,124 +442,53 @@ VOID _app_loaddatabase (HWND hwnd)
 		_r_obj_clearhashtable (config.severity);
 	}
 
-	WCHAR database_path[MAX_PATH];
+	hr = _r_xml_initializelibrary (&xml_library, TRUE, NULL);
+
+	if (hr != S_OK)
+	{
+		_r_show_errormessage (hwnd, NULL, hr, L"_r_xml_initializelibrary", NULL);
+		return;
+	}
+
+	WCHAR database_path[512];
 	_r_str_printf (database_path, RTL_NUMBER_OF (database_path), L"%s\\modules.xml", _r_app_getdirectory ());
 
+	hr = S_FALSE;
+
 	if (_r_fs_exists (database_path))
+		hr = _r_xml_parsefile (&xml_library, database_path);
+
+	if (hr != S_OK && (buffer = _r_res_loadresource (NULL, MAKEINTRESOURCE (1), RT_RCDATA, &buffer_size)))
+		hr = _r_xml_parsestring (&xml_library, buffer, buffer_size);
+
+	if (hr == S_OK)
 	{
-		HANDLE hfile = CreateFile (database_path, FILE_GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-		if (_r_fs_isvalidhandle (hfile))
+		if (_r_xml_findchildbytagname (&xml_library, L"module"))
 		{
-			xml_node = mxmlLoadFd (NULL, hfile, MXML_OPAQUE_CALLBACK);
-			CloseHandle (hfile);
-		}
-	}
-
-	if (!xml_node && (buffer = _r_res_loadresource (NULL, MAKEINTRESOURCE (1), RT_RCDATA, NULL)))
-		xml_node = mxmlLoadString (NULL, buffer, MXML_OPAQUE_CALLBACK);
-
-	if (xml_node)
-	{
-		root_node = mxmlFindElement (xml_node, xml_node, "root", NULL, NULL, MXML_DESCEND);
-
-		if (root_node)
-		{
-			// load modules information
-			R_HASHSTORE hashstore;
-			LPCSTR text;
-			BOOLEAN is_enabled;
-
-			_r_obj_clearhashtable (config.modules);
-
-			items_node = mxmlFindElement (root_node, root_node, "module", NULL, NULL, MXML_DESCEND);
-
-			if (items_node)
+			while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
 			{
-				ITEM_MODULE module;
-				PR_STRING path_string;
-				SIZE_T module_hash;
-				ULONG load_flags = LOAD_LIBRARY_AS_DATAFILE;
-
-				if (_r_sys_isosversiongreaterorequal (WINDOWS_VISTA))
-					load_flags |= LOAD_LIBRARY_AS_IMAGE_RESOURCE;
-
-				for (mxml_node_t* item = mxmlGetFirstChild (items_node); item; item = mxmlGetNextSibling (item))
-				{
-					text = mxmlElementGetAttr (item, "file");
-
-					if (_r_str_isempty_a (text))
-						continue;
-
-					path_string = _r_str_multibyte2unicode (text);
-
-					if (!path_string)
-						continue;
-
-					module_hash = _r_obj_getstringhash (path_string);
-
-					if (!module_hash || _r_obj_findhashtable (config.modules, module_hash))
-					{
-						_r_obj_dereference (path_string);
-						continue;
-					}
-
-					memset (&module, 0, sizeof (module));
-
-					module.path = path_string;
-					module.description = _r_str_multibyte2unicode (mxmlElementGetAttr (item, "text"));
-
-					is_enabled = _r_config_getbooleanex (module.path->buffer, TRUE, SECTION_MODULE);
-
-					if (is_enabled)
-						module.hlib = LoadLibraryEx (module.path->buffer, NULL, load_flags);
-
-					if (!is_enabled || !module.hlib)
-						config.count_unload += 1;
-
-					_r_obj_addhashtableitem (config.modules, module_hash, &module);
-				}
-			}
-
-			// load facility information
-			items_node = mxmlFindElement (root_node, root_node, "facility", NULL, NULL, MXML_DESCEND);
-
-			if (items_node)
-			{
-				for (mxml_node_t* item = mxmlGetFirstChild (items_node); item; item = mxmlGetNextSibling (item))
-				{
-					text = mxmlElementGetAttr (item, "text");
-
-					if (_r_str_isempty_a (text))
-						continue;
-
-					_r_obj_initializehashstore (&hashstore, _r_str_multibyte2unicode (text), 0);
-
-					_r_obj_addhashtableitem (config.facility, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &hashstore);
-				}
-			}
-
-			// load severity information
-			items_node = mxmlFindElement (root_node, root_node, "severity", NULL, NULL, MXML_DESCEND);
-
-			if (items_node)
-			{
-				for (mxml_node_t* item = mxmlGetFirstChild (items_node); item; item = mxmlGetNextSibling (item))
-				{
-					text = mxmlElementGetAttr (item, "text");
-
-					if (_r_str_isempty_a (text))
-						continue;
-
-					_r_obj_initializehashstore (&hashstore, _r_str_multibyte2unicode (text), 0);
-
-					_r_obj_addhashtableitem (config.severity, _r_str_toulong_a (mxmlElementGetAttr (item, "code")), &hashstore);
-				}
+				_app_parsemodulescallback (&xml_library, config.modules);
 			}
 		}
 
-		mxmlDelete (xml_node);
+		if (_r_xml_findchildbytagname (&xml_library, L"facility"))
+		{
+			while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
+			{
+				_app_parsecodescallback (&xml_library, config.facility);
+			}
+		}
+
+		if (_r_xml_findchildbytagname (&xml_library, L"severity"))
+		{
+			while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
+			{
+				_app_parsecodescallback (&xml_library, config.severity);
+			}
+		}
 	}
+
+	_r_xml_destroylibrary (&xml_library);
 
 	_app_refreshstatus (hwnd);
 }
