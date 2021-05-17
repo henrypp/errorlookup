@@ -50,7 +50,7 @@ ULONG _app_getcode (_In_ HWND hwnd, _Out_opt_ PBOOLEAN is_hex)
 	return result;
 }
 
-VOID _app_moduleopendirectory (_In_ SIZE_T module_hash)
+VOID _app_moduleopendirectory (_In_ ULONG_PTR module_hash)
 {
 	PITEM_MODULE ptr_module;
 	HMODULE hlib;
@@ -77,7 +77,7 @@ VOID _app_moduleopendirectory (_In_ SIZE_T module_hash)
 }
 
 _Success_ (return)
-BOOLEAN _app_modulegettooltip (_Out_writes_ (buffer_size) LPWSTR buffer, _In_ SIZE_T buffer_size, _In_ SIZE_T module_hash)
+BOOLEAN _app_modulegettooltip (_Out_writes_ (buffer_size) LPWSTR buffer, _In_ SIZE_T buffer_size, _In_ ULONG_PTR module_hash)
 {
 	PITEM_MODULE ptr_module;
 
@@ -257,7 +257,7 @@ PR_STRING _app_formatmessage (_In_ ULONG code, _In_ HINSTANCE hinstance, _In_ UL
 	return buffer;
 }
 
-VOID _app_showdescription (_In_ HWND hwnd, _In_ SIZE_T module_hash)
+VOID _app_showdescription (_In_ HWND hwnd, _In_ ULONG_PTR module_hash)
 {
 	PITEM_MODULE ptr_module;
 
@@ -287,7 +287,7 @@ VOID _app_print (_In_ HWND hwnd)
 	PR_HASHSTORE severity_table;
 	PR_STRING buffer;
 	SIZE_T enum_key;
-	SIZE_T module_hash;
+	ULONG_PTR module_hash;
 	ULONG error_code;
 	ULONG severity_code;
 	ULONG facility_code;
@@ -399,12 +399,12 @@ VOID _app_parsemodulescallback (_Inout_ PR_XML_LIBRARY xml_library, _In_ PVOID l
 VOID _app_parsecodescallback (_Inout_ PR_XML_LIBRARY xml_library, _In_ PVOID lparam)
 {
 	LPCWSTR text_value;
-	LONG64 code;
+	ULONG64 code;
 	UINT text_length;
 	R_HASHSTORE hashstore;
 	PR_HASHTABLE hashtable;
 
-	code = _r_xml_getattribute_long64 (xml_library, L"code");
+	code = _r_xml_getattribute_ulong64 (xml_library, L"code");
 
 	if (!_r_xml_getattribute (xml_library, L"text", &text_value, &text_length))
 		return;
@@ -413,7 +413,7 @@ VOID _app_parsecodescallback (_Inout_ PR_XML_LIBRARY xml_library, _In_ PVOID lpa
 
 	_r_obj_initializehashstore (&hashstore, _r_obj_createstringex (text_value, text_length * sizeof (WCHAR)), 0);
 
-	_r_obj_addhashtableitem (hashtable, (SIZE_T)code, &hashstore);
+	_r_obj_addhashtableitem (hashtable, (ULONG_PTR)code, &hashstore);
 }
 
 VOID _app_loaddatabase (_In_ HWND hwnd)
@@ -517,7 +517,7 @@ INT_PTR CALLBACK SettingsProc (_In_ HWND hwnd, _In_ UINT msg, _In_  WPARAM wpara
 				{
 					PITEM_MODULE ptr_module;
 					SIZE_T enum_key = 0;
-					SIZE_T module_hash;
+					ULONG_PTR module_hash;
 					INT index = 0;
 
 					_r_listview_deleteallitems (hwnd, IDC_MODULES);
@@ -605,7 +605,7 @@ INT_PTR CALLBACK SettingsProc (_In_ HWND hwnd, _In_ UINT msg, _In_  WPARAM wpara
 				case NM_DBLCLK:
 				{
 					LPNMITEMACTIVATE lpnm;
-					SIZE_T module_hash;
+					ULONG_PTR module_hash;
 
 					if (lphdr->idFrom != IDC_MODULES)
 						break;
@@ -736,7 +736,7 @@ INT_PTR CALLBACK SettingsProc (_In_ HWND hwnd, _In_ UINT msg, _In_  WPARAM wpara
 				case LVN_GETINFOTIP:
 				{
 					LPNMLVGETINFOTIP lpnmlv;
-					SIZE_T module_hash;
+					ULONG_PTR module_hash;
 
 					lpnmlv = (LPNMLVGETINFOTIP)lparam;
 
@@ -905,15 +905,18 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 			{
 				case NM_DBLCLK:
 				{
+					LPNMITEMACTIVATE lpnm;
+					ULONG_PTR module_hash;
+
 					if (lphdr->idFrom != IDC_LISTVIEW)
 						break;
 
-					LPNMITEMACTIVATE lpnm = (LPNMITEMACTIVATE)lparam;
+					lpnm = (LPNMITEMACTIVATE)lparam;
 
 					if (lpnm->iItem == -1)
 						break;
 
-					SIZE_T module_hash = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnm->iItem);
+					module_hash = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnm->iItem);
 
 					_app_moduleopendirectory (module_hash);
 
@@ -923,14 +926,17 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 				case NM_CLICK:
 				case LVN_ITEMCHANGED:
 				{
+					LPNMITEMACTIVATE lpnm;
+					ULONG_PTR module_hash;
+
 					if (lphdr->idFrom != IDC_LISTVIEW)
 						break;
 
-					LPNMITEMACTIVATE lpnm = (LPNMITEMACTIVATE)lparam;
+					lpnm = (LPNMITEMACTIVATE)lparam;
 
 					if (lpnm->iItem != -1)
 					{
-						SIZE_T module_hash = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnm->iItem);
+						module_hash = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnm->iItem);
 
 						_app_showdescription (hwnd, module_hash);
 					}
@@ -944,12 +950,15 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 
 				case LVN_GETINFOTIP:
 				{
-					LPNMLVGETINFOTIP lpnmlv = (LPNMLVGETINFOTIP)lparam;
+					LPNMLVGETINFOTIP lpnmlv;
+					ULONG_PTR module_hash;
+
+					lpnmlv = (LPNMLVGETINFOTIP)lparam;
 
 					if (lpnmlv->hdr.idFrom != IDC_LISTVIEW)
 						break;
 
-					SIZE_T module_hash = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnmlv->iItem);
+					module_hash = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnmlv->iItem);
 
 					_app_modulegettooltip (lpnmlv->pszText, lpnmlv->cchTextMax, module_hash);
 
