@@ -814,12 +814,6 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 			break;
 		}
 
-		case WM_NCCREATE:
-		{
-			_r_wnd_enablenonclientscaling (hwnd);
-			break;
-		}
-
 		case RM_INITIALIZE:
 		{
 			// load xml database
