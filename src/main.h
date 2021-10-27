@@ -12,10 +12,10 @@
 
 #define SECTION_MODULE L"module"
 
-#define FORMAT_DEC L"%" PR_ULONG
-#define FORMAT_HEX L"0x%08" PRIX32
+#define FORMAT_DEC L"%" TEXT (PR_ULONG)
+#define FORMAT_HEX L"0x%08" TEXT (PRIX32)
 
-typedef struct _STATIC_DATA
+typedef struct STATIC_DATA
 {
 	WCHAR info[MAX_PATH];
 
@@ -28,7 +28,7 @@ typedef struct _STATIC_DATA
 	LCID lcid;
 } STATIC_DATA, *PSTATIC_DATA;
 
-typedef struct _ITEM_MODULE
+typedef struct ITEM_MODULE
 {
 	PR_STRING path;
 	PR_STRING full_path;
