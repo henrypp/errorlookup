@@ -390,7 +390,7 @@ VOID _app_parsexmlcallback (_Inout_ PR_XML_LIBRARY xml_library, _Inout_ PR_HASHT
 		if (_r_sys_isosversiongreaterorequal (WINDOWS_7))
 			load_flags |= LOAD_LIBRARY_AS_IMAGE_RESOURCE;
 
-		module_hash = _r_obj_getstringrefhash (&file_value);
+		module_hash = _r_obj_getstringrefhash (&file_value, TRUE);
 
 		if (!module_hash || _r_obj_findhashtable (hashtable, module_hash))
 			return;
@@ -466,7 +466,7 @@ VOID _app_loaddatabase (_In_ HWND hwnd)
 	}
 
 	WCHAR database_path[512];
-	_r_str_printf (database_path, RTL_NUMBER_OF (database_path), L"%s\\modules.xml", _r_app_getdirectory ());
+	_r_str_printf (database_path, RTL_NUMBER_OF (database_path), L"%s\\modules.xml", _r_app_getdirectory ()->buffer);
 
 	hr = S_FALSE;
 
@@ -760,6 +760,8 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 	{
 		case WM_INITDIALOG:
 		{
+			_r_app_sethwnd (hwnd); // HACK!!!
+
 			// configure listview
 			_r_listview_setstyle (hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP, FALSE);
 
@@ -827,7 +829,7 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 			{
 				_r_menu_checkitem (hmenu, IDM_ALWAYSONTOP_CHK, 0, MF_BYCOMMAND, _r_config_getboolean (L"AlwaysOnTop", FALSE));
 				_r_menu_checkitem (hmenu, IDM_INSERTBUFFER_CHK, 0, MF_BYCOMMAND, _r_config_getboolean (L"InsertBufferAtStartup", FALSE));
-				_r_menu_checkitem (hmenu, IDM_CHECKUPDATES_CHK, 0, MF_BYCOMMAND, _r_config_getboolean (L"CheckUpdates", TRUE));
+				_r_menu_checkitem (hmenu, IDM_CHECKUPDATES_CHK, 0, MF_BYCOMMAND, _r_update_isenabled (FALSE));
 			}
 
 			break;
@@ -1124,10 +1126,10 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 
 				case IDM_CHECKUPDATES_CHK:
 				{
-					BOOLEAN new_val = !_r_config_getboolean (L"CheckUpdates", TRUE);
+					BOOLEAN new_val = !_r_update_isenabled (FALSE);
 
 					_r_menu_checkitem (GetMenu (hwnd), ctrl_id, 0, MF_BYCOMMAND, new_val);
-					_r_config_setboolean (L"CheckUpdates", new_val);
+					_r_update_enable (new_val);
 
 					break;
 				}
@@ -1166,33 +1168,15 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 
 INT APIENTRY wWinMain (_In_ HINSTANCE hinst, _In_opt_ HINSTANCE prev_hinst, _In_ LPWSTR cmdline, _In_ INT show_cmd)
 {
-	MSG msg;
 	HWND hwnd;
-	HACCEL haccel;
 
-	if (_r_app_initialize ())
-	{
-		hwnd = _r_app_createwindow (IDD_MAIN, IDI_MAIN, &DlgProc);
+	if (!_r_app_initialize ())
+		return ERROR_APP_INIT_FAILURE;
 
-		if (hwnd)
-		{
-			haccel = LoadAccelerators (hinst, MAKEINTRESOURCE (IDA_MAIN));
+	hwnd = _r_app_createwindow (MAKEINTRESOURCE (IDD_MAIN), MAKEINTRESOURCE (IDI_MAIN), &DlgProc);
 
-			if (haccel)
-			{
-				while (GetMessage (&msg, NULL, 0, 0) > 0)
-				{
-					if (!TranslateAccelerator (hwnd, haccel, &msg) && !IsDialogMessage (hwnd, &msg))
-					{
-						TranslateMessage (&msg);
-						DispatchMessage (&msg);
-					}
-				}
+	if (!hwnd)
+		return ERROR_APP_INIT_FAILURE;
 
-				DestroyAcceleratorTable (haccel);
-			}
-		}
-	}
-
-	return ERROR_SUCCESS;
+	return _r_wnd_messageloop (hwnd, MAKEINTRESOURCE (IDA_MAIN));
 }
