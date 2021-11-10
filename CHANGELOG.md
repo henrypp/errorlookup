@@ -1,3 +1,10 @@
+v2.4.2 (10 November 2021)
+- added arm64 binaries
+- improved dpi support
+- use xmllite library
+- updated project sdk
+- fixed bugs
+
 v2.4.1 (10 January 2021)
 - fixed incorrect strings in russian locale
 - fixed locale update checking
