@@ -10,8 +10,6 @@
 
 STATIC_DATA config = {0};
 
-R_QUEUED_LOCK lock_checkbox = PR_QUEUED_LOCK_INIT;
-
 VOID NTAPI _app_dereferencemoduleprocedure (_In_ PVOID entry)
 {
 	PITEM_MODULE ptr_item;
@@ -108,18 +106,20 @@ INT CALLBACK _app_listviewcompare_callback (_In_ LPARAM lparam1, _In_ LPARAM lpa
 
 	if (item_text_1 && item_text_2)
 	{
-		if (_r_str_isstartswith (&item_text_1->sr, &sr1, TRUE))
+		if (listview_id == IDC_LISTVIEW)
 		{
-			result = -1;
+			if (_r_str_isstartswith (&item_text_1->sr, &sr1, TRUE))
+			{
+				result = -1;
+			}
+			else if (_r_str_isstartswith (&item_text_2->sr, &sr1, TRUE))
+			{
+				result = 1;
+			}
 		}
-		else if (_r_str_isstartswith (&item_text_2->sr, &sr1, TRUE))
-		{
-			result = 1;
-		}
-		else
-		{
+
+		if (!result)
 			result = _r_str_compare_logical (item_text_1, item_text_2);
-		}
 	}
 
 	if (item_text_1)
@@ -533,8 +533,6 @@ INT_PTR CALLBACK SettingsProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam
 					_r_listview_addcolumn (hwnd, IDC_MODULES, 0, L"", 100, LVCFMT_LEFT);
 					_r_listview_addcolumn (hwnd, IDC_MODULES, 1, L"", 100, LVCFMT_LEFT);
 
-					_r_queuedlock_acquireshared (&lock_checkbox);
-
 					while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
 					{
 						_r_listview_additem_ex (hwnd, IDC_MODULES, index, _r_obj_getstring (ptr_module->path), I_IMAGENONE, I_GROUPIDNONE, module_hash);
@@ -545,8 +543,6 @@ INT_PTR CALLBACK SettingsProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam
 
 						index += 1;
 					}
-
-					_r_queuedlock_releaseshared (&lock_checkbox);
 
 					_app_listviewsort (hwnd, IDC_MODULES, -1, FALSE);
 
@@ -567,6 +563,87 @@ INT_PTR CALLBACK SettingsProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam
 				{
 					_r_listview_setcolumn (hwnd, IDC_MODULES, 0, _r_locale_getstring (IDS_FILE), -36);
 					_r_listview_setcolumn (hwnd, IDC_MODULES, 1, _r_locale_getstring (IDS_DESCRIPTION), -64);
+
+					break;
+				}
+			}
+
+			break;
+		}
+
+		case RM_CONFIG_SAVE:
+		{
+			INT dialog_id = (INT)wparam;
+
+			switch (dialog_id)
+			{
+				case IDD_MODULES:
+				{
+					HWND hmain;
+					PITEM_MODULE ptr_module;
+					ULONG load_flags;
+					INT item_count;
+					ULONG_PTR module_hash;
+					BOOLEAN is_enabled;
+					BOOLEAN is_enabled_default;
+
+					item_count = _r_listview_getitemcount (hwnd, IDC_MODULES);
+
+					if (!item_count)
+						break;
+
+					if (_r_sys_isosversiongreaterorequal (WINDOWS_7))
+					{
+						load_flags = LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE;
+
+					}
+					else
+					{
+						load_flags = LOAD_LIBRARY_AS_DATAFILE;
+					}
+
+					//config.count_unload = 0;
+
+					for (INT i = 0; i < item_count; i++)
+					{
+						module_hash = _r_listview_getitemlparam (hwnd, IDC_MODULES, i);
+						ptr_module = _r_obj_findhashtable (config.modules, module_hash);
+
+						if (!ptr_module)
+							continue;
+
+						is_enabled = _r_listview_isitemchecked (hwnd, IDC_MODULES, i);
+						is_enabled_default = _r_config_getboolean_ex (ptr_module->path->buffer, TRUE, SECTION_MODULE);
+
+						if (is_enabled == is_enabled_default)
+							continue;
+
+						_r_config_setboolean_ex (ptr_module->path->buffer, is_enabled, SECTION_MODULE);
+
+						if (is_enabled)
+						{
+							if (!ptr_module->hlib)
+								ptr_module->hlib = LoadLibraryEx (ptr_module->path->buffer, NULL, load_flags);
+
+							if (ptr_module->hlib)
+								config.count_unload -= 1;
+						}
+						else
+						{
+							SAFE_DELETE_LIBRARY (ptr_module->hlib);
+							SAFE_DELETE_REFERENCE (ptr_module->text);
+
+							config.count_unload += 1;
+						}
+					}
+
+					hmain = _r_app_gethwnd ();
+
+					if (hmain)
+					{
+						_app_refreshstatus (hmain);
+						_app_print (hmain);
+					}
 
 					break;
 				}
@@ -653,67 +730,6 @@ INT_PTR CALLBACK SettingsProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam
 					return result;
 				}
 
-				case LVN_ITEMCHANGED:
-				{
-					LPNMLISTVIEW lpnmlv;
-					INT listview_id;
-
-					lpnmlv = (LPNMLISTVIEW)lparam;
-					listview_id = (INT)(INT_PTR)lpnmlv->hdr.idFrom;
-
-					if (listview_id != IDC_MODULES)
-						break;
-
-					if ((lpnmlv->uChanged & LVIF_STATE) != 0)
-					{
-						if ((lpnmlv->uNewState & LVIS_STATEIMAGEMASK) == INDEXTOSTATEIMAGEMASK (1) || ((lpnmlv->uNewState & LVIS_STATEIMAGEMASK) == INDEXTOSTATEIMAGEMASK (2)))
-						{
-							PITEM_MODULE ptr_module;
-							ULONG load_flags;
-							BOOLEAN is_enabled;
-
-							if (_r_queuedlock_islocked (&lock_checkbox))
-								break;
-
-							ptr_module = _r_obj_findhashtable (config.modules, lpnmlv->lParam);
-							is_enabled = (lpnmlv->uNewState & LVIS_STATEIMAGEMASK) == INDEXTOSTATEIMAGEMASK (2);
-
-							if (ptr_module)
-							{
-								_r_config_setboolean_ex (ptr_module->path->buffer, is_enabled, SECTION_MODULE);
-
-								SAFE_DELETE_LIBRARY (ptr_module->hlib);
-
-								if (is_enabled)
-								{
-									load_flags = _r_sys_isosversiongreaterorequal (WINDOWS_7) ? LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE : LOAD_LIBRARY_AS_DATAFILE;
-
-									ptr_module->hlib = LoadLibraryEx (ptr_module->path->buffer, NULL, load_flags);
-
-									if (ptr_module->hlib)
-										config.count_unload -= 1;
-								}
-								else
-								{
-									SAFE_DELETE_REFERENCE (ptr_module->text);
-
-									config.count_unload += 1;
-								}
-
-								HWND hmain = _r_app_gethwnd ();
-
-								if (hmain)
-								{
-									_app_refreshstatus (hmain);
-									_app_print (hmain);
-								}
-							}
-						}
-					}
-
-					break;
-				}
-
 				case LVN_GETINFOTIP:
 				{
 					LPNMLVGETINFOTIP lpnmlv;
@@ -733,8 +749,11 @@ INT_PTR CALLBACK SettingsProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam
 
 				case LVN_COLUMNCLICK:
 				{
-					LPNMLISTVIEW lpnmlv = (LPNMLISTVIEW)lparam;
-					INT ctrl_id = (INT)(INT_PTR)lpnmlv->hdr.idFrom;
+					LPNMLISTVIEW lpnmlv;
+					INT ctrl_id;
+
+					lpnmlv = (LPNMLISTVIEW)lparam;
+					ctrl_id = (INT)(INT_PTR)lpnmlv->hdr.idFrom;
 
 					if (ctrl_id == IDC_MODULES)
 						_app_listviewsort (hwnd, ctrl_id, lpnmlv->iSubItem, TRUE);
@@ -760,6 +779,8 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 	{
 		case WM_INITDIALOG:
 		{
+			PR_STRING string;
+
 			_r_app_sethwnd (hwnd); // HACK!!!
 
 			// configure listview
@@ -771,39 +792,31 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 			SendDlgItemMessage (hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, INT32_MAX);
 
 			// set error code text
+			if (_r_config_getboolean (L"InsertBufferAtStartup", FALSE))
 			{
-				PR_STRING string;
-
-				if (_r_config_getboolean (L"InsertBufferAtStartup", FALSE))
-				{
-					string = _r_clipboard_get (hwnd);
-
-					if (string)
-					{
-						_r_str_trimstring2 (string, L"\r\n ", 0);
-
-						if (_r_obj_isstringempty (string))
-						{
-							_r_obj_clearreference (&string);
-						}
-					}
-				}
-				else
-				{
-					string = NULL;
-				}
-
-				if (!string)
-				{
-					string = _r_config_getstring (L"LatestCode", L"0x00000000");
-				}
+				string = _r_clipboard_get (hwnd);
 
 				if (string)
 				{
-					_r_ctrl_setstring (hwnd, IDC_CODE_CTL, string->buffer);
+					_r_str_trimstring2 (string, L"\r\n ", 0);
 
-					_r_obj_dereference (string);
+					if (_r_obj_isstringempty2 (string))
+						_r_obj_clearreference (&string);
 				}
+			}
+			else
+			{
+				string = NULL;
+			}
+
+			if (!string)
+				string = _r_config_getstring (L"LatestCode", L"0x00000000");
+
+			if (string)
+			{
+				_r_ctrl_setstring (hwnd, IDC_CODE_CTL, string->buffer);
+
+				_r_obj_dereference (string);
 			}
 
 			// configure settings
@@ -876,12 +889,21 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 		case RM_LOCALIZE:
 		{
 			// get locale id
-			R_STRINGREF sr;
+			PR_STRING string;
 			HMENU hmenu;
 
-			_r_obj_initializestringrefconst (&sr, _r_locale_getstring (IDS_LCID));
+			string = _r_locale_getstring_ex (IDS_LCID);
 
-			config.lcid = _r_str_toulong_ex (&sr, 16);
+			if (string)
+			{
+				config.lcid = _r_str_toulong_ex (&string->sr, 0);
+
+				_r_obj_dereference (string);
+			}
+			else
+			{
+				config.lcid = 0;
+			}
 
 			_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, _r_locale_getstring (IDS_MODULES), 0);
 
