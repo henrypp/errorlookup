@@ -390,7 +390,7 @@ VOID _app_parsexmlcallback (_Inout_ PR_XML_LIBRARY xml_library, _Inout_ PR_HASHT
 		if (_r_sys_isosversiongreaterorequal (WINDOWS_7))
 			load_flags |= LOAD_LIBRARY_AS_IMAGE_RESOURCE;
 
-		module_hash = _r_obj_getstringrefhash (&file_value, TRUE);
+		module_hash = _r_str_gethash3 (&file_value, TRUE);
 
 		if (!module_hash || _r_obj_findhashtable (hashtable, module_hash))
 			return;
