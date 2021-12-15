@@ -368,9 +368,13 @@ VOID _app_print (_In_ HWND hwnd)
 
 VOID _app_parsexmlcallback (_Inout_ PR_XML_LIBRARY xml_library, _Inout_ PR_HASHTABLE hashtable, _In_ BOOLEAN is_modules)
 {
+
 	R_STRINGREF file_value;
 	R_STRINGREF text_value;
+	ITEM_MODULE module;
 	ULONG64 code;
+	ULONG_PTR module_hash;
+	ULONG load_flags;
 	BOOLEAN is_enabled;
 
 	if (is_modules)
@@ -380,10 +384,6 @@ VOID _app_parsexmlcallback (_Inout_ PR_XML_LIBRARY xml_library, _Inout_ PR_HASHT
 
 		if (!_r_xml_getattribute (xml_library, L"text", &text_value))
 			return;
-
-		ITEM_MODULE module;
-		ULONG_PTR module_hash;
-		ULONG load_flags;
 
 		load_flags = LOAD_LIBRARY_AS_DATAFILE;
 
@@ -424,9 +424,8 @@ VOID _app_parsexmlcallback (_Inout_ PR_XML_LIBRARY xml_library, _Inout_ PR_HASHT
 VOID _app_loaddatabase (_In_ HWND hwnd)
 {
 	R_XML_LIBRARY xml_library;
+	R_BYTEREF bytes;
 	HRESULT hr;
-	PVOID buffer;
-	ULONG buffer_size;
 
 	config.count_unload = 0;
 
@@ -457,7 +456,7 @@ VOID _app_loaddatabase (_In_ HWND hwnd)
 		_r_obj_clearhashtable (config.severity);
 	}
 
-	hr = _r_xml_initializelibrary (&xml_library, TRUE, NULL);
+	hr = _r_xml_initializelibrary (&xml_library, TRUE);
 
 	if (hr != S_OK)
 	{
@@ -473,8 +472,8 @@ VOID _app_loaddatabase (_In_ HWND hwnd)
 	if (_r_fs_exists (database_path))
 		hr = _r_xml_parsefile (&xml_library, database_path);
 
-	if (hr != S_OK && (buffer = _r_res_loadresource (NULL, MAKEINTRESOURCE (1), RT_RCDATA, &buffer_size)))
-		hr = _r_xml_parsestring (&xml_library, buffer, buffer_size);
+	if (hr != S_OK && _r_res_loadresource (NULL, MAKEINTRESOURCE (1), RT_RCDATA, &bytes))
+		hr = _r_xml_parsestring (&xml_library, bytes.buffer, (ULONG)bytes.length);
 
 	if (hr == S_OK)
 	{
@@ -873,7 +872,7 @@ INT_PTR CALLBACK DlgProc (_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wparam, _In
 
 			if (hdc)
 			{
-				_r_dc_drawwindowdefault (hdc, hwnd, FALSE);
+				_r_dc_drawwindow (hdc, hwnd, FALSE);
 
 				EndPaint (hwnd, &ps);
 			}
