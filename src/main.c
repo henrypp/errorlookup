@@ -227,109 +227,6 @@ VOID _app_refreshstatus (
 	);
 }
 
-BOOLEAN _app_isstringblacklisted (
-	_In_ PR_STRINGREF string
-)
-{
-	static R_STRINGREF blacklist[] = {
-		PR_STRINGREF_INIT (L"%1"),
-		PR_STRINGREF_INIT (L"Application"),
-		PR_STRINGREF_INIT (L"Classic"),
-		PR_STRINGREF_INIT (L"Critical"),
-		PR_STRINGREF_INIT (L"Error"),
-		PR_STRINGREF_INIT (L"Debug"),
-		PR_STRINGREF_INIT (L"Info"),
-		PR_STRINGREF_INIT (L"Information"),
-		PR_STRINGREF_INIT (L"Operational"),
-		PR_STRINGREF_INIT (L"System"),
-		PR_STRINGREF_INIT (L"Start"),
-		PR_STRINGREF_INIT (L"Stop"),
-		PR_STRINGREF_INIT (L"Unknown"),
-		PR_STRINGREF_INIT (L"Verbose"),
-		PR_STRINGREF_INIT (L"Warning"),
-	};
-
-	for (SIZE_T i = 0; i < RTL_NUMBER_OF (blacklist); i++)
-	{
-		if (_r_str_isequal (string, &blacklist[i], TRUE))
-			return TRUE;
-	}
-
-	return FALSE;
-}
-
-_Ret_maybenull_
-PR_STRING _app_formatmessage (
-	_In_ ULONG code,
-	_In_opt_ HINSTANCE hinstance,
-	_In_opt_ ULONG lang_id
-)
-{
-	PR_STRING buffer;
-	ULONG allocated_length;
-	ULONG attempts;
-	ULONG chars;
-
-	attempts = 6;
-	allocated_length = 256;
-	buffer = _r_obj_createstring_ex (NULL, allocated_length * sizeof (WCHAR));
-
-	do
-	{
-		chars = FormatMessage (
-			FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS,
-			hinstance,
-			code,
-			lang_id,
-			buffer->buffer,
-			allocated_length,
-			NULL
-		);
-
-		if (!chars)
-		{
-			if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
-			{
-				allocated_length *= 2;
-
-				if (allocated_length > PR_SIZE_BUFFER_OVERFLOW)
-				{
-					_r_obj_dereference (buffer);
-
-					return NULL;
-				}
-
-				_r_obj_movereference (&buffer, _r_obj_createstring_ex (NULL, allocated_length * sizeof (WCHAR)));
-			}
-			else
-			{
-				_r_obj_dereference (buffer);
-
-				if (lang_id)
-					return _app_formatmessage (code, hinstance, 0);
-
-				return NULL;
-			}
-		}
-		else
-		{
-			break;
-		}
-	}
-	while (attempts--);
-
-	_r_str_trimstring2 (buffer, L"\r\n ", 0);
-
-	if (!chars || _app_isstringblacklisted (&buffer->sr))
-	{
-		_r_obj_dereference (buffer);
-
-		return NULL;
-	}
-
-	return buffer;
-}
-
 VOID _app_showdescription (
 	_In_ HWND hwnd,
 	_In_ ULONG_PTR module_hash
@@ -392,6 +289,7 @@ VOID _app_print (
 	ULONG severity_code;
 	ULONG facility_code;
 	INT item_count;
+	NTSTATUS status;
 
 	error_code = (ULONG)_r_ctrl_getinteger (hwnd, IDC_CODE_CTL, NULL);
 
@@ -425,10 +323,11 @@ VOID _app_print (
 		if (!ptr_module->hlib || !ptr_module->path || !_r_config_getboolean_ex (ptr_module->path->buffer, TRUE, SECTION_MODULE))
 			continue;
 
-		buffer = _app_formatmessage (error_code, ptr_module->hlib, config.lcid);
+		status = _r_sys_formatmessage (error_code, ptr_module->hlib, config.lcid, &buffer);
+
 		_r_obj_movereference (&ptr_module->text, buffer);
 
-		if (buffer)
+		if (status == STATUS_SUCCESS)
 		{
 			_r_listview_additem_ex (
 				hwnd,
