@@ -312,14 +312,15 @@ VOID _app_print (_In_ HWND hwnd)
 	_r_listview_deleteallitems (hwnd, IDC_LISTVIEW);
 
 	// print information
-	_r_str_printf (config.info, RTL_NUMBER_OF (config.info),
-				   L"Code (dec.): " FORMAT_DEC L"\r\nCode (hex.): " FORMAT_HEX L"\r\nFacility: %s (0x%02" TEXT (PRIX32) L")\r\nSeverity: %s (0x%02" TEXT (PRIX32) L")",
-				   error_code,
-				   error_code,
-				   _r_obj_getstringordefault (severity_string, L"n/a"),
-				   facility_code,
-				   _r_obj_getstringordefault (facility_string, L"n/a"),
-				   severity_code
+	_r_str_printf (
+		config.info, RTL_NUMBER_OF (config.info),
+		L"Code (dec.): " FORMAT_DEC L"\r\nCode (hex.): " FORMAT_HEX L"\r\nSeverity: %s (0x%02" TEXT (PRIX32) L")\r\nFacility: %s (0x%02" TEXT (PRIX32) L")",
+		error_code,
+		error_code,
+		_r_obj_getstringordefault (severity_string, L"n/a"),
+		severity_code,
+		_r_obj_getstringordefault (facility_string, L"n/a"),
+		facility_code
 	);
 
 	// print modules
