@@ -289,7 +289,7 @@ VOID _app_print (
 	ULONG severity_code;
 	ULONG facility_code;
 	INT item_count;
-	NTSTATUS status;
+	ULONG status;
 
 	error_code = (ULONG)_r_ctrl_getinteger (hwnd, IDC_CODE_CTL, NULL);
 
@@ -327,7 +327,7 @@ VOID _app_print (
 
 		_r_obj_movereference (&ptr_module->text, buffer);
 
-		if (status == STATUS_SUCCESS)
+		if (status == ERROR_SUCCESS)
 		{
 			_r_listview_additem_ex (
 				hwnd,
@@ -1240,7 +1240,7 @@ INT APIENTRY wWinMain (
 	if (!_r_app_initialize ())
 		return ERROR_APP_INIT_FAILURE;
 
-	hwnd = _r_app_createwindow (MAKEINTRESOURCE (IDD_MAIN), MAKEINTRESOURCE (IDI_MAIN), &DlgProc);
+	hwnd = _r_app_createwindow (hinst, MAKEINTRESOURCE (IDD_MAIN), MAKEINTRESOURCE (IDI_MAIN), &DlgProc);
 
 	if (!hwnd)
 		return ERROR_APP_INIT_FAILURE;
