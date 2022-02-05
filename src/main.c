@@ -931,12 +931,18 @@ INT_PTR CALLBACK DlgProc (
 			// get locale id
 			PR_STRING string;
 			HMENU hmenu;
+			LONG64 value;
+			ULONG number;
 
 			string = _r_locale_getstring_ex (IDS_LCID);
 
 			if (string)
 			{
-				config.lcid = _r_str_toulong_ex (&string->sr, 0);
+				if (_r_str_tointeger64 (&string->sr, 0, NULL, &value))
+				{
+					if (LongLongToULong (value, &number) == S_OK)
+						config.lcid = number;
+				}
 
 				_r_obj_dereference (string);
 			}
