@@ -52,7 +52,7 @@ VOID _app_moduleopendirectory (
 
 		if (hlib)
 		{
-			_r_obj_movereference (&ptr_module->full_path, _r_path_getmodulepath (hlib));
+			ptr_module->full_path = _r_path_getmodulepath (hlib);
 
 			FreeLibrary (hlib);
 		}
@@ -374,7 +374,6 @@ VOID _app_parsexmlcallback (
 	_In_ BOOLEAN is_modules
 )
 {
-
 	R_STRINGREF file_value;
 	R_STRINGREF text_value;
 	ITEM_MODULE module;
