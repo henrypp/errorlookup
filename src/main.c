@@ -912,7 +912,7 @@ INT_PTR CALLBACK DlgProc (
 
 			if (hdc)
 			{
-				_r_dc_drawwindow (hdc, hwnd, FALSE);
+				_r_dc_drawwindow (hdc, hwnd, 0, FALSE);
 
 				EndPaint (hwnd, &ps);
 			}
