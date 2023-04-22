@@ -1,5 +1,5 @@
 // Error Lookup
-// Copyright (c) 2011-2022 Henry++
+// Copyright (c) 2011-2023 Henry++
 
 #include "routine.h"
 
@@ -98,20 +98,15 @@ INT CALLBACK _app_listviewcompare_callback (
 	static R_STRINGREF sr1 = PR_STRINGREF_INIT (L"Windows (");
 
 	WCHAR config_name[128];
-
 	PR_STRING item_text_1;
 	PR_STRING item_text_2;
-
 	HWND hlistview;
 	HWND hwnd;
-
 	INT listview_id;
 	INT column_id;
 	INT result;
-
 	INT item1;
 	INT item2;
-
 	BOOLEAN is_descend;
 
 	item1 = (INT)(INT_PTR)lparam1;
@@ -217,12 +212,7 @@ VOID _app_listviewsort (
 
 	_r_listview_setcolumnsortindex (hwnd, listview_id, column_id, is_descend ? -1 : 1);
 
-	SendMessage (
-		hlistview,
-		LVM_SORTITEMSEX,
-		(WPARAM)hlistview,
-		(LPARAM)&_app_listviewcompare_callback
-	);
+	SendMessage (hlistview, LVM_SORTITEMSEX, (WPARAM)hlistview, (LPARAM)&_app_listviewcompare_callback);
 }
 
 VOID _app_refreshstatus (
@@ -276,18 +266,9 @@ VOID _app_showdescription (
 	}
 	else
 	{
-		_r_ctrl_setstring (
-			hwnd,
-			IDC_DESCRIPTION_CTL,
-			config.info
-		);
+		_r_ctrl_setstring (hwnd, IDC_DESCRIPTION_CTL, config.info);
 
-		_r_status_settext (
-			hwnd,
-			IDC_STATUSBAR,
-			1,
-			NULL
-		);
+		_r_status_settext (hwnd, IDC_STATUSBAR, 1, NULL);
 	}
 }
 
@@ -349,15 +330,7 @@ VOID _app_print (
 
 		if (status == ERROR_SUCCESS)
 		{
-			_r_listview_additem_ex (
-				hwnd,
-				IDC_LISTVIEW,
-				item_count,
-				_r_obj_getstring (ptr_module->description),
-				I_IMAGENONE,
-				I_GROUPIDNONE,
-				module_hash
-			);
+			_r_listview_additem_ex (hwnd, IDC_LISTVIEW, item_count, _r_obj_getstring (ptr_module->description), I_IMAGENONE, I_GROUPIDNONE, module_hash);
 
 			item_count += 1;
 		}
@@ -379,13 +352,7 @@ VOID _app_print (
 	else
 	{
 		// select item
-		_r_listview_setitemstate (
-			hwnd,
-			IDC_LISTVIEW,
-			0,
-			LVIS_ACTIVATING,
-			LVIS_ACTIVATING
-		);
+		_r_listview_setitemstate (hwnd, IDC_LISTVIEW, 0, LVIS_ACTIVATING, LVIS_ACTIVATING);
 	}
 
 	if (severity_string)
@@ -460,18 +427,13 @@ VOID _app_loaddatabase (
 	R_XML_LIBRARY xml_library;
 	WCHAR database_path[512];
 	R_BYTEREF bytes;
-
 	HRESULT hr;
 
 	config.count_unload = 0;
 
 	if (!config.modules)
 	{
-		config.modules = _r_obj_createhashtable_ex (
-			sizeof (ITEM_MODULE),
-			128,
-			&_app_dereferencemoduleprocedure
-		);
+		config.modules = _r_obj_createhashtable_ex (sizeof (ITEM_MODULE), 128, &_app_dereferencemoduleprocedure);
 	}
 	else
 	{
@@ -591,23 +553,9 @@ INT_PTR CALLBACK SettingsProc (
 
 					while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
 					{
-						_r_listview_additem_ex (
-							hwnd,
-							IDC_MODULES,
-							index,
-							_r_obj_getstring (ptr_module->path),
-							I_IMAGENONE,
-							I_GROUPIDNONE,
-							module_hash
-						);
+						_r_listview_additem_ex (hwnd, IDC_MODULES, index, _r_obj_getstring (ptr_module->path), I_IMAGENONE, I_GROUPIDNONE, module_hash);
 
-						_r_listview_setitem (
-							hwnd,
-							IDC_MODULES,
-							index,
-							1,
-							_r_obj_getstring (ptr_module->description)
-						);
+						_r_listview_setitem (hwnd, IDC_MODULES, index, 1, _r_obj_getstring (ptr_module->description));
 
 						if (ptr_module->path)
 						{
@@ -686,30 +634,18 @@ INT_PTR CALLBACK SettingsProc (
 
 						is_enabled = _r_listview_isitemchecked (hwnd, IDC_MODULES, i);
 
-						is_enabled_default = _r_config_getboolean_ex (
-							ptr_module->path->buffer,
-							TRUE,
-							SECTION_MODULE
-						);
+						is_enabled_default = _r_config_getboolean_ex (ptr_module->path->buffer, TRUE, SECTION_MODULE);
 
 						if (is_enabled == is_enabled_default)
 							continue;
 
-						_r_config_setboolean_ex (
-							ptr_module->path->buffer,
-							is_enabled,
-							SECTION_MODULE
-						);
+						_r_config_setboolean_ex (ptr_module->path->buffer, is_enabled, SECTION_MODULE);
 
 						if (is_enabled)
 						{
 							if (!ptr_module->hlib)
 							{
-								ptr_module->hlib = LoadLibraryEx (
-									ptr_module->path->buffer,
-									NULL,
-									load_flags
-								);
+								ptr_module->hlib = LoadLibraryEx (ptr_module->path->buffer, NULL, load_flags);
 							}
 
 							if (ptr_module->hlib)
@@ -800,10 +736,7 @@ INT_PTR CALLBACK SettingsProc (
 							if (ptr_module->hlib || !ptr_module->path)
 								break;
 
-							if (_r_config_getboolean_ex (
-								ptr_module->path->buffer,
-								TRUE,
-								SECTION_MODULE))
+							if (_r_config_getboolean_ex (ptr_module->path->buffer, TRUE, SECTION_MODULE))
 							{
 								new_clr = GetSysColor (COLOR_GRAYTEXT);
 
@@ -889,14 +822,7 @@ INT_PTR CALLBACK DlgProc (
 				FALSE
 			);
 
-			_r_listview_addcolumn (
-				hwnd,
-				IDC_LISTVIEW,
-				0,
-				_r_locale_getstring (IDS_MODULES),
-				100,
-				LVCFMT_LEFT
-			);
+			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, _r_locale_getstring (IDS_MODULES), 100, LVCFMT_LEFT);
 
 			// configure controls
 			SendDlgItemMessage (hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, INT32_MAX);
@@ -951,29 +877,9 @@ INT_PTR CALLBACK DlgProc (
 			if (!hmenu)
 				break;
 
-			_r_menu_checkitem (
-				hmenu,
-				IDM_ALWAYSONTOP_CHK,
-				0,
-				MF_BYCOMMAND,
-				_r_config_getboolean (L"AlwaysOnTop", FALSE)
-			);
-
-			_r_menu_checkitem (
-				hmenu,
-				IDM_INSERTBUFFER_CHK,
-				0,
-				MF_BYCOMMAND,
-				_r_config_getboolean (L"InsertBufferAtStartup", FALSE)
-			);
-
-			_r_menu_checkitem (
-				hmenu,
-				IDM_CHECKUPDATES_CHK,
-				0,
-				MF_BYCOMMAND,
-				_r_update_isenabled (FALSE)
-			);
+			_r_menu_checkitem (hmenu, IDM_ALWAYSONTOP_CHK, 0, MF_BYCOMMAND, _r_config_getboolean (L"AlwaysOnTop", FALSE));
+			_r_menu_checkitem (hmenu, IDM_INSERTBUFFER_CHK, 0, MF_BYCOMMAND, _r_config_getboolean (L"InsertBufferAtStartup", FALSE));
+			_r_menu_checkitem (hmenu, IDM_CHECKUPDATES_CHK, 0, MF_BYCOMMAND, _r_update_isenabled (FALSE));
 
 			break;
 		}
@@ -1001,12 +907,12 @@ INT_PTR CALLBACK DlgProc (
 
 			hdc = BeginPaint (hwnd, &ps);
 
-			if (hdc)
-			{
-				_r_dc_drawwindow (hdc, hwnd, 0, FALSE);
+			if (!hdc)
+				break;
 
-				EndPaint (hwnd, &ps);
-			}
+			_r_dc_drawwindow (hdc, hwnd, 0, FALSE);
+
+			EndPaint (hwnd, &ps);
 
 			break;
 		}
@@ -1406,12 +1312,7 @@ INT APIENTRY wWinMain (
 	if (!_r_app_initialize ())
 		return ERROR_APP_INIT_FAILURE;
 
-	hwnd = _r_app_createwindow (
-		hinst,
-		MAKEINTRESOURCE (IDD_MAIN),
-		MAKEINTRESOURCE (IDI_MAIN),
-		&DlgProc
-	);
+	hwnd = _r_app_createwindow (hinst, MAKEINTRESOURCE (IDD_MAIN), MAKEINTRESOURCE (IDI_MAIN), &DlgProc);
 
 	if (!hwnd)
 		return ERROR_APP_INIT_FAILURE;
