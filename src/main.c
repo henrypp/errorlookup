@@ -1118,14 +1118,32 @@ INT_PTR CALLBACK DlgProc (
 
 				return FALSE;
 			}
-			else if (ctrl_id == IDC_CODE_CTL && notify_code == EN_CHANGE)
-			{
-				_app_print (hwnd);
-				return FALSE;
-			}
 
 			switch (ctrl_id)
 			{
+				case IDC_CODE_CTL:
+				{
+					PR_STRING string;
+
+					if (notify_code != EN_CHANGE)
+						break;
+
+					string = _r_ctrl_getstring (hwnd, ctrl_id);
+
+					if (string)
+					{
+						_r_str_trimstring2 (string, L" \r\n\";", 0);
+
+						_r_ctrl_setstring (hwnd, ctrl_id, string->buffer);
+
+						_r_obj_dereference (string);
+					}
+
+					_app_print (hwnd);
+
+					break;
+				}
+
 				case IDM_SETTINGS:
 				{
 					_r_settings_createwindow (hwnd, &SettingsProc, 0);
