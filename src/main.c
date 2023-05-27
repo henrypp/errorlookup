@@ -75,6 +75,7 @@ VOID _app_modulegettooltip (
 	if (!ptr_module)
 	{
 		*buffer = UNICODE_NULL;
+
 		return;
 	}
 
@@ -119,12 +120,7 @@ INT CALLBACK _app_listviewcompare_callback (
 	hwnd = GetParent (hlistview);
 	listview_id = GetDlgCtrlID (hlistview);
 
-	_r_str_printf (
-		config_name,
-		RTL_NUMBER_OF (config_name),
-		L"listview\\%04" TEXT (PRIX32),
-		listview_id
-	);
+	_r_str_printf (config_name, RTL_NUMBER_OF (config_name), L"listview\\%04" TEXT (PRIX32), listview_id);
 
 	column_id = _r_config_getlong_ex (L"SortColumn", 0, config_name);
 
@@ -184,12 +180,7 @@ VOID _app_listviewsort (
 	if (!column_count)
 		return;
 
-	_r_str_printf (
-		config_name,
-		RTL_NUMBER_OF (config_name),
-		L"listview\\%04" TEXT (PRIX32),
-		listview_id
-	);
+	_r_str_printf (config_name, RTL_NUMBER_OF (config_name), L"listview\\%04" TEXT (PRIX32), listview_id);
 
 	is_descend = _r_config_getboolean_ex (L"SortIsDescending", FALSE, config_name);
 
@@ -425,9 +416,9 @@ VOID _app_loaddatabase (
 )
 {
 	R_XML_LIBRARY xml_library;
-	WCHAR database_path[512];
+	WCHAR path[512];
 	R_BYTEREF bytes;
-	HRESULT hr;
+	HRESULT status;
 
 	config.count_unload = 0;
 
@@ -458,30 +449,26 @@ VOID _app_loaddatabase (
 		_r_obj_clearhashtable (config.severity);
 	}
 
-	hr = _r_xml_initializelibrary (&xml_library, TRUE);
+	status = _r_xml_initializelibrary (&xml_library, TRUE);
 
-	if (hr != S_OK)
+	if (status != S_OK)
 	{
-		_r_show_errormessage (hwnd, NULL, hr, NULL);
+		_r_show_errormessage (hwnd, NULL, status, NULL);
+
 		return;
 	}
 
-	_r_str_printf (
-		database_path,
-		RTL_NUMBER_OF (database_path),
-		L"%s\\modules.xml",
-		_r_app_getdirectory ()->buffer
-	);
+	_r_str_printf (path, RTL_NUMBER_OF (path), L"%s\\modules.xml", _r_app_getdirectory ()->buffer);
 
-	hr = S_FALSE;
+	status = S_FALSE;
 
-	if (_r_fs_exists (database_path))
-		hr = _r_xml_parsefile (&xml_library, database_path);
+	if (_r_fs_exists (path))
+		status = _r_xml_parsefile (&xml_library, path);
 
-	if (hr != S_OK && _r_res_loadresource (NULL, MAKEINTRESOURCE (1), RT_RCDATA, &bytes))
-		hr = _r_xml_parsestring (&xml_library, bytes.buffer, (ULONG)bytes.length);
+	if (status != S_OK && _r_res_loadresource (NULL, MAKEINTRESOURCE (1), RT_RCDATA, &bytes))
+		status = _r_xml_parsestring (&xml_library, bytes.buffer, (ULONG)bytes.length);
 
-	if (hr == S_OK)
+	if (status == S_OK)
 	{
 		if (_r_xml_findchildbytagname (&xml_library, L"module"))
 		{
@@ -614,15 +601,10 @@ INT_PTR CALLBACK SettingsProc (
 					if (!item_count)
 						break;
 
-					if (_r_sys_isosversiongreaterorequal (WINDOWS_7))
-					{
-						load_flags = LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE;
+					load_flags = LOAD_LIBRARY_AS_DATAFILE;
 
-					}
-					else
-					{
-						load_flags = LOAD_LIBRARY_AS_DATAFILE;
-					}
+					if (_r_sys_isosversiongreaterorequal (WINDOWS_7))
+						load_flags |= LOAD_LIBRARY_AS_IMAGE_RESOURCE;
 
 					for (INT i = 0; i < item_count; i++)
 					{
@@ -662,11 +644,11 @@ INT_PTR CALLBACK SettingsProc (
 
 					hmain = _r_app_gethwnd ();
 
-					if (hmain)
-					{
-						_app_refreshstatus (hmain);
-						_app_print (hmain);
-					}
+					if (!hmain)
+						break;
+
+					_app_refreshstatus (hmain);
+					_app_print (hmain);
 
 					break;
 				}
@@ -958,88 +940,21 @@ INT_PTR CALLBACK DlgProc (
 				_r_menu_setitemtext (hmenu, 1, TRUE, _r_locale_getstring (IDS_SETTINGS));
 				_r_menu_setitemtext (hmenu, 2, TRUE, _r_locale_getstring (IDS_HELP));
 
-				_r_menu_setitemtextformat (
-					hmenu,
-					IDM_SETTINGS,
-					FALSE,
-					L"%s...\tF2",
-					_r_locale_getstring (IDS_SETTINGS)
-				);
-
-				_r_menu_setitemtextformat (
-					hmenu,
-					IDM_EXIT,
-					FALSE,
-					L"%s\tEsc",
-					_r_locale_getstring (IDS_EXIT)
-				);
-
-				_r_menu_setitemtext (
-					hmenu,
-					IDM_ALWAYSONTOP_CHK,
-					FALSE,
-					_r_locale_getstring (IDS_ALWAYSONTOP_CHK)
-				);
-
-				_r_menu_setitemtext (
-					hmenu,
-					IDM_INSERTBUFFER_CHK,
-					FALSE,
-					_r_locale_getstring (IDS_INSERTBUFFER_CHK)
-				);
-
-				_r_menu_setitemtext (
-					hmenu,
-					IDM_CHECKUPDATES_CHK,
-					FALSE,
-					_r_locale_getstring (IDS_CHECKUPDATES_CHK)
-				);
-
-				_r_menu_setitemtextformat (
-					GetSubMenu (hmenu, 1),
-					LANG_MENU,
-					TRUE,
-					L"%s (Language)",
-					_r_locale_getstring (IDS_LANGUAGE)
-				);
-
-				_r_menu_setitemtext (
-					hmenu,
-					IDM_WEBSITE,
-					FALSE,
-					_r_locale_getstring (IDS_WEBSITE)
-				);
-
-				_r_menu_setitemtext (
-					hmenu,
-					IDM_CHECKUPDATES,
-					FALSE,
-					_r_locale_getstring (IDS_CHECKUPDATES)
-				);
-
-				_r_menu_setitemtextformat (
-					hmenu,
-					IDM_ABOUT,
-					FALSE, L"%s\tF1",
-					_r_locale_getstring (IDS_ABOUT)
-				);
+				_r_menu_setitemtextformat (hmenu, IDM_SETTINGS, FALSE, L"%s...\tF2", _r_locale_getstring (IDS_SETTINGS));
+				_r_menu_setitemtextformat (hmenu, IDM_EXIT, FALSE, L"%s\tEsc", _r_locale_getstring (IDS_EXIT));
+				_r_menu_setitemtext (hmenu, IDM_ALWAYSONTOP_CHK, FALSE, _r_locale_getstring (IDS_ALWAYSONTOP_CHK));
+				_r_menu_setitemtext (hmenu, IDM_INSERTBUFFER_CHK, FALSE, _r_locale_getstring (IDS_INSERTBUFFER_CHK));
+				_r_menu_setitemtext (hmenu, IDM_CHECKUPDATES_CHK, FALSE, _r_locale_getstring (IDS_CHECKUPDATES_CHK));
+				_r_menu_setitemtextformat (GetSubMenu (hmenu, 1), LANG_MENU, TRUE, L"%s (Language)", _r_locale_getstring (IDS_LANGUAGE));
+				_r_menu_setitemtext (hmenu, IDM_WEBSITE, FALSE, _r_locale_getstring (IDS_WEBSITE));
+				_r_menu_setitemtext (hmenu, IDM_CHECKUPDATES, FALSE, _r_locale_getstring (IDS_CHECKUPDATES));
+				_r_menu_setitemtextformat (hmenu, IDM_ABOUT, FALSE, L"%s\tF1", _r_locale_getstring (IDS_ABOUT));
 
 				_r_locale_enum (GetSubMenu (hmenu, 1), LANG_MENU, IDX_LANGUAGE); // enum localizations
 			}
 
-			_r_ctrl_setstringformat (
-				hwnd,
-				IDC_CODE,
-				L"%s:",
-				_r_locale_getstring (IDS_CODE)
-			);
-
-			_r_ctrl_setstringformat (
-				hwnd,
-				IDC_DESCRIPTION,
-				L"%s:",
-				_r_locale_getstring (IDS_DESCRIPTION)
-			);
+			_r_ctrl_setstringformat (hwnd, IDC_CODE, L"%s:", _r_locale_getstring (IDS_CODE));
+			_r_ctrl_setstringformat (hwnd, IDC_DESCRIPTION, L"%s:", _r_locale_getstring (IDS_DESCRIPTION));
 
 			_app_print (hwnd);
 
@@ -1145,12 +1060,7 @@ INT_PTR CALLBACK DlgProc (
 
 					code = (ULONG)_r_ctrl_getinteger (hwnd, IDC_CODE_CTL, &base);
 
-					_r_ctrl_setstringformat (
-						hwnd,
-						IDC_CODE_CTL,
-						base != 10 ? FORMAT_HEX : FORMAT_DEC,
-						code + lpnmud->iDelta
-					);
+					_r_ctrl_setstringformat (hwnd, IDC_CODE_CTL, base != 10 ? FORMAT_HEX : FORMAT_DEC, code + lpnmud->iDelta);
 
 					_app_print (hwnd);
 
@@ -1191,8 +1101,7 @@ INT_PTR CALLBACK DlgProc (
 			INT ctrl_id = LOWORD (wparam);
 			INT notify_code = HIWORD (wparam);
 
-			if (notify_code == 0 && ctrl_id >= IDX_LANGUAGE &&
-				ctrl_id <= IDX_LANGUAGE + (INT)(INT_PTR)_r_locale_getcount () + 1)
+			if (notify_code == 0 && ctrl_id >= IDX_LANGUAGE && ctrl_id <= IDX_LANGUAGE + _r_locale_getcount () + 1)
 			{
 				HMENU hmenu;
 				HMENU hsubmenu;
