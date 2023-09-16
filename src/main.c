@@ -39,7 +39,8 @@ VOID _app_moduleopendirectory (
 )
 {
 	PITEM_MODULE ptr_module;
-	HMODULE hlib;
+	PVOID hlib;
+	NTSTATUS status;
 
 	ptr_module = _r_obj_findhashtable (config.modules, module_hash);
 
@@ -48,11 +49,11 @@ VOID _app_moduleopendirectory (
 
 	if (!ptr_module->full_path && ptr_module->path)
 	{
-		hlib = _r_sys_loadlibrary (ptr_module->path->buffer);
+		status = _r_sys_loadlibrary (ptr_module->path->buffer, 0, &hlib);
 
-		if (hlib)
+		if (NT_SUCCESS (status))
 		{
-			ptr_module->full_path = _r_path_getmodulepath (hlib);
+			_r_path_getmodulepath (hlib, &ptr_module->full_path);
 
 			FreeLibrary (hlib);
 		}
@@ -64,7 +65,7 @@ VOID _app_moduleopendirectory (
 
 VOID _app_modulegettooltip (
 	_Out_writes_ (buffer_size) LPWSTR buffer,
-	_In_ SIZE_T buffer_size,
+	_In_ ULONG_PTR buffer_size,
 	_In_ ULONG_PTR module_hash
 )
 {
@@ -105,7 +106,7 @@ INT CALLBACK _app_listviewcompare_callback (
 	HWND hwnd;
 	INT listview_id;
 	INT column_id;
-	INT result;
+	INT result = 0;
 	INT item1;
 	INT item2;
 	BOOLEAN is_descend;
@@ -128,8 +129,6 @@ INT CALLBACK _app_listviewcompare_callback (
 	item_text_2 = _r_listview_getitemtext (hwnd, listview_id, item2, column_id);
 
 	is_descend = _r_config_getboolean_ex (L"SortIsDescending", FALSE, config_name);
-
-	result = 0;
 
 	if (item_text_1 && item_text_2)
 	{
@@ -210,7 +209,7 @@ VOID _app_refreshstatus (
 	_In_ HWND hwnd
 )
 {
-	SIZE_T modules_count;
+	ULONG_PTR modules_count;
 
 	modules_count = _r_obj_gethashtablesize (config.modules);
 
@@ -267,19 +266,19 @@ VOID _app_print (
 	_In_ HWND hwnd
 )
 {
-	PITEM_MODULE ptr_module;
+	PITEM_MODULE ptr_module = NULL;
 	PR_STRING severity_string;
 	PR_STRING facility_string;
 	PR_STRING buffer;
-	SIZE_T enum_key;
+	ULONG_PTR enum_key = 0;
 	ULONG_PTR module_hash;
-	ULONG error_code;
+	LONG error_code;
 	ULONG severity_code;
 	ULONG facility_code;
-	INT item_count;
+	INT item_count = 0;
 	ULONG status;
 
-	error_code = (ULONG)_r_ctrl_getinteger (hwnd, IDC_CODE_CTL, NULL);
+	error_code = _r_ctrl_getinteger (hwnd, IDC_CODE_CTL, NULL);
 
 	severity_code = HRESULT_SEVERITY (error_code);
 	facility_code = HRESULT_FACILITY (error_code);
@@ -304,9 +303,6 @@ VOID _app_print (
 	);
 
 	// print modules
-	enum_key = 0;
-	item_count = 0;
-
 	while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
 	{
 		if (!ptr_module->hlib || !ptr_module->path)
@@ -319,7 +315,7 @@ VOID _app_print (
 
 		_r_obj_movereference (&ptr_module->text, buffer);
 
-		if (status == ERROR_SUCCESS)
+		if (NT_SUCCESS (status))
 		{
 			_r_listview_additem_ex (hwnd, IDC_LISTVIEW, item_count, _r_obj_getstring (ptr_module->description), I_IMAGENONE, I_GROUPIDNONE, module_hash);
 
@@ -359,9 +355,9 @@ VOID _app_parsexmlcallback (
 	_In_ BOOLEAN is_modules
 )
 {
+	ITEM_MODULE module = {0};
 	R_STRINGREF file_value;
 	R_STRINGREF text_value;
-	ITEM_MODULE module;
 	ULONG64 code;
 	ULONG_PTR module_hash;
 	ULONG load_flags;
@@ -375,17 +371,12 @@ VOID _app_parsexmlcallback (
 		if (!_r_xml_getattribute (xml_library, L"text", &text_value))
 			return;
 
-		load_flags = LOAD_LIBRARY_AS_DATAFILE;
-
-		if (_r_sys_isosversiongreaterorequal (WINDOWS_7))
-			load_flags |= LOAD_LIBRARY_AS_IMAGE_RESOURCE;
+		load_flags = LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE;
 
 		module_hash = _r_str_gethash3 (&file_value, TRUE);
 
 		if (!module_hash || _r_obj_findhashtable (hashtable, module_hash))
 			return;
-
-		RtlZeroMemory (&module, sizeof (module));
 
 		module.path = _r_obj_createstring3 (&file_value);
 		module.description = _r_obj_createstring3 (&text_value);
@@ -416,8 +407,8 @@ VOID _app_loaddatabase (
 )
 {
 	R_XML_LIBRARY xml_library;
+	R_STORAGE bytes;
 	WCHAR path[512];
-	R_BYTEREF bytes;
 	HRESULT status;
 
 	config.count_unload = 0;
@@ -451,7 +442,7 @@ VOID _app_loaddatabase (
 
 	status = _r_xml_initializelibrary (&xml_library, TRUE);
 
-	if (status != S_OK)
+	if (FAILED (status))
 	{
 		_r_show_errormessage (hwnd, NULL, status, NULL);
 
@@ -460,15 +451,24 @@ VOID _app_loaddatabase (
 
 	_r_str_printf (path, RTL_NUMBER_OF (path), L"%s\\modules.xml", _r_app_getdirectory ()->buffer);
 
-	status = S_FALSE;
-
 	if (_r_fs_exists (path))
+	{
 		status = _r_xml_parsefile (&xml_library, path);
+	}
+	else
+	{
+		status = COMADMIN_E_COMPFILE_DOESNOTEXIST;
+	}
 
-	if (status != S_OK && _r_res_loadresource (NULL, MAKEINTRESOURCE (1), RT_RCDATA, &bytes))
-		status = _r_xml_parsestring (&xml_library, bytes.buffer, (ULONG)bytes.length);
+	if (FAILED (status))
+	{
+		status = _r_res_loadresource (_r_sys_getimagebase (), RT_RCDATA, MAKEINTRESOURCE (1), &bytes);
 
-	if (status == S_OK)
+		if (NT_SUCCESS (status))
+			status = _r_xml_parsestring (&xml_library, bytes.buffer, (ULONG)bytes.length);
+	}
+
+	if (SUCCEEDED (status))
 	{
 		if (_r_xml_findchildbytagname (&xml_library, L"module"))
 		{
@@ -517,8 +517,8 @@ INT_PTR CALLBACK SettingsProc (
 			{
 				case IDD_MODULES:
 				{
-					PITEM_MODULE ptr_module;
-					SIZE_T enum_key;
+					PITEM_MODULE ptr_module = NULL;
+					ULONG_PTR enum_key;
 					ULONG_PTR module_hash;
 					INT index;
 
@@ -601,10 +601,7 @@ INT_PTR CALLBACK SettingsProc (
 					if (!item_count)
 						break;
 
-					load_flags = LOAD_LIBRARY_AS_DATAFILE;
-
-					if (_r_sys_isosversiongreaterorequal (WINDOWS_7))
-						load_flags |= LOAD_LIBRARY_AS_IMAGE_RESOURCE;
+					load_flags = LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE;
 
 					for (INT i = 0; i < item_count; i++)
 					{
@@ -1050,15 +1047,15 @@ INT_PTR CALLBACK DlgProc (
 				case UDN_DELTAPOS:
 				{
 					LPNMUPDOWN lpnmud;
-					ULONG code;
 					ULONG base;
+					LONG code;
 
 					if (lphdr->idFrom != IDC_CODE_UD)
 						break;
 
 					lpnmud = (LPNMUPDOWN)lparam;
 
-					code = (ULONG)_r_ctrl_getinteger (hwnd, IDC_CODE_CTL, &base);
+					code = _r_ctrl_getinteger (hwnd, IDC_CODE_CTL, &base);
 
 					_r_ctrl_setstringformat (hwnd, IDC_CODE_CTL, base != 10 ? FORMAT_HEX : FORMAT_DEC, code + lpnmud->iDelta);
 
@@ -1101,7 +1098,7 @@ INT_PTR CALLBACK DlgProc (
 			INT ctrl_id = LOWORD (wparam);
 			INT notify_code = HIWORD (wparam);
 
-			if (notify_code == 0 && ctrl_id >= IDX_LANGUAGE && ctrl_id <= IDX_LANGUAGE + _r_locale_getcount () + 1)
+			if (notify_code == 0 && ctrl_id >= IDX_LANGUAGE && ctrl_id <= IDX_LANGUAGE + (INT)(_r_locale_getcount () + 1))
 			{
 				HMENU hmenu;
 				HMENU hsubmenu;
@@ -1124,6 +1121,7 @@ INT_PTR CALLBACK DlgProc (
 				case IDC_CODE_CTL:
 				{
 					PR_STRING string;
+					ULONG pos;
 
 					if (notify_code != EN_CHANGE)
 						break;
@@ -1134,7 +1132,11 @@ INT_PTR CALLBACK DlgProc (
 					{
 						_r_str_trimstring2 (string, L" \r\n\";", 0);
 
+						pos = (ULONG)SendDlgItemMessage (hwnd, ctrl_id, EM_GETSEL, 0, 0);
+
 						_r_ctrl_setstring (hwnd, ctrl_id, string->buffer);
+
+						SendDlgItemMessage (hwnd, ctrl_id, EM_SETSEL, LOWORD (pos), HIWORD (pos));
 
 						_r_obj_dereference (string);
 					}
@@ -1197,7 +1199,7 @@ INT_PTR CALLBACK DlgProc (
 
 				case IDM_WEBSITE:
 				{
-					_r_shell_opendefault (_r_app_getwebsite_url ());
+					_r_shell_opendefault (_r_app_getsources_url ());
 					break;
 				}
 
@@ -1236,7 +1238,7 @@ INT APIENTRY wWinMain (
 {
 	HWND hwnd;
 
-	if (!_r_app_initialize ())
+	if (!_r_app_initialize (NULL))
 		return ERROR_APP_INIT_FAILURE;
 
 	hwnd = _r_app_createwindow (hinst, MAKEINTRESOURCE (IDD_MAIN), MAKEINTRESOURCE (IDI_MAIN), &DlgProc);
