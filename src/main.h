@@ -34,5 +34,5 @@ typedef struct ITEM_MODULE
 	PR_STRING full_path;
 	PR_STRING description;
 	PR_STRING text;
-	HMODULE hlib;
+	PVOID hlib;
 } ITEM_MODULE, *PITEM_MODULE;

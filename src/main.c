@@ -31,7 +31,7 @@ VOID NTAPI _app_dereferencemoduleprocedure (
 		_r_obj_dereference (ptr_item->text);
 
 	if (ptr_item->hlib)
-		FreeLibrary (ptr_item->hlib);
+		LdrUnloadDll (ptr_item->hlib);
 }
 
 VOID _app_moduleopendirectory (
@@ -55,7 +55,7 @@ VOID _app_moduleopendirectory (
 		{
 			_r_path_getmodulepath (hlib, &ptr_module->full_path);
 
-			FreeLibrary (hlib);
+			LdrUnloadDll (hlib);
 		}
 	}
 
@@ -360,7 +360,6 @@ VOID _app_parsexmlcallback (
 	R_STRINGREF text_value;
 	ULONG64 code;
 	ULONG_PTR module_hash;
-	ULONG load_flags;
 	BOOLEAN is_enabled;
 
 	if (is_modules)
@@ -370,8 +369,6 @@ VOID _app_parsexmlcallback (
 
 		if (!_r_xml_getattribute (xml_library, L"text", &text_value))
 			return;
-
-		load_flags = LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE;
 
 		module_hash = _r_str_gethash3 (&file_value, TRUE);
 
@@ -384,7 +381,7 @@ VOID _app_parsexmlcallback (
 		is_enabled = _r_config_getboolean_ex (module.path->buffer, TRUE, SECTION_MODULE);
 
 		if (is_enabled)
-			module.hlib = LoadLibraryEx (module.path->buffer, NULL, load_flags);
+			_r_sys_loadlibrary (module.path->buffer, 0, &module.hlib);
 
 		if (!is_enabled || !module.hlib)
 			config.count_unload += 1;
@@ -590,7 +587,6 @@ INT_PTR CALLBACK SettingsProc (
 				{
 					HWND hmain;
 					PITEM_MODULE ptr_module;
-					ULONG load_flags;
 					INT item_count;
 					ULONG_PTR module_hash;
 					BOOLEAN is_enabled;
@@ -600,8 +596,6 @@ INT_PTR CALLBACK SettingsProc (
 
 					if (!item_count)
 						break;
-
-					load_flags = LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE;
 
 					for (INT i = 0; i < item_count; i++)
 					{
@@ -623,9 +617,7 @@ INT_PTR CALLBACK SettingsProc (
 						if (is_enabled)
 						{
 							if (!ptr_module->hlib)
-							{
-								ptr_module->hlib = LoadLibraryEx (ptr_module->path->buffer, NULL, load_flags);
-							}
+								_r_sys_loadlibrary (ptr_module->path->buffer, 0, &ptr_module->hlib);
 
 							if (ptr_module->hlib)
 								config.count_unload -= 1;
