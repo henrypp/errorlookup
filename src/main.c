@@ -31,7 +31,7 @@ VOID NTAPI _app_dereferencemoduleprocedure (
 		_r_obj_dereference (ptr_item->text);
 
 	if (ptr_item->hlib)
-		LdrUnloadDll (ptr_item->hlib);
+		_r_sys_freelibrary (ptr_item->hlib, TRUE);
 }
 
 VOID _app_moduleopendirectory (
@@ -39,7 +39,6 @@ VOID _app_moduleopendirectory (
 )
 {
 	PITEM_MODULE ptr_module;
-	PVOID hlib;
 	NTSTATUS status;
 
 	ptr_module = _r_obj_findhashtable (config.modules, module_hash);
@@ -48,16 +47,7 @@ VOID _app_moduleopendirectory (
 		return;
 
 	if (!ptr_module->full_path && ptr_module->path)
-	{
-		status = _r_sys_loadlibrary (ptr_module->path->buffer, 0, &hlib);
-
-		if (NT_SUCCESS (status))
-		{
-			_r_path_getmodulepath (hlib, &ptr_module->full_path);
-
-			LdrUnloadDll (hlib);
-		}
-	}
+		status = _r_path_search (ptr_module->path->buffer, NULL, &ptr_module->full_path);
 
 	if (ptr_module->full_path)
 		_r_shell_showfile (ptr_module->full_path->buffer);
@@ -361,6 +351,7 @@ VOID _app_parsexmlcallback (
 	ULONG64 code;
 	ULONG_PTR module_hash;
 	BOOLEAN is_enabled;
+	NTSTATUS status;
 
 	if (is_modules)
 	{
@@ -381,9 +372,15 @@ VOID _app_parsexmlcallback (
 		is_enabled = _r_config_getboolean_ex (module.path->buffer, TRUE, SECTION_MODULE);
 
 		if (is_enabled)
-			_r_sys_loadlibrary (module.path->buffer, 0, &module.hlib);
+		{
+			status = _r_sys_loadlibraryasresource (module.path->buffer, &module.hlib);
+		}
+		else
+		{
+			status = STATUS_DLL_NOT_FOUND;
+		}
 
-		if (!is_enabled || !module.hlib)
+		if (!is_enabled || !NT_SUCCESS (status))
 			config.count_unload += 1;
 
 		_r_obj_addhashtableitem (hashtable, module_hash, &module);
@@ -617,14 +614,14 @@ INT_PTR CALLBACK SettingsProc (
 						if (is_enabled)
 						{
 							if (!ptr_module->hlib)
-								_r_sys_loadlibrary (ptr_module->path->buffer, 0, &ptr_module->hlib);
-
-							if (ptr_module->hlib)
-								config.count_unload -= 1;
+							{
+								if (NT_SUCCESS (_r_sys_loadlibraryasresource (ptr_module->path->buffer, &ptr_module->hlib)))
+									config.count_unload -= 1;
+							}
 						}
 						else
 						{
-							SAFE_DELETE_LIBRARY (ptr_module->hlib);
+							SAFE_DELETE_LIBRARY (ptr_module->hlib, TRUE);
 							SAFE_DELETE_REFERENCE (ptr_module->text);
 
 							config.count_unload += 1;
@@ -1191,7 +1188,7 @@ INT_PTR CALLBACK DlgProc (
 
 				case IDM_WEBSITE:
 				{
-					_r_shell_opendefault (_r_app_getsources_url ());
+					_r_shell_opendefault (_r_app_getwebsite_url ());
 					break;
 				}
 
