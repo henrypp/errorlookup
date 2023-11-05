@@ -355,10 +355,14 @@ VOID _app_parsexmlcallback (
 
 	if (is_modules)
 	{
-		if (!_r_xml_getattribute (xml_library, L"file", &file_value))
+		status = _r_xml_getattribute (xml_library, L"file", &file_value);
+
+		if (FAILED (status))
 			return;
 
-		if (!_r_xml_getattribute (xml_library, L"text", &text_value))
+		status = _r_xml_getattribute (xml_library, L"text", &text_value);
+
+		if (FAILED (status))
 			return;
 
 		module_hash = _r_str_gethash3 (&file_value, TRUE);
@@ -389,7 +393,9 @@ VOID _app_parsexmlcallback (
 	{
 		code = _r_xml_getattribute_long64 (xml_library, L"code");
 
-		if (!_r_xml_getattribute (xml_library, L"text", &text_value))
+		status = _r_xml_getattribute (xml_library, L"text", &text_value);
+
+		if (FAILED (status))
 			return;
 
 		_r_obj_addhashtablepointer (hashtable, (ULONG_PTR)code, _r_obj_createstring3 (&text_value));
@@ -438,7 +444,7 @@ VOID _app_loaddatabase (
 
 	if (FAILED (status))
 	{
-		_r_show_errormessage (hwnd, NULL, status, NULL);
+		_r_show_errormessage (hwnd, NULL, status, NULL, NULL, NULL);
 
 		return;
 	}
