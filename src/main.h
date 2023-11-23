@@ -12,12 +12,12 @@
 
 #define SECTION_MODULE L"module"
 
-#define FORMAT_DEC L"%" TEXT (PR_ULONG)
+#define FORMAT_DEC L"%" TEXT (PR_LONG)
 #define FORMAT_HEX L"0x%08" TEXT (PRIX32)
 
 typedef struct STATIC_DATA
 {
-	WCHAR info[MAX_PATH];
+	WCHAR info[256];
 
 	PR_HASHTABLE modules;
 	PR_HASHTABLE facility;
