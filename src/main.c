@@ -444,7 +444,7 @@ VOID _app_loaddatabase (
 
 	if (FAILED (status))
 	{
-		_r_show_errormessage (hwnd, NULL, status, NULL, NULL, NULL);
+		_r_show_errormessage (hwnd, NULL, status, NULL, FALSE);
 
 		return;
 	}
