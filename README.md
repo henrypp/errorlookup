@@ -11,7 +11,7 @@
 -------
 
 <p align="center">
-	<img src="https://www.henrypp.org/images/errorlookup.png?cachefix" />
+	<img src="/images/errorlookup.png?cachefix" />
 </p>
 
 ### Description:
