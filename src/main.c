@@ -1,5 +1,5 @@
 // Error Lookup
-// Copyright (c) 2011-2023 Henry++
+// Copyright (c) 2011-2024 Henry++
 
 #include "routine.h"
 
@@ -192,7 +192,7 @@ VOID _app_listviewsort (
 
 	_r_listview_setcolumnsortindex (hwnd, listview_id, column_id, is_descend ? -1 : 1);
 
-	SendMessage (hlistview, LVM_SORTITEMSEX, (WPARAM)hlistview, (LPARAM)&_app_listviewcompare_callback);
+	SendMessageW (hlistview, LVM_SORTITEMSEX, (WPARAM)hlistview, (LPARAM)&_app_listviewcompare_callback);
 }
 
 VOID _app_refreshstatus (
@@ -462,7 +462,7 @@ VOID _app_loaddatabase (
 
 	if (FAILED (status))
 	{
-		status = _r_res_loadresource (_r_sys_getimagebase (), RT_RCDATA, MAKEINTRESOURCE (1), &bytes);
+		status = _r_res_loadresource (_r_sys_getimagebase (), RT_RCDATA, MAKEINTRESOURCEW (1), &bytes);
 
 		if (NT_SUCCESS (status))
 			status = _r_xml_parsestring (&xml_library, bytes.buffer, (ULONG)bytes.length);
@@ -588,10 +588,10 @@ INT_PTR CALLBACK SettingsProc (
 			{
 				case IDD_MODULES:
 				{
-					HWND hmain;
 					PITEM_MODULE ptr_module;
-					INT item_count;
+					HWND hmain;
 					ULONG_PTR module_hash;
+					INT item_count;
 					BOOLEAN is_enabled;
 					BOOLEAN is_enabled_default;
 
@@ -726,16 +726,17 @@ INT_PTR CALLBACK SettingsProc (
 						break;
 					}
 
-					SetWindowLongPtr (hwnd, DWLP_MSGRESULT, result);
+					SetWindowLongPtrW (hwnd, DWLP_MSGRESULT, result);
+
 					return result;
 				}
 
 				case LVN_GETINFOTIP:
 				{
-					LPNMLVGETINFOTIP lpnmlv;
+					LPNMLVGETINFOTIPW lpnmlv;
 					ULONG_PTR module_hash;
 
-					lpnmlv = (LPNMLVGETINFOTIP)lparam;
+					lpnmlv = (LPNMLVGETINFOTIPW)lparam;
 
 					if (lpnmlv->hdr.idFrom != IDC_MODULES)
 						break;
@@ -799,7 +800,7 @@ INT_PTR CALLBACK DlgProc (
 			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, _r_locale_getstring (IDS_MODULES), 100, LVCFMT_LEFT);
 
 			// configure controls
-			SendDlgItemMessage (hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, INT32_MAX);
+			SendDlgItemMessageW (hwnd, IDC_CODE_UD, UDM_SETRANGE32, 0, INT32_MAX);
 
 			// set error code text
 			if (_r_config_getboolean (L"InsertBufferAtStartup", FALSE))
@@ -910,7 +911,7 @@ INT_PTR CALLBACK DlgProc (
 			{
 				if (_r_str_tointeger64 (&string->sr, 0, NULL, &value))
 				{
-					if (LongLongToULong (value, &number) == S_OK)
+					if (SUCCEEDED (LongLongToULong (value, &number)))
 						config.lcid = number;
 				}
 
@@ -1008,13 +1009,13 @@ INT_PTR CALLBACK DlgProc (
 
 				case LVN_GETINFOTIP:
 				{
-					LPNMLVGETINFOTIP lpnmlv;
+					LPNMLVGETINFOTIPW lpnmlv;
 					ULONG_PTR module_hash;
 
 					if (lphdr->idFrom != IDC_LISTVIEW)
 						break;
 
-					lpnmlv = (LPNMLVGETINFOTIP)lparam;
+					lpnmlv = (LPNMLVGETINFOTIPW)lparam;
 
 					module_hash = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnmlv->iItem);
 
@@ -1127,11 +1128,11 @@ INT_PTR CALLBACK DlgProc (
 					{
 						_r_str_trimstring2 (string, L" \r\n\";", 0);
 
-						pos = (ULONG)SendDlgItemMessage (hwnd, ctrl_id, EM_GETSEL, 0, 0);
+						pos = (ULONG)SendDlgItemMessageW (hwnd, ctrl_id, EM_GETSEL, 0, 0);
 
 						_r_ctrl_setstring (hwnd, ctrl_id, string->buffer);
 
-						SendDlgItemMessage (hwnd, ctrl_id, EM_SETSEL, LOWORD (pos), HIWORD (pos));
+						SendDlgItemMessageW (hwnd, ctrl_id, EM_SETSEL, LOWORD (pos), HIWORD (pos));
 
 						_r_obj_dereference (string);
 					}
@@ -1236,10 +1237,10 @@ INT APIENTRY wWinMain (
 	if (!_r_app_initialize (NULL))
 		return ERROR_APP_INIT_FAILURE;
 
-	hwnd = _r_app_createwindow (hinst, MAKEINTRESOURCE (IDD_MAIN), MAKEINTRESOURCE (IDI_MAIN), &DlgProc);
+	hwnd = _r_app_createwindow (hinst, MAKEINTRESOURCEW (IDD_MAIN), MAKEINTRESOURCEW (IDI_MAIN), &DlgProc);
 
 	if (!hwnd)
 		return ERROR_APP_INIT_FAILURE;
 
-	return _r_wnd_message_callback (hwnd, MAKEINTRESOURCE (IDA_MAIN));
+	return _r_wnd_message_callback (hwnd, MAKEINTRESOURCEW (IDA_MAIN));
 }

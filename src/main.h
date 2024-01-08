@@ -1,5 +1,5 @@
 // Error Lookup
-// Copyright (c) 2011-2023 Henry++
+// Copyright (c) 2011-2024 Henry++
 
 #pragma once
 
@@ -15,7 +15,7 @@
 #define FORMAT_DEC L"%" TEXT (PR_LONG)
 #define FORMAT_HEX L"0x%08" TEXT (PRIX32)
 
-typedef struct STATIC_DATA
+typedef struct _STATIC_DATA
 {
 	WCHAR info[256];
 
@@ -23,12 +23,12 @@ typedef struct STATIC_DATA
 	PR_HASHTABLE facility;
 	PR_HASHTABLE severity;
 
-	SIZE_T count_unload;
+	ULONG_PTR count_unload;
 
-	LCID lcid;
+	ULONG lcid;
 } STATIC_DATA, *PSTATIC_DATA;
 
-typedef struct ITEM_MODULE
+typedef struct _ITEM_MODULE
 {
 	PR_STRING path;
 	PR_STRING full_path;
