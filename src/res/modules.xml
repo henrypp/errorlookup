@@ -9,7 +9,6 @@
 		<item file="adtschema.dll" text="Security Audit" />
 		<item file="mpssvc.dll" text="Protection Service API" />
 		<item file="msimsg.dll" text="Windows Installer API" />
-		<item file="wmerror.dll" text="Windows Media Error" />
 		<item file="mferror.dll" text="Media Foundation Error API" />
 		<item file="netevent.dll" text="Network Events API" />
 		<item file="netmsg.dll" text="Network Messages API" />
@@ -78,7 +77,6 @@
 		<item file="fveapi.dll" text="BitLocker Encryption API" />
 		<item file="fvewiz.dll" text="BitLocker Encryption Wizard API" />
 		<item file="gpsvc.dll" text="Group Policy Client API" />
-		<item file="idlisten.dll" text="Identity Listener API" />
 		<item file="iscsidsc.dll" text="iSCSI Discovery API" />
 		<item file="lsasrv.dll" text="LSA Server API" />
 		<item file="mf.dll" text="Media Foundation API" />
