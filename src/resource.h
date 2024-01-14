@@ -85,11 +85,11 @@
 #define IDS_MODULES_EXT 26
 
 #define IDS_STATUS_TOTAL 27
-#define IDS_STATUS_EMPTY 28
-#define IDS_STATUS_EMPTY2 29
 
-#define IDS_CLOSE 30
-#define IDS_RESET 31
+#define IDS_QUESTION_DELETE 28
+
+#define IDS_CLOSE 29
+#define IDS_RESET 30
 
 // Icons
 #define IDI_MAIN 100

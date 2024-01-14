@@ -126,6 +126,8 @@ STRINGTABLE
 
 	IDS_STATUS_TOTAL "Loaded modules: %d of %d"
 
+	IDS_QUESTION_DELETE "Delete selected item(s)?"
+
 	IDS_CLOSE "Close"
 	IDS_RESET "Reset"
 
