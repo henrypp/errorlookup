@@ -104,14 +104,6 @@ STRINGTABLE
 {
 	IDS_LCID "0x0409"
 
-	IDS_UPDATE_NO "No updates available."
-	IDS_UPDATE_YES "Update available, download and install them?"
-	IDS_UPDATE_DOWNLOAD "Downloading update..."
-	IDS_UPDATE_DONE "Downloading update finished."
-	IDS_UPDATE_ERROR "Update server connection error."
-	IDS_UPDATE_INIT "Checking for new releases..."
-	IDS_UPDATE_INSTALL "Update available, do you want to install them?"
-
 	IDS_FILE "File"
 	IDS_SETTINGS "Settings"
 	IDS_EXIT "Exit"
@@ -125,6 +117,8 @@ STRINGTABLE
 	IDS_CODE "Error code"
 	IDS_MODULES "Modules"
 	IDS_DESCRIPTION "Description"
+	IDS_MODULES_INT "Internal library"
+	IDS_MODULES_EXT "External library"
 
 	IDS_ALWAYSONTOP_CHK "Always on top"
 	IDS_INSERTBUFFER_CHK "Insert buffer at startup"

@@ -55,48 +55,41 @@
 // Strings
 #define IDS_LCID 1
 
-#define IDS_UPDATE_NO 2
-#define IDS_UPDATE_YES 3
+#define IDS_FILE 2
+#define IDS_SETTINGS 3
+#define IDS_EXIT 4
+#define IDS_LANGUAGE 5
+#define IDS_HELP 6
+#define IDS_WEBSITE 7
+#define IDS_CHECKUPDATES 8
+#define IDS_ABOUT 9
+#define IDS_DONATE 10
 
-#define IDS_FILE 4
-#define IDS_SETTINGS 5
-#define IDS_EXIT 6
-#define IDS_LANGUAGE 7
-#define IDS_HELP 8
-#define IDS_WEBSITE 9
-#define IDS_CHECKUPDATES 10
-#define IDS_ABOUT 11
-#define IDS_DONATE 12
+#define IDS_CHECK 11
+#define IDS_UNCHECK 12
+#define IDS_ADD 13
+#define IDS_DELETE 14
+#define IDS_EXPLORE 15
+#define IDS_COPY 16
 
-#define IDS_CHECK 13
-#define IDS_UNCHECK 14
-#define IDS_ADD 15
-#define IDS_DELETE 16
-#define IDS_EXPLORE 17
-#define IDS_COPY 18
+#define IDS_ALWAYSONTOP_CHK 17
+#define IDS_INSERTBUFFER_CHK 18
+#define IDS_CLASSICUI_CHK 19
+#define IDS_CHECKUPDATES_CHK 20
 
-#define IDS_ALWAYSONTOP_CHK 19
-#define IDS_INSERTBUFFER_CHK 20
-#define IDS_CLASSICUI_CHK 21
-#define IDS_CHECKUPDATES_CHK 22
-
-#define IDS_CODE 23
-#define IDS_MODULES 24
-#define IDS_DESCRIPTION 25
-#define IDS_INFORMATION 26
+#define IDS_CODE 21
+#define IDS_MODULES 22
+#define IDS_DESCRIPTION 23
+#define IDS_INFORMATION 24
+#define IDS_MODULES_INT 25
+#define IDS_MODULES_EXT 26
 
 #define IDS_STATUS_TOTAL 27
 #define IDS_STATUS_EMPTY 28
 #define IDS_STATUS_EMPTY2 29
 
-#define IDS_UPDATE_ERROR 30
-#define IDS_UPDATE_DOWNLOAD 31
-#define IDS_UPDATE_DONE 32
-#define IDS_UPDATE_INIT 33
-#define IDS_UPDATE_INSTALL 34
-
-#define IDS_CLOSE 35
-#define IDS_RESET 36
+#define IDS_CLOSE 30
+#define IDS_RESET 31
 
 // Icons
 #define IDI_MAIN 100
