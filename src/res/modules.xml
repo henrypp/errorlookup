@@ -32,7 +32,6 @@
 		<item file="comres.dll" text="COM+ Library" />
 		<item file="ole32.dll" text="OLE (Object Linking and Embedding)" />
 		<item file="schedsvc.dll" text="Task Scheduler Service API" />
-		<item file="twinui.dll" text="Twin UI" />
 		<item file="ddputils.dll" text="Data Deduplication Library" />
 		<item file="msxml3r.dll" text="Microsoft XML API v3" />
 		<item file="msxml6r.dll" text="Microsoft XML API v6" />
@@ -107,7 +106,6 @@
 		<item file="webservices.dll" text="Windows Web Services" />
 		<item file="websocket.dll" text="Web Socket API" />
 		<item file="wsl.exe" text="Windows Subsystem for Linux" />
-		<item file="wuaueng.dll" text="Windows Update" />
 	</module>
 	<facility>
 		<item code="0" text="FACILITY_NULL" />
