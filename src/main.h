@@ -30,9 +30,10 @@ typedef struct _STATIC_DATA
 
 typedef struct _ITEM_MODULE
 {
-	PR_STRING path;
+	PR_STRING file_name;
 	PR_STRING full_path;
 	PR_STRING description;
-	PR_STRING text;
+	PR_STRING string;
 	PVOID hlib;
+	BOOLEAN is_internal;
 } ITEM_MODULE, *PITEM_MODULE;
