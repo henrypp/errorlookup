@@ -1,3 +1,12 @@
+v2.5 (17 January 2024)
+- dropped windows 7 and windows 8 support
+- added custom modules can be configured in settings
+- updated project sdk
+- cosmetical fixes
+- fixed displaying signed error codes
+- fixed ui bug (issue #25)
+- fixed bugs
+
 v2.4.2 (10 November 2021)
 - added arm64 binaries
 - improved dpi support
