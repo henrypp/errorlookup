@@ -470,7 +470,10 @@ VOID _app_print (
 	severity_string = _r_obj_findhashtablepointer (config.severity, severity_code);
 	facility_string = _r_obj_findhashtablepointer (config.facility, facility_code);
 
-	select_id = _r_listview_getselecteditem (hwnd, IDC_LISTVIEW);
+	select_id = _r_config_getlong (L"SelectedItem", -1);
+
+	if (select_id == -1)
+		select_id = _r_listview_getselecteditem (hwnd, IDC_LISTVIEW);
 
 	// clear first
 	_r_listview_deleteallitems (hwnd, IDC_LISTVIEW);
@@ -1377,6 +1380,8 @@ INT_PTR CALLBACK DlgProc (
 			PR_STRING window_text;
 
 			window_text = _r_ctrl_getstring (hwnd, IDC_CODE_CTL);
+
+			_r_config_setlong (L"SelectedItem", _r_listview_getselecteditem (hwnd, IDC_LISTVIEW));
 
 			_r_config_setstring (L"LatestCode", _r_obj_getstring (window_text));
 
