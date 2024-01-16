@@ -460,7 +460,7 @@ VOID _app_print (
 	ULONG facility_code;
 	INT item_count = 0;
 	INT select_id;
-	ULONG status;
+	NTSTATUS status;
 
 	error_code = _r_ctrl_getinteger (hwnd, IDC_CODE_CTL, NULL);
 
@@ -488,13 +488,12 @@ VOID _app_print (
 		facility_code
 	);
 
+	_r_ctrl_setstring (hwnd, IDC_DESCRIPTION_CTL, config.info);
+
 	// print modules
 	while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
 	{
-		if (!ptr_module->hlib || !ptr_module->file_name)
-			continue;
-
-		if (!_r_config_getboolean_ex (ptr_module->file_name->buffer, TRUE, SECTION_MODULE))
+		if (!ptr_module->hlib || !ptr_module->file_name || !_r_config_getboolean_ex (ptr_module->file_name->buffer, TRUE, SECTION_MODULE))
 			continue;
 
 		status = _r_sys_formatmessage (error_code, ptr_module->hlib, config.lcid, &string);
@@ -503,13 +502,17 @@ VOID _app_print (
 
 		if (NT_SUCCESS (status))
 		{
-			_r_listview_additem_ex (hwnd, IDC_LISTVIEW, item_count, _r_obj_getstring (ptr_module->description), I_IMAGENONE, ptr_module->is_internal ? 0 : 1, module_hash);
+			_r_listview_additem_ex (
+				hwnd,
+				IDC_LISTVIEW,
+				item_count,
+				_r_obj_getstringordefault (ptr_module->description, ptr_module->file_name->buffer),
+				I_IMAGENONE,
+				ptr_module->is_internal ? 0 : 1,
+				module_hash
+			);
 
 			item_count += 1;
-		}
-		else
-		{
-			_r_ctrl_setstring (hwnd, IDC_DESCRIPTION_CTL, config.info);
 		}
 	}
 
