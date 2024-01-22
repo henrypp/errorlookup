@@ -301,6 +301,7 @@ INT CALLBACK _app_listviewcompare_callback (
 		return 0;
 
 	hlistview = (HWND)lparam;
+
 	hwnd = GetParent (hlistview);
 	listview_id = GetDlgCtrlID (hlistview);
 
@@ -348,14 +349,8 @@ VOID _app_listviewsort (
 )
 {
 	WCHAR config_name[128];
-	HWND hlistview;
 	INT column_count;
 	BOOLEAN is_descend;
-
-	hlistview = GetDlgItem (hwnd, listview_id);
-
-	if (!hlistview)
-		return;
 
 	column_count = _r_listview_getcolumncount (hwnd, listview_id);
 
@@ -385,7 +380,7 @@ VOID _app_listviewsort (
 
 	_r_listview_setcolumnsortindex (hwnd, listview_id, column_id, is_descend ? -1 : 1);
 
-	SendMessageW (hlistview, LVM_SORTITEMSEX, (WPARAM)hlistview, (LPARAM)&_app_listviewcompare_callback);
+	_r_wnd_sendmessage (hwnd, listview_id, LVM_SORTITEMSEX, (WPARAM)GetDlgItem (hwnd, listview_id), (LPARAM)&_app_listviewcompare_callback);
 }
 
 VOID _app_refreshstatus (
