@@ -963,7 +963,7 @@ INT_PTR CALLBACK SettingsProc (
 					if (lpnmlv->iItem == -1)
 						break;
 
-					PostMessageW (hwnd, WM_COMMAND, MAKEWPARAM (IDM_EXPLORE, 0), 0);
+					_r_wnd_sendmessage (hwnd, 0, WM_COMMAND, MAKEWPARAM (IDM_EXPLORE, 0), 0);
 
 					break;
 				}
@@ -1469,7 +1469,7 @@ INT_PTR CALLBACK DlgProc (
 					if (lpnmlv->iItem == -1)
 						break;
 
-					PostMessageW (hwnd, WM_COMMAND, MAKEWPARAM (IDM_EXPLORE, 0), 0);
+					_r_wnd_sendmessage (hwnd, 0, WM_COMMAND, MAKEWPARAM (IDM_EXPLORE, 0), 0);
 
 					break;
 				}
