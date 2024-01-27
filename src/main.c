@@ -167,7 +167,10 @@ VOID _app_addmodule (
 			else
 			{
 				if (hwnd)
-					_r_show_errormessage (hwnd, NULL, status, path->buffer, TRUE);
+				{
+					if (status != STATUS_NO_SUCH_FILE)
+						_r_show_errormessage (hwnd, NULL, status, path->buffer, TRUE);
+				}
 
 				config.count_unload += 1;
 			}
