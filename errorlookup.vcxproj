@@ -36,40 +36,37 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -164,6 +161,7 @@
       <SDLCheck>true</SDLCheck>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -195,6 +193,7 @@
       <SDLCheck>true</SDLCheck>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <GuardEHContMetadata>true</GuardEHContMetadata>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -228,6 +227,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <GuardEHContMetadata>true</GuardEHContMetadata>
       <GuardSignedReturns>true</GuardSignedReturns>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -263,6 +263,7 @@
       <SDLCheck>true</SDLCheck>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -298,6 +299,7 @@
       <SDLCheck>true</SDLCheck>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <GuardEHContMetadata>true</GuardEHContMetadata>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -335,6 +337,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <GuardEHContMetadata>true</GuardEHContMetadata>
       <GuardSignedReturns>true</GuardSignedReturns>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
