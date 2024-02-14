@@ -121,8 +121,23 @@ ULONG_PTR _app_getmodulehash (
 	return module_hash;
 }
 
+VOID _app_addinfo (
+	_Inout_ PR_XML_LIBRARY xml_library,
+	_Inout_ PR_HASHTABLE hashtable
+)
+{
+	PR_STRING text_value;
+	LONG code;
+
+	code = _r_xml_getattribute_long (xml_library, L"code");
+
+	text_value = _r_xml_getattribute_string (xml_library, L"text");
+
+	_r_obj_addhashtablepointer (hashtable, _r_math_hashinteger_ptr (code), text_value);
+}
+
 VOID _app_addmodule (
-	_In_opt_ HWND hwnd,
+	_In_ HWND hwnd,
 	_In_ PR_STRING file_name,
 	_In_opt_ PR_STRING description,
 	_In_opt_ PVOID hlib,
@@ -166,11 +181,8 @@ VOID _app_addmodule (
 			}
 			else
 			{
-				if (hwnd)
-				{
-					if (status != STATUS_NO_SUCH_FILE)
-						_r_show_errormessage (hwnd, NULL, status, path->buffer, TRUE);
-				}
+				if (status != STATUS_NO_SUCH_FILE && status != STATUS_MUI_FILE_NOT_FOUND)
+					_r_show_errormessage (hwnd, NULL, status, path->buffer, TRUE);
 
 				config.count_unload += 1;
 			}
@@ -271,7 +283,7 @@ VOID _app_gettooltip (
 		buffer_length,
 		L"%s:\r\n    %s\r\n%s:\r\n    %s",
 		_r_locale_getstring (IDS_FILE),
-		_r_obj_getstringordefault (ptr_module->file_name, L"<empty>"),
+		_r_obj_getstringordefault (ptr_module->full_path, L"<empty>"),
 		_r_locale_getstring (IDS_DESCRIPTION),
 		_r_obj_getstringordefault (ptr_module->description, L"<empty>")
 	);
@@ -453,9 +465,9 @@ VOID _app_print (
 	PR_STRING string;
 	ULONG_PTR enum_key = 0;
 	ULONG_PTR module_hash;
+	LONG severity_code;
+	LONG facility_code;
 	LONG error_code;
-	ULONG severity_code;
-	ULONG facility_code;
 	INT item_count = 0;
 	INT select_id;
 	NTSTATUS status;
@@ -465,8 +477,8 @@ VOID _app_print (
 	severity_code = HRESULT_SEVERITY (error_code);
 	facility_code = HRESULT_FACILITY (error_code);
 
-	severity_string = _r_obj_findhashtablepointer (config.severity, severity_code);
-	facility_string = _r_obj_findhashtablepointer (config.facility, facility_code);
+	severity_string = _r_obj_findhashtablepointer (config.severity, _r_math_hashinteger_ptr (severity_code));
+	facility_string = _r_obj_findhashtablepointer (config.facility, _r_math_hashinteger_ptr (facility_code));
 
 	select_id = _r_config_getlong (L"SelectedItem", -1);
 
@@ -480,7 +492,7 @@ VOID _app_print (
 	_r_str_printf (
 		config.info, RTL_NUMBER_OF (config.info),
 		L"Code (dec.): " FORMAT_DEC L"\r\nCode (hex.): " FORMAT_HEX L"\r\n" \
-		L"Severity: %s (0x%02" TEXT (PRIX32) L")\r\nFacility: %s (0x%02" TEXT (PRIX32) L")",
+		L"\r\nSeverity:\r\n%s (0x%02" TEXT (PRIX32) L")\r\n\r\nFacility:\r\n%s (0x%02" TEXT (PRIX32) L")",
 		error_code,
 		error_code,
 		_r_obj_getstringordefault (severity_string, L"n/a"),
@@ -494,7 +506,7 @@ VOID _app_print (
 	// print modules
 	while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
 	{
-		if (!ptr_module->hlib || !ptr_module->file_name || !_r_config_getboolean_ex (ptr_module->file_name->buffer, TRUE, SECTION_MODULE))
+		if (!ptr_module->hlib || !ptr_module->full_path || !_r_config_getboolean_ex (ptr_module->full_path->buffer, TRUE, SECTION_MODULE))
 			continue;
 
 		status = _r_sys_formatmessage (error_code, ptr_module->hlib, config.lcid, &string);
@@ -541,38 +553,6 @@ VOID _app_print (
 		_r_obj_dereference (facility_string);
 }
 
-VOID _app_parsexmlcallback (
-	_In_ HWND hwnd,
-	_Inout_ PR_XML_LIBRARY xml_library,
-	_Inout_ PR_HASHTABLE hashtable,
-	_In_ BOOLEAN is_modules
-)
-{
-	PR_STRING file_value;
-	PR_STRING text_value;
-	ULONG64 code;
-
-	if (is_modules)
-	{
-		file_value = _r_xml_getattribute_string (xml_library, L"file");
-
-		if (!file_value)
-			return;
-
-		text_value = _r_xml_getattribute_string (xml_library, L"text");
-
-		_app_addmodule (hwnd, file_value, text_value, NULL, TRUE);
-	}
-	else
-	{
-		code = _r_xml_getattribute_long64 (xml_library, L"code");
-
-		text_value = _r_xml_getattribute_string (xml_library, L"text");
-
-		_r_obj_addhashtablepointer (hashtable, (ULONG_PTR)code, text_value);
-	}
-}
-
 VOID _app_loaddatabase (
 	_In_ HWND hwnd
 )
@@ -580,12 +560,14 @@ VOID _app_loaddatabase (
 	static R_STRINGREF whitespace = PR_STRINGREF_INIT (L"\r\n ");
 
 	R_XML_LIBRARY xml_library;
+	WCHAR buffer[512];
 	R_STRINGREF remaining_part;
 	R_STRINGREF value_part;
-	R_STORAGE bytes;
+	PR_STRING file_value;
+	PR_STRING text_value;
 	PR_STRING string;
+	R_STORAGE bytes;
 	PR_STRING path;
-	WCHAR buffer[512];
 	HRESULT status;
 
 	config.count_unload = 0;
@@ -653,7 +635,14 @@ VOID _app_loaddatabase (
 			{
 				while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
 				{
-					_app_parsexmlcallback (hwnd, &xml_library, config.modules, TRUE);
+					file_value = _r_xml_getattribute_string (&xml_library, L"file");
+
+					if (!file_value)
+						continue;
+
+					text_value = _r_xml_getattribute_string (&xml_library, L"text");
+
+					_app_addmodule (hwnd, file_value, text_value, NULL, TRUE);
 				}
 			}
 
@@ -661,7 +650,7 @@ VOID _app_loaddatabase (
 			{
 				while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
 				{
-					_app_parsexmlcallback (hwnd, &xml_library, config.facility, FALSE);
+					_app_addinfo (&xml_library, config.facility);
 				}
 			}
 
@@ -669,7 +658,7 @@ VOID _app_loaddatabase (
 			{
 				while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
 				{
-					_app_parsexmlcallback (hwnd, &xml_library, config.severity, FALSE);
+					_app_addinfo (&xml_library, config.severity);
 				}
 			}
 		}
@@ -711,7 +700,7 @@ VOID _app_loaddatabase (
 
 VOID _app_additemtolist (
 	_In_ HWND hwnd,
-	_In_ PR_STRING name,
+	_In_ PR_STRING path,
 	_In_ ULONG_PTR module_hash,
 	_In_ BOOLEAN is_internal
 )
@@ -720,9 +709,9 @@ VOID _app_additemtolist (
 
 	index = _r_listview_getitemcount (hwnd, IDC_MODULES);
 
-	_r_listview_additem_ex (hwnd, IDC_MODULES, index, name->buffer, I_IMAGENONE, is_internal ? 0 : 1, module_hash);
+	_r_listview_additem_ex (hwnd, IDC_MODULES, index, _r_path_getbasename (path->buffer), I_IMAGENONE, is_internal ? 0 : 1, module_hash);
 
-	if (_r_config_getboolean_ex (name->buffer, TRUE, SECTION_MODULE))
+	if (_r_config_getboolean_ex (path->buffer, TRUE, SECTION_MODULE))
 		_r_listview_setitemcheck (hwnd, IDC_MODULES, index, TRUE);
 }
 
@@ -758,7 +747,7 @@ INT_PTR CALLBACK SettingsProc (
 
 					while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
 					{
-						_app_additemtolist (hwnd, ptr_module->file_name, module_hash, ptr_module->is_internal);
+						_app_additemtolist (hwnd, ptr_module->full_path, module_hash, ptr_module->is_internal);
 					}
 
 					_app_listviewsort (hwnd, IDC_MODULES, -1, FALSE);
@@ -816,16 +805,16 @@ INT_PTR CALLBACK SettingsProc (
 
 						is_enabled = _r_listview_isitemchecked (hwnd, IDC_MODULES, i);
 
-						if (is_enabled == _r_config_getboolean_ex (ptr_module->file_name->buffer, TRUE, SECTION_MODULE))
+						if (is_enabled == _r_config_getboolean_ex (ptr_module->full_path->buffer, TRUE, SECTION_MODULE))
 							continue;
 
-						_r_config_setboolean_ex (ptr_module->file_name->buffer, is_enabled, SECTION_MODULE);
+						_r_config_setboolean_ex (ptr_module->full_path->buffer, is_enabled, SECTION_MODULE);
 
 						if (is_enabled)
 						{
 							if (!ptr_module->hlib)
 							{
-								status = _app_loadlibrary (ptr_module->file_name, &ptr_module->hlib);
+								status = _app_loadlibrary (ptr_module->full_path, &ptr_module->hlib);
 
 								if (NT_SUCCESS (status))
 								{
@@ -833,7 +822,7 @@ INT_PTR CALLBACK SettingsProc (
 								}
 								else
 								{
-									_r_show_errormessage (hwnd, NULL, status, ptr_module->file_name->buffer, TRUE);
+									_r_show_errormessage (hwnd, NULL, status, ptr_module->full_path->buffer, TRUE);
 								}
 							}
 						}
