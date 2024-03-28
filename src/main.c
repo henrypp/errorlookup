@@ -492,7 +492,7 @@ VOID _app_print (
 	_r_str_printf (
 		config.info, RTL_NUMBER_OF (config.info),
 		L"Code (dec.): " FORMAT_DEC L"\r\nCode (hex.): " FORMAT_HEX L"\r\n" \
-		L"\r\nSeverity:\r\n%s (0x%02" TEXT (PRIX32) L")\r\n\r\nFacility:\r\n%s (0x%02" TEXT (PRIX32) L")",
+		L"\r\n\r\nSeverity:\r\n%s (0x%02" TEXT (PRIX32) L")\r\n\r\nFacility:\r\n%s (0x%02" TEXT (PRIX32) L")",
 		error_code,
 		error_code,
 		_r_obj_getstringordefault (severity_string, L"n/a"),
@@ -631,6 +631,8 @@ VOID _app_loaddatabase (
 
 		if (SUCCEEDED (status))
 		{
+			_r_xml_findchildbytagname (&xml_library, L"root");
+
 			if (_r_xml_findchildbytagname (&xml_library, L"module"))
 			{
 				while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
@@ -963,7 +965,7 @@ INT_PTR CALLBACK SettingsProc (
 				case NM_CUSTOMDRAW:
 				{
 					LPNMLVCUSTOMDRAW lpnmlv;
-					LONG_PTR new_clr = CDRF_DODEFAULT;
+					LONG_PTR result = CDRF_DODEFAULT;
 
 					if (lphdr->idFrom != IDC_MODULES)
 						break;
@@ -974,14 +976,14 @@ INT_PTR CALLBACK SettingsProc (
 					{
 						case CDDS_PREPAINT:
 						{
-							new_clr = CDRF_NOTIFYITEMDRAW;
+							result = CDRF_NOTIFYITEMDRAW;
 							break;
 						}
 
 						case CDDS_ITEMPREPAINT:
 						{
 							PITEM_MODULE ptr_module;
-							ULONG new_clr = CDRF_DODEFAULT;
+							ULONG new_clr;
 
 							if (lpnmlv->dwItemType != LVCDI_ITEM)
 								break;
@@ -995,12 +997,12 @@ INT_PTR CALLBACK SettingsProc (
 							{
 								if (!ptr_module->hlib)
 								{
-									new_clr = GetSysColor (COLOR_GRAYTEXT);
+									new_clr = WND_GRAYTEXT_CLR;
 
 									lpnmlv->clrTextBk = new_clr;
 									lpnmlv->clrText = _r_dc_getcolorbrightness (new_clr);
 
-									new_clr = CDRF_NEWFONT;
+									result = CDRF_NEWFONT;
 								}
 							}
 
@@ -1010,9 +1012,9 @@ INT_PTR CALLBACK SettingsProc (
 						break;
 					}
 
-					SetWindowLongPtrW (hwnd, DWLP_MSGRESULT, new_clr);
+					SetWindowLongPtrW (hwnd, DWLP_MSGRESULT, result);
 
-					return new_clr;
+					return result;
 				}
 
 				case LVN_GETINFOTIP:
@@ -1297,6 +1299,7 @@ INT_PTR CALLBACK DlgProc (
 				break;
 
 			_r_menu_checkitem (hmenu, IDM_ALWAYSONTOP_CHK, 0, MF_BYCOMMAND, _r_config_getboolean (L"AlwaysOnTop", FALSE));
+			_r_menu_checkitem (hmenu, IDM_DARKMODE_CHK, 0, MF_BYCOMMAND, _r_theme_isenabled ());
 			_r_menu_checkitem (hmenu, IDM_INSERTBUFFER_CHK, 0, MF_BYCOMMAND, _r_config_getboolean (L"InsertBufferAtStartup", FALSE));
 			_r_menu_checkitem (hmenu, IDM_CHECKUPDATES_CHK, 0, MF_BYCOMMAND, _r_update_isenabled (FALSE));
 
@@ -1342,6 +1345,7 @@ INT_PTR CALLBACK DlgProc (
 				_r_menu_setitemtextformat (hmenu, IDM_SETTINGS, FALSE, L"%s...\tF2", _r_locale_getstring (IDS_SETTINGS));
 				_r_menu_setitemtextformat (hmenu, IDM_EXIT, FALSE, L"%s\tEsc", _r_locale_getstring (IDS_EXIT));
 				_r_menu_setitemtext (hmenu, IDM_ALWAYSONTOP_CHK, FALSE, _r_locale_getstring (IDS_ALWAYSONTOP_CHK));
+				_r_menu_setitemtext (hmenu, IDM_DARKMODE_CHK, FALSE, _r_locale_getstring (IDS_DARKMODE_CHK));
 				_r_menu_setitemtext (hmenu, IDM_INSERTBUFFER_CHK, FALSE, _r_locale_getstring (IDS_INSERTBUFFER_CHK));
 				_r_menu_setitemtext (hmenu, IDM_CHECKUPDATES_CHK, FALSE, _r_locale_getstring (IDS_CHECKUPDATES_CHK));
 				_r_menu_setitemtextformat (GetSubMenu (hmenu, 1), LANG_MENU, TRUE, L"%s (Language)", _r_locale_getstring (IDS_LANGUAGE));
@@ -1390,16 +1394,11 @@ INT_PTR CALLBACK DlgProc (
 			if (!hdc)
 				break;
 
-			_r_dc_drawwindow (hdc, hwnd, 0, FALSE);
+			_r_dc_drawwindow (hdc, hwnd, FALSE);
 
 			EndPaint (hwnd, &ps);
 
 			break;
-		}
-
-		case WM_ERASEBKGND:
-		{
-			return TRUE;
 		}
 
 		case WM_NOTIFY:
@@ -1654,6 +1653,19 @@ INT_PTR CALLBACK DlgProc (
 					_r_config_setboolean (L"AlwaysOnTop", new_val);
 
 					_r_wnd_top (hwnd, new_val);
+
+					break;
+				}
+
+				case IDM_DARKMODE_CHK:
+				{
+					BOOLEAN new_val;
+
+					new_val = !_r_theme_isenabled ();
+
+					_r_theme_enable (hwnd, new_val);
+
+					_r_menu_checkitem (GetMenu (hwnd), ctrl_id, 0, MF_BYCOMMAND, new_val);
 
 					break;
 				}

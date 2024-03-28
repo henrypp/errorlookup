@@ -8,7 +8,7 @@
 #include "resource.h"
 #include "app.h"
 
-#define LANG_MENU 4
+#define LANG_MENU 5
 
 #define SECTION_MODULE L"module"
 
