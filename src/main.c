@@ -103,7 +103,7 @@ ULONG_PTR _app_getmodulehash (
 
 		if (NT_SUCCESS (status))
 		{
-			module_hash = _r_str_gethash2 (path, TRUE);
+			module_hash = _r_str_gethash2 (&path->sr, TRUE);
 
 			if (out_buffer)
 				*out_buffer = path;
@@ -116,7 +116,7 @@ ULONG_PTR _app_getmodulehash (
 	}
 
 	if (!module_hash)
-		module_hash = _r_str_gethash2 (file_name, TRUE);
+		module_hash = _r_str_gethash2 (&file_name->sr, TRUE);
 
 	return module_hash;
 }
@@ -182,7 +182,7 @@ VOID _app_addmodule (
 			else
 			{
 				if (status != STATUS_NO_SUCH_FILE && status != STATUS_MUI_FILE_NOT_FOUND)
-					_r_show_errormessage (hwnd, NULL, status, path->buffer, TRUE);
+					_r_show_errormessage (hwnd, NULL, status, path->buffer, ET_NATIVE);
 
 				config.count_unload += 1;
 			}
@@ -250,7 +250,7 @@ VOID _app_opendirectory (
 			status = _r_path_search (ptr_module->file_name->buffer, NULL, &ptr_module->full_path);
 
 			if (!NT_SUCCESS (status))
-				_r_show_errormessage (hwnd, NULL, status, ptr_module->file_name->buffer, TRUE);
+				_r_show_errormessage (hwnd, NULL, status, ptr_module->file_name->buffer, ET_NATIVE);
 		}
 	}
 
@@ -492,7 +492,7 @@ VOID _app_print (
 	_r_str_printf (
 		config.info, RTL_NUMBER_OF (config.info),
 		L"Code (dec.): " FORMAT_DEC L"\r\nCode (hex.): " FORMAT_HEX L"\r\n" \
-		L"\r\n\r\nSeverity:\r\n%s (0x%02" TEXT (PRIX32) L")\r\n\r\nFacility:\r\n%s (0x%02" TEXT (PRIX32) L")",
+		L"\r\nSeverity:\r\n%s (0x%02" TEXT (PRIX32) L")\r\n\r\nFacility:\r\n%s (0x%02" TEXT (PRIX32) L")",
 		error_code,
 		error_code,
 		_r_obj_getstringordefault (severity_string, L"n/a"),
@@ -621,11 +621,13 @@ VOID _app_loaddatabase (
 
 			if (NT_SUCCESS (status))
 			{
+				// TODO: unpack!
+
 				status = _r_xml_parsestring (&xml_library, bytes.buffer, bytes.length);
 			}
 			else
 			{
-				_r_show_errormessage (hwnd, NULL, status, NULL, TRUE);
+				_r_show_errormessage (hwnd, NULL, status, NULL, ET_NATIVE);
 			}
 		}
 
@@ -669,7 +671,7 @@ VOID _app_loaddatabase (
 	}
 	else
 	{
-		_r_show_errormessage (hwnd, NULL, status, NULL, FALSE);
+		_r_show_errormessage (hwnd, NULL, status, NULL, ET_WINDOWS);
 	}
 
 	// load external modules
@@ -677,17 +679,17 @@ VOID _app_loaddatabase (
 
 	if (string)
 	{
-		_r_obj_initializestringref2 (&remaining_part, string);
+		_r_obj_initializestringref2 (&remaining_part, &string->sr);
 
 		while (remaining_part.length != 0)
 		{
 			_r_str_splitatchar (&remaining_part, L';', &value_part, &remaining_part);
 
-			_r_str_trimstringref (&value_part, &whitespace, 0);
+			_r_str_trimstring (&value_part, &whitespace, 0);
 
 			if (value_part.length > 4 * sizeof (WCHAR))
 			{
-				path = _r_obj_createstring3 (&value_part);
+				path = _r_obj_createstring2 (&value_part);
 
 				if (path)
 					_app_addmodule (hwnd, path, NULL, NULL, FALSE);
@@ -824,7 +826,7 @@ INT_PTR CALLBACK SettingsProc (
 								}
 								else
 								{
-									_r_show_errormessage (hwnd, NULL, status, ptr_module->full_path->buffer, TRUE);
+									_r_show_errormessage (hwnd, NULL, status, ptr_module->full_path->buffer, ET_NATIVE);
 								}
 							}
 						}
@@ -851,7 +853,7 @@ INT_PTR CALLBACK SettingsProc (
 						if (!string)
 							continue;
 
-						_r_obj_appendstringbuilder2 (&sb, string);
+						_r_obj_appendstringbuilder2 (&sb, &string->sr);
 						_r_obj_appendstringbuilder (&sb, L";");
 
 						_r_obj_dereference (string);
@@ -1088,7 +1090,7 @@ INT_PTR CALLBACK SettingsProc (
 							{
 								if (_app_checkmodule (path, &module_hash))
 								{
-									_r_show_errormessage (hwnd, NULL, STATUS_OBJECT_NAME_COLLISION, path->buffer, TRUE);
+									_r_show_errormessage (hwnd, NULL, STATUS_OBJECT_NAME_COLLISION, path->buffer, ET_NATIVE);
 								}
 								else
 								{
@@ -1102,7 +1104,7 @@ INT_PTR CALLBACK SettingsProc (
 									}
 									else
 									{
-										_r_show_errormessage (hwnd, NULL, status, path->buffer, TRUE);
+										_r_show_errormessage (hwnd, NULL, status, path->buffer, ET_NATIVE);
 									}
 								}
 
@@ -1193,7 +1195,7 @@ INT_PTR CALLBACK SettingsProc (
 
 						if (string)
 						{
-							_r_obj_appendstringbuilder2 (&sb, string);
+							_r_obj_appendstringbuilder2 (&sb, &string->sr);
 							_r_obj_appendstringbuilder (&sb, L"\r\n");
 
 							_r_obj_dereference (string);
@@ -1202,7 +1204,7 @@ INT_PTR CALLBACK SettingsProc (
 
 					string = _r_obj_finalstringbuilder (&sb);
 
-					_r_str_trimstring2 (string, L"\r\n", 0);
+					_r_str_trimstring2 (&string->sr, L"\r\n", 0);
 
 					_r_clipboard_set (hwnd, &string->sr);
 
@@ -1255,7 +1257,7 @@ INT_PTR CALLBACK DlgProc (
 
 				if (string)
 				{
-					_r_str_trimstring2 (string, L"\r\n ", 0);
+					_r_str_trimstring2 (&string->sr, L"\r\n ", 0);
 
 					if (_r_obj_isstringempty2 (string))
 						_r_obj_clearreference (&string);
@@ -1614,7 +1616,7 @@ INT_PTR CALLBACK DlgProc (
 
 					if (string)
 					{
-						_r_str_trimstring2 (string, L" \r\n\";", 0);
+						_r_str_trimstring2 (&string->sr, L" \r\n\";", 0);
 
 						pos = _r_ctrl_getselection (hwnd, ctrl_id);
 
