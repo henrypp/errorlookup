@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <root>
 	<module>
 		<item file="kernel32.dll" text="Windows (User-Mode)" />
@@ -274,9 +274,9 @@
 		<item code="3527" text="FACILITY_JsDEBUG" />
 	</facility>
 	<severity>
-		<item code="0" text="STATUS_SEVERITY_SUCCESS" />
-		<item code="1" text="STATUS_SEVERITY_INFORMATIONAL" />
-		<item code="2" text="STATUS_SEVERITY_WARNING" />
-		<item code="3" text="STATUS_SEVERITY_ERROR" />
+		<item code="0x0" text="STATUS_SEVERITY_SUCCESS" />
+		<item code="0x1" text="STATUS_SEVERITY_INFORMATIONAL" />
+		<item code="0x2" text="STATUS_SEVERITY_WARNING" />
+		<item code="0x3" text="STATUS_SEVERITY_ERROR" />
 	</severity>
 </root>
