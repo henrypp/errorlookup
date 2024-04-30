@@ -1,3 +1,11 @@
+v2.6 (30 April 2024)
+- added mitigations (win10+)
+- added dark theme support
+- fixed message about not-existent module (issue #29)
+- fixed message about not-existent mui (issue #30)
+- fixed displaying invalid loaded modules count
+- updated project sdk
+
 v2.5 (17 January 2024)
 - dropped windows 7 and windows 8 support
 - added custom modules can be configured in settings
