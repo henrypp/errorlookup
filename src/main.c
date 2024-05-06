@@ -181,7 +181,7 @@ VOID _app_addmodule (
 			}
 			else
 			{
-				if (status != STATUS_NO_SUCH_FILE && status != STATUS_MUI_FILE_NOT_FOUND)
+				if (status != STATUS_NO_SUCH_FILE && status != STATUS_MUI_FILE_NOT_FOUND && status != STATUS_RESOURCE_TYPE_NOT_FOUND)
 					_r_show_errormessage (hwnd, NULL, status, path->buffer, ET_NATIVE);
 
 				config.count_unload += 1;
