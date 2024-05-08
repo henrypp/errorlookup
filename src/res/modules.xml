@@ -21,7 +21,6 @@
 		<item file="dhcpcore.dll" text="DHCP v4" />
 		<item file="dhcpcore6.dll" text="DHCP v6" />
 		<item file="dhcpsapi.dll" text="DHCP Server API" />
-		<item file="p2p.dll" text="Peer-to-Peer Grouping API" />
 		<item file="iphlpapi.dll" text="IP Helper API" />
 		<item file="iphlpsvc.dll" text="IP Helper Service API" />
 		<item file="ipnathlp.dll" text="NAT Helper API" />
@@ -89,7 +88,6 @@
 		<item file="radardt.dll" text="Resource Exhaustion Detector" />
 		<item file="rdpendp.dll" text="RDP Audio Endpoint" />
 		<item file="reagent.dll" text="Windows Recovery Agent" />
-		<item file="reseteng.dll" text="Windows Reset Engine" />
 		<item file="rtm.dll" text="Routing Table Manager" />
 		<item file="samsrv.dll" text="SAM Server API" />
 		<item file="scripto.dll" text="Microsoft ScriptO" />
