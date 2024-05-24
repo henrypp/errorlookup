@@ -212,6 +212,7 @@
 		<item code="234" text="FACILITY_LICENSING" />
 		<item code="235" text="FACILITY_PLATFORM_MANIFEST" />
 		<item code="236" text="FACILITY_APP_EXEC" />
+		<item code="237" text="FACILITY_UNIONFS" />
 		<item code="238" text="FACILITY_RTC_INTERFACE" />
 		<item code="239" text="FACILITY_SIP_STATUS_CODE" />
 		<item code="240" text="FACILITY_PINT_STATUS_CODE" />
