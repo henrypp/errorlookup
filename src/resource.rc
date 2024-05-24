@@ -129,6 +129,7 @@ STRINGTABLE
 
 	IDS_QUESTION_DELETE "Delete selected item(s)?"
 
+	IDS_SAVE "Save"
 	IDS_CLOSE "Close"
 	IDS_RESET "Reset"
 

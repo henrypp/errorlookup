@@ -89,10 +89,11 @@
 
 #define IDS_QUESTION_DELETE 28
 
-#define IDS_CLOSE 29
-#define IDS_RESET 30
+#define IDS_SAVE 29
+#define IDS_CLOSE 30
+#define IDS_RESET 31
 
-#define IDS_DARKMODE_CHK 31
+#define IDS_DARKMODE_CHK 32
 
 // Icons
 #define IDI_MAIN 100
