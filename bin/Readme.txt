@@ -10,7 +10,7 @@ The lightweight application is less than a megabyte, and it is compatible with W
 
 To activate portable mode, create "errorlookup.ini" in application folder, or move it from "%APPDATA%\Henry++\Error Lookup".
 
-Website: www.henrypp.org
-Support: support@henrypp.org
+Website: https://github.com/henrypp
+Support: sforce5@mail.ru
 
 (c) 2011-2024 Henry++
