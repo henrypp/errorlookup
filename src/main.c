@@ -344,7 +344,7 @@ INT CALLBACK _app_listviewcompare_callback (
 		}
 
 		if (!result)
-			result = _r_str_compare_logical (item_text_1, item_text_2);
+			result = _r_str_compare_logical (&item_text_1->sr, &item_text_2->sr);
 	}
 
 	if (item_text_1)
