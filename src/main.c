@@ -713,7 +713,7 @@ VOID _app_additemtolist (
 
 	index = _r_listview_getitemcount (hwnd, IDC_MODULES);
 
-	_r_listview_additem_ex (hwnd, IDC_MODULES, index, _r_path_getbasename (path->buffer), I_IMAGENONE, is_internal ? 0 : 1, module_hash);
+	_r_listview_additem_ex (hwnd, IDC_MODULES, index, _r_path_getbasename (&path->sr), I_IMAGENONE, is_internal ? 0 : 1, module_hash);
 
 	if (_r_config_getboolean_ex (path->buffer, TRUE, SECTION_MODULE))
 		_r_listview_setitemcheck (hwnd, IDC_MODULES, index, TRUE);
