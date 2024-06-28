@@ -20,15 +20,15 @@ Portable open source tool which can help by translating error codes into a more 
 The program also supports a wide range of codes: regular Windows API errors, Native API errors, DirectX, Windows Internet errors, STOP codes.
 And we think it can probably be configured to read more (Settings > Modules).
 
-The lightweight application is less than a megabyte, and it is compatible with Windows 8.1 and higher operating systems. You can download either the installer or portable version.
+The lightweight application is less than a megabyte, and it is compatible with Windows 7 and higher operating systems. You can download either the installer or portable version.
 
 ```
 To activate portable mode, create "errorlookup.ini" in application folder, or move it from "%APPDATA%\Henry++\Error Lookup".
 ```
 
 ### System requirements:
-- Windows 8.1 and above operating system.
-- [Visual C++ 2022 Redistributable package](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
+- Windows 7 SP1 and above operating system.
+- <s>KB2533623</s> KB3063858 update for Windows 7 was required [[x64](https://www.microsoft.com/en-us/download/details.aspx?id=47442) / [x32](https://www.microsoft.com/en-us/download/details.aspx?id=47409)]
 
 ### Donate:
 - [Bitcoin](https://www.blockchain.com/btc/address/1LrRTXPsvHcQWCNZotA9RcwjsGcRghG96c) (BTC)
