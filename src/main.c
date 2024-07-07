@@ -344,7 +344,7 @@ INT CALLBACK _app_listviewcompare_callback (
 		}
 
 		if (!result)
-			result = _r_str_compare_logical (&item_text_1->sr, &item_text_2->sr);
+			result = _r_str_compare_logical (item_text_1->buffer, item_text_2->buffer);
 	}
 
 	if (item_text_1)
@@ -1051,7 +1051,6 @@ INT_PTR CALLBACK SettingsProc (
 
 					break;
 				}
-
 			}
 
 			break;
