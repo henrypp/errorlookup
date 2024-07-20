@@ -31,7 +31,7 @@ VOID NTAPI _app_dereferencemoduleprocedure (
 		_r_obj_dereference (ptr_item->string);
 
 	if (ptr_item->hlib)
-		_r_sys_freelibrary (ptr_item->hlib, TRUE);
+		_r_sys_freelibrary (ptr_item->hlib);
 }
 
 NTSTATUS _app_loadlibrary (
@@ -51,7 +51,7 @@ NTSTATUS _app_loadlibrary (
 
 		if (!NT_SUCCESS (status))
 		{
-			_r_sys_freelibrary (hlib, TRUE);
+			_r_sys_freelibrary (hlib);
 
 			hlib = NULL;
 		}
@@ -832,7 +832,7 @@ INT_PTR CALLBACK SettingsProc (
 						}
 						else
 						{
-							SAFE_DELETE_LIBRARY (ptr_module->hlib, TRUE);
+							SAFE_DELETE_LIBRARY (ptr_module->hlib);
 							SAFE_DELETE_REFERENCE (ptr_module->string);
 
 							config.count_unload += 1;
