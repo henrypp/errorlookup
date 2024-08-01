@@ -99,7 +99,7 @@ ULONG_PTR _app_getmodulehash (
 	}
 	else
 	{
-		status = _r_path_search (file_name->buffer, NULL, &path);
+		status = _r_path_search (NULL, file_name->buffer, NULL, &path);
 
 		if (NT_SUCCESS (status))
 		{
@@ -247,7 +247,7 @@ VOID _app_opendirectory (
 	{
 		if (ptr_module->file_name)
 		{
-			status = _r_path_search (ptr_module->file_name->buffer, NULL, &ptr_module->full_path);
+			status = _r_path_search (NULL, ptr_module->file_name->buffer, NULL, &ptr_module->full_path);
 
 			if (!NT_SUCCESS (status))
 				_r_show_errormessage (hwnd, NULL, status, ptr_module->file_name->buffer, ET_NATIVE);
