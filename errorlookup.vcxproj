@@ -159,8 +159,8 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <IntelJCCErratum>true</IntelJCCErratum>
       <SDLCheck>true</SDLCheck>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
@@ -191,9 +191,10 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <IntelJCCErratum>true</IntelJCCErratum>
       <SDLCheck>true</SDLCheck>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <GuardEHContMetadata>true</GuardEHContMetadata>
       <BuildStlModules>true</BuildStlModules>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -224,7 +225,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <SDLCheck>true</SDLCheck>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <GuardEHContMetadata>true</GuardEHContMetadata>
       <GuardSignedReturns>true</GuardSignedReturns>
       <BuildStlModules>true</BuildStlModules>
@@ -261,8 +262,8 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <IntelJCCErratum>true</IntelJCCErratum>
       <SDLCheck>true</SDLCheck>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
@@ -297,9 +298,10 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <IntelJCCErratum>true</IntelJCCErratum>
       <SDLCheck>true</SDLCheck>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <GuardEHContMetadata>true</GuardEHContMetadata>
       <BuildStlModules>true</BuildStlModules>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -334,7 +336,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <SDLCheck>true</SDLCheck>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <GuardEHContMetadata>true</GuardEHContMetadata>
       <GuardSignedReturns>true</GuardSignedReturns>
       <BuildStlModules>true</BuildStlModules>
