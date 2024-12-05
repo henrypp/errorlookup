@@ -1,4 +1,4 @@
-// Error Lookup
+﻿// Error Lookup
 // Copyright (c) 2011-2024 Henry++
 
 #include "routine.h"
@@ -43,7 +43,7 @@ NTSTATUS _app_loadlibrary (
 	PVOID hlib;
 	NTSTATUS status;
 
-	status = _r_sys_loadlibraryasresource (name->buffer, &hlib);
+	status = _r_sys_loadlibraryasresource (&name->sr, &hlib);
 
 	if (NT_SUCCESS (status))
 	{
@@ -92,7 +92,7 @@ ULONG_PTR _app_getmodulehash (
 	ULONG_PTR module_hash = 0;
 	NTSTATUS status;
 
-	if (_r_fs_exists (file_name->buffer))
+	if (_r_fs_exists (&file_name->sr))
 	{
 		if (out_buffer)
 			*out_buffer = _r_obj_reference (file_name);
@@ -255,7 +255,7 @@ VOID _app_opendirectory (
 	}
 
 	if (ptr_module->full_path)
-		_r_shell_showfile (ptr_module->full_path->buffer);
+		_r_shell_showfile (&ptr_module->full_path->sr);
 }
 
 VOID _app_gettooltip (
@@ -557,10 +557,9 @@ VOID _app_loaddatabase (
 	_In_ HWND hwnd
 )
 {
-	static R_STRINGREF whitespace = PR_STRINGREF_INIT (L"\r\n ");
-
+	R_STRINGREF whitespace = PR_STRINGREF_INIT (L"\r\n ");
 	R_XML_LIBRARY xml_library;
-	WCHAR buffer[512];
+	PR_STRING modules_path = NULL;
 	R_STRINGREF remaining_part;
 	R_STRINGREF value_part;
 	PR_STRING file_value;
@@ -574,7 +573,7 @@ VOID _app_loaddatabase (
 
 	if (!config.modules)
 	{
-		config.modules = _r_obj_createhashtable_ex (sizeof (ITEM_MODULE), 128, &_app_dereferencemoduleprocedure);
+		config.modules = _r_obj_createhashtable (sizeof (ITEM_MODULE), 128, &_app_dereferencemoduleprocedure);
 	}
 	else
 	{
@@ -604,11 +603,11 @@ VOID _app_loaddatabase (
 
 	if (SUCCEEDED (status))
 	{
-		_r_str_printf (buffer, RTL_NUMBER_OF (buffer), L"%s\\modules.xml", _r_app_getdirectory ()->buffer);
+		modules_path = _r_format_string (L"%s\\modules.xml", _r_app_getdirectory ()->buffer);
 
-		if (_r_fs_exists (buffer))
+		if (_r_fs_exists (&modules_path->sr))
 		{
-			status = _r_xml_parsefile (&xml_library, buffer);
+			status = _r_xml_parsefile (&xml_library, modules_path->buffer);
 		}
 		else
 		{
@@ -668,6 +667,8 @@ VOID _app_loaddatabase (
 		}
 
 		_r_xml_destroylibrary (&xml_library);
+
+		_r_obj_dereference (modules_path);
 	}
 	else
 	{
@@ -1062,7 +1063,7 @@ INT_PTR CALLBACK SettingsProc (
 			{
 				case IDM_ADD:
 				{
-					static COMDLG_FILTERSPEC filters[] = {
+					COMDLG_FILTERSPEC filters[] = {
 						L"Dll files (*.dll)", L"*.dll",
 						L"All files (*.*)", L"*.*",
 					};
