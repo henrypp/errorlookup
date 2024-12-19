@@ -515,12 +515,12 @@ VOID _app_print (
 
 		if (NT_SUCCESS (status))
 		{
-			_r_listview_additem_ex (
+			_r_listview_additem (
 				hwnd,
 				IDC_LISTVIEW,
 				item_count,
 				_r_obj_getstringordefault (ptr_module->description, ptr_module->file_name->buffer),
-				I_IMAGENONE,
+				I_DEFAULT,
 				ptr_module->is_internal ? 0 : 1,
 				module_hash
 			);
@@ -714,7 +714,7 @@ VOID _app_additemtolist (
 
 	index = _r_listview_getitemcount (hwnd, IDC_MODULES);
 
-	_r_listview_additem_ex (hwnd, IDC_MODULES, index, _r_path_getbasename (&path->sr), I_IMAGENONE, is_internal ? 0 : 1, module_hash);
+	_r_listview_additem (hwnd, IDC_MODULES, index, _r_path_getbasename (&path->sr), I_DEFAULT, is_internal ? 0 : 1, module_hash);
 
 	if (_r_config_getboolean_ex (path->buffer, TRUE, SECTION_MODULE))
 		_r_listview_setitemcheck (hwnd, IDC_MODULES, index, TRUE);
