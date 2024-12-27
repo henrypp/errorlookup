@@ -295,8 +295,7 @@ INT CALLBACK _app_listviewcompare_callback (
 	_In_ LPARAM lparam
 )
 {
-	static R_STRINGREF sr1 = PR_STRINGREF_INIT (L"Windows (");
-
+	R_STRINGREF sr1 = PR_STRINGREF_INIT (L"Windows (");
 	WCHAR config_name[128];
 	PR_STRING item_text_1;
 	PR_STRING item_text_2;
@@ -312,7 +311,7 @@ INT CALLBACK _app_listviewcompare_callback (
 	item1 = (INT)(INT_PTR)lparam1;
 	item2 = (INT)(INT_PTR)lparam2;
 
-	if (item1 == -1 || item2 == -1)
+	if (item1 == INT_ERROR || item2 == INT_ERROR)
 		return 0;
 
 	hlistview = (HWND)lparam;
@@ -379,7 +378,7 @@ VOID _app_listviewsort (
 	if (is_notifycode)
 		is_descend = !is_descend;
 
-	if (column_id == -1)
+	if (column_id == INT_ERROR)
 		column_id = _r_config_getlong_ex (L"SortColumn", 0, config_name);
 
 	column_id = _r_calc_clamp (column_id, 0, column_count - 1); // set range
@@ -480,9 +479,9 @@ VOID _app_print (
 	severity_string = _r_obj_findhashtablepointer (config.severity, _r_math_hashinteger_ptr (severity_code));
 	facility_string = _r_obj_findhashtablepointer (config.facility, _r_math_hashinteger_ptr (facility_code));
 
-	select_id = _r_config_getlong (L"SelectedItem", -1);
+	select_id = _r_config_getlong (L"SelectedItem", INT_ERROR);
 
-	if (select_id == -1)
+	if (select_id == INT_ERROR)
 		select_id = _r_listview_getselecteditem (hwnd, IDC_LISTVIEW);
 
 	// clear first
@@ -529,12 +528,12 @@ VOID _app_print (
 		}
 	}
 
-	if (select_id == -1)
+	if (select_id == INT_ERROR)
 		select_id = 0;
 
 	_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, NULL, -100);
 
-	_app_listviewsort (hwnd, IDC_LISTVIEW, -1, FALSE);
+	_app_listviewsort (hwnd, IDC_LISTVIEW, INT_ERROR, FALSE);
 
 	// show description for first item
 	if (item_count)
@@ -755,7 +754,7 @@ INT_PTR CALLBACK SettingsProc (
 						_app_additemtolist (hwnd, ptr_module->full_path, module_hash, ptr_module->is_internal);
 					}
 
-					_app_listviewsort (hwnd, IDC_MODULES, -1, FALSE);
+					_app_listviewsort (hwnd, IDC_MODULES, INT_ERROR, FALSE);
 
 					break;
 				}
@@ -957,10 +956,10 @@ INT_PTR CALLBACK SettingsProc (
 
 					lpnmlv = (LPNMITEMACTIVATE)lparam;
 
-					if (lpnmlv->iItem == -1)
+					if (lpnmlv->iItem == INT_ERROR)
 						break;
 
-					_r_wnd_sendmessage (hwnd, 0, WM_COMMAND, MAKEWPARAM (IDM_EXPLORE, 0), 0);
+					_r_ctrl_sendcommand (hwnd, IDM_EXPLORE, 0);
 
 					break;
 				}
@@ -1125,12 +1124,12 @@ INT_PTR CALLBACK SettingsProc (
 					if (!_r_listview_getselectedcount (hwnd, IDC_MODULES))
 						break;
 
-					if (!_r_show_confirmmessage (hwnd, NULL, _r_locale_getstring (IDS_QUESTION_DELETE), NULL))
+					if (!_r_show_confirmmessage (hwnd, _r_locale_getstring (IDS_QUESTION_DELETE), NULL, NULL, FALSE))
 						break;
 
 					item_count = _r_listview_getitemcount (hwnd, IDC_MODULES);
 
-					for (INT i = item_count - 1; i != -1; i--)
+					for (INT i = item_count - 1; i != INT_ERROR; i--)
 					{
 						if (!_r_listview_isitemselected (hwnd, IDC_MODULES, i))
 							continue;
@@ -1147,12 +1146,12 @@ INT_PTR CALLBACK SettingsProc (
 				case IDM_CHECK:
 				case IDM_UNCHECK:
 				{
-					INT item_id = -1;
+					INT item_id = INT_ERROR;
 
 					if (!_r_listview_getselectedcount (hwnd, IDC_MODULES))
 						break;
 
-					while ((item_id = _r_listview_getnextselected (hwnd, IDC_MODULES, item_id)) != -1)
+					while ((item_id = _r_listview_getnextselected (hwnd, IDC_MODULES, item_id)) != INT_ERROR)
 					{
 						_r_listview_setitemcheck (hwnd, IDC_MODULES, item_id, LOWORD (wparam) == IDM_CHECK ? TRUE : FALSE);
 					}
@@ -1163,12 +1162,12 @@ INT_PTR CALLBACK SettingsProc (
 				case IDM_EXPLORE:
 				{
 					ULONG_PTR module_hash;
-					INT item_id = -1;
+					INT item_id = INT_ERROR;
 
 					if (!_r_listview_getselectedcount (hwnd, IDC_MODULES))
 						break;
 
-					while ((item_id = _r_listview_getnextselected (hwnd, IDC_MODULES, item_id)) != -1)
+					while ((item_id = _r_listview_getnextselected (hwnd, IDC_MODULES, item_id)) != INT_ERROR)
 					{
 						module_hash = _r_listview_getitemlparam (hwnd, IDC_MODULES, item_id);
 
@@ -1182,14 +1181,14 @@ INT_PTR CALLBACK SettingsProc (
 				{
 					R_STRINGBUILDER sb;
 					PR_STRING string;
-					INT item_id = -1;
+					INT item_id = INT_ERROR;
 
 					if (!_r_listview_getselectedcount (hwnd, IDC_MODULES))
 						break;
 
 					_r_obj_initializestringbuilder (&sb, 256);
 
-					while ((item_id = _r_listview_getnextselected (hwnd, IDC_MODULES, item_id)) != -1)
+					while ((item_id = _r_listview_getnextselected (hwnd, IDC_MODULES, item_id)) != INT_ERROR)
 					{
 						string = _r_listview_getitemtext (hwnd, IDC_MODULES, item_id, 0);
 
@@ -1419,7 +1418,7 @@ INT_PTR CALLBACK DlgProc (
 
 					lpnmlv = (LPNMITEMACTIVATE)lparam;
 
-					if (!nmlp->idFrom || lpnmlv->iItem == -1 || nmlp->idFrom != IDC_LISTVIEW)
+					if (!nmlp->idFrom || lpnmlv->iItem == INT_ERROR || nmlp->idFrom != IDC_LISTVIEW)
 						break;
 
 					// localize
@@ -1459,10 +1458,10 @@ INT_PTR CALLBACK DlgProc (
 
 					lpnmlv = (LPNMITEMACTIVATE)lparam;
 
-					if (lpnmlv->iItem == -1)
+					if (lpnmlv->iItem == INT_ERROR)
 						break;
 
-					_r_wnd_sendmessage (hwnd, 0, WM_COMMAND, MAKEWPARAM (IDM_EXPLORE, 0), 0);
+					_r_ctrl_sendcommand (hwnd, IDM_EXPLORE, 0);
 
 					break;
 				}
@@ -1478,7 +1477,7 @@ INT_PTR CALLBACK DlgProc (
 
 					lpnmlv = (LPNMITEMACTIVATE)lparam;
 
-					if (lpnmlv->iItem != -1)
+					if (lpnmlv->iItem != INT_ERROR)
 					{
 						module_hash = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnmlv->iItem);
 
@@ -1727,7 +1726,7 @@ INT_PTR CALLBACK DlgProc (
 
 					item_id = _r_listview_getselecteditem (hwnd, IDC_LISTVIEW);
 
-					if (item_id == -1)
+					if (item_id == INT_ERROR)
 						break;
 
 					module_hash = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, item_id);
@@ -1744,7 +1743,7 @@ INT_PTR CALLBACK DlgProc (
 
 					item_id = _r_listview_getselecteditem (hwnd, IDC_LISTVIEW);
 
-					if (item_id == -1)
+					if (item_id == INT_ERROR)
 						break;
 
 					string = _r_listview_getitemtext (hwnd, IDC_LISTVIEW, item_id, 0);
