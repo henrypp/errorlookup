@@ -1,5 +1,5 @@
 // Error Lookup
-// Copyright (c) 2011-2024 Henry++
+// Copyright (c) 2011-2025 Henry++
 
 #pragma once
 
