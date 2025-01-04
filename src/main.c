@@ -779,7 +779,6 @@ INT_PTR CALLBACK SettingsProc (
 
 		case RM_CONFIG_SAVE:
 		{
-
 			switch ((INT)wparam)
 			{
 				case IDD_MODULES:
