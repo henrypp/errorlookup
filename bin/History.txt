@@ -1,3 +1,8 @@
+v2.6.1 (7 January 2025)
+- revert back windows 7 & windows 8 support
+- improved dark theme support
+- updated project sdk
+
 v2.6 (30 April 2024)
 - added mitigations (win10+)
 - added dark theme support
