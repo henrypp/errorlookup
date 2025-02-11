@@ -166,7 +166,7 @@ VOID _app_addmodule (
 	mod.hlib = hlib;
 	mod.is_internal = is_internal;
 
-	is_enabled = _r_config_getboolean_ex (path->buffer, TRUE, SECTION_MODULE);
+	is_enabled = _r_config_getboolean (path->buffer, TRUE, SECTION_MODULE);
 
 	if (is_enabled)
 	{
@@ -321,12 +321,12 @@ INT CALLBACK _app_listviewcompare_callback (
 
 	_r_str_printf (config_name, RTL_NUMBER_OF (config_name), L"listview\\%04" TEXT (PRIX32), listview_id);
 
-	column_id = _r_config_getlong_ex (L"SortColumn", 0, config_name);
+	column_id = _r_config_getlong (L"SortColumn", 0, config_name);
 
 	item_text_1 = _r_listview_getitemtext (hwnd, listview_id, item1, column_id);
 	item_text_2 = _r_listview_getitemtext (hwnd, listview_id, item2, column_id);
 
-	is_descend = _r_config_getboolean_ex (L"SortIsDescending", FALSE, config_name);
+	is_descend = _r_config_getboolean (L"SortIsDescending", FALSE, config_name);
 
 	if (item_text_1 && item_text_2)
 	{
@@ -373,20 +373,20 @@ VOID _app_listviewsort (
 
 	_r_str_printf (config_name, RTL_NUMBER_OF (config_name), L"listview\\%04" TEXT (PRIX32), listview_id);
 
-	is_descend = _r_config_getboolean_ex (L"SortIsDescending", FALSE, config_name);
+	is_descend = _r_config_getboolean (L"SortIsDescending", FALSE, config_name);
 
 	if (is_notifycode)
 		is_descend = !is_descend;
 
 	if (column_id == INT_ERROR)
-		column_id = _r_config_getlong_ex (L"SortColumn", 0, config_name);
+		column_id = _r_config_getlong (L"SortColumn", 0, config_name);
 
 	column_id = _r_calc_clamp (column_id, 0, column_count - 1); // set range
 
 	if (is_notifycode)
 	{
-		_r_config_setboolean_ex (L"SortIsDescending", is_descend, config_name);
-		_r_config_setlong_ex (L"SortColumn", column_id, config_name);
+		_r_config_setboolean (L"SortIsDescending", is_descend, config_name);
+		_r_config_setlong (L"SortColumn", column_id, config_name);
 	}
 
 	for (INT i = 0; i < column_count; i++)
@@ -479,7 +479,7 @@ VOID _app_print (
 	severity_string = _r_obj_findhashtablepointer (config.severity, _r_math_hashinteger_ptr (severity_code));
 	facility_string = _r_obj_findhashtablepointer (config.facility, _r_math_hashinteger_ptr (facility_code));
 
-	select_id = _r_config_getlong (L"SelectedItem", INT_ERROR);
+	select_id = _r_config_getlong (L"SelectedItem", INT_ERROR, NULL);
 
 	if (select_id == INT_ERROR)
 		select_id = _r_listview_getselecteditem (hwnd, IDC_LISTVIEW);
@@ -505,7 +505,7 @@ VOID _app_print (
 	// print modules
 	while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
 	{
-		if (!ptr_module->hlib || !ptr_module->full_path || !_r_config_getboolean_ex (ptr_module->full_path->buffer, TRUE, SECTION_MODULE))
+		if (!ptr_module->hlib || !ptr_module->full_path || !_r_config_getboolean (ptr_module->full_path->buffer, TRUE, SECTION_MODULE))
 			continue;
 
 		status = _r_sys_formatmessage (error_code, ptr_module->hlib, config.lcid, &string);
@@ -675,7 +675,7 @@ VOID _app_loaddatabase (
 	}
 
 	// load external modules
-	string = _r_config_getstring (L"Modules", NULL);
+	string = _r_config_getstring (L"Modules", NULL, NULL);
 
 	if (string)
 	{
@@ -715,7 +715,7 @@ VOID _app_additemtolist (
 
 	_r_listview_additem (hwnd, IDC_MODULES, index, _r_path_getbasename (&path->sr), I_DEFAULT, is_internal ? 0 : 1, module_hash);
 
-	if (_r_config_getboolean_ex (path->buffer, TRUE, SECTION_MODULE))
+	if (_r_config_getboolean (path->buffer, TRUE, SECTION_MODULE))
 		_r_listview_setitemcheck (hwnd, IDC_MODULES, index, TRUE);
 }
 
@@ -808,10 +808,10 @@ INT_PTR CALLBACK SettingsProc (
 
 						is_enabled = _r_listview_isitemchecked (hwnd, IDC_MODULES, i);
 
-						if (is_enabled == _r_config_getboolean_ex (ptr_module->full_path->buffer, TRUE, SECTION_MODULE))
+						if (is_enabled == _r_config_getboolean (ptr_module->full_path->buffer, TRUE, SECTION_MODULE))
 							continue;
 
-						_r_config_setboolean_ex (ptr_module->full_path->buffer, is_enabled, SECTION_MODULE);
+						_r_config_setboolean (ptr_module->full_path->buffer, is_enabled, SECTION_MODULE);
 
 						if (is_enabled)
 						{
@@ -860,7 +860,7 @@ INT_PTR CALLBACK SettingsProc (
 
 					string = _r_obj_finalstringbuilder (&sb);
 
-					_r_config_setstring (L"Modules", _r_obj_getstring (string));
+					_r_config_setstring (L"Modules", _r_obj_getstring (string), NULL);
 
 					_r_obj_deletestringbuilder (&sb);
 
@@ -1249,7 +1249,7 @@ INT_PTR CALLBACK DlgProc (
 			_r_updown_setrange (hwnd, IDC_CODE_UD, 0, LONG_MAX);
 
 			// set error code text
-			if (_r_config_getboolean (L"InsertBufferAtStartup", FALSE))
+			if (_r_config_getboolean (L"InsertBufferAtStartup", FALSE, NULL))
 			{
 				string = _r_clipboard_get (hwnd);
 
@@ -1267,7 +1267,7 @@ INT_PTR CALLBACK DlgProc (
 			}
 
 			if (!string)
-				string = _r_config_getstring (L"LatestCode", L"0x00000000");
+				string = _r_config_getstring (L"LatestCode", L"0x00000000", NULL);
 
 			if (string)
 			{
@@ -1298,9 +1298,9 @@ INT_PTR CALLBACK DlgProc (
 			if (!hmenu)
 				break;
 
-			_r_menu_checkitem (hmenu, IDM_ALWAYSONTOP_CHK, 0, MF_BYCOMMAND, _r_config_getboolean (L"AlwaysOnTop", FALSE));
+			_r_menu_checkitem (hmenu, IDM_ALWAYSONTOP_CHK, 0, MF_BYCOMMAND, _r_config_getboolean (L"AlwaysOnTop", FALSE, NULL));
 			_r_menu_checkitem (hmenu, IDM_DARKMODE_CHK, 0, MF_BYCOMMAND, _r_theme_isenabled ());
-			_r_menu_checkitem (hmenu, IDM_INSERTBUFFER_CHK, 0, MF_BYCOMMAND, _r_config_getboolean (L"InsertBufferAtStartup", FALSE));
+			_r_menu_checkitem (hmenu, IDM_INSERTBUFFER_CHK, 0, MF_BYCOMMAND, _r_config_getboolean (L"InsertBufferAtStartup", FALSE, NULL));
 			_r_menu_checkitem (hmenu, IDM_CHECKUPDATES_CHK, 0, MF_BYCOMMAND, _r_update_isenabled (FALSE));
 
 			break;
@@ -1372,9 +1372,9 @@ INT_PTR CALLBACK DlgProc (
 
 			window_text = _r_ctrl_getstring (hwnd, IDC_CODE_CTL);
 
-			_r_config_setlong (L"SelectedItem", _r_listview_getselecteditem (hwnd, IDC_LISTVIEW));
+			_r_config_setlong (L"SelectedItem", _r_listview_getselecteditem (hwnd, IDC_LISTVIEW), NULL);
 
-			_r_config_setstring (L"LatestCode", _r_obj_getstring (window_text));
+			_r_config_setstring (L"LatestCode", _r_obj_getstring (window_text), NULL);
 
 			if (window_text)
 				_r_obj_dereference (window_text);
@@ -1647,10 +1647,10 @@ INT_PTR CALLBACK DlgProc (
 				{
 					BOOLEAN new_val;
 
-					new_val = !_r_config_getboolean (L"AlwaysOnTop", FALSE);
+					new_val = !_r_config_getboolean (L"AlwaysOnTop", FALSE, NULL);
 
 					_r_menu_checkitem (GetMenu (hwnd), ctrl_id, 0, MF_BYCOMMAND, new_val);
-					_r_config_setboolean (L"AlwaysOnTop", new_val);
+					_r_config_setboolean (L"AlwaysOnTop", new_val, NULL);
 
 					_r_wnd_top (hwnd, new_val);
 
@@ -1674,10 +1674,10 @@ INT_PTR CALLBACK DlgProc (
 				{
 					BOOLEAN new_val;
 
-					new_val = !_r_config_getboolean (L"InsertBufferAtStartup", FALSE);
+					new_val = !_r_config_getboolean (L"InsertBufferAtStartup", FALSE, NULL);
 
 					_r_menu_checkitem (GetMenu (hwnd), ctrl_id, 0, MF_BYCOMMAND, new_val);
-					_r_config_setboolean (L"InsertBufferAtStartup", new_val);
+					_r_config_setboolean (L"InsertBufferAtStartup", new_val, NULL);
 
 					break;
 				}
