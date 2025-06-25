@@ -83,13 +83,13 @@ PR_STRING _app_getfiledescription (
 	return string;
 }
 
-ULONG_PTR _app_getmodulehash (
+ULONG _app_getmodulehash (
 	_In_ PR_STRING file_name,
 	_Out_opt_ PR_STRING_PTR out_buffer
 )
 {
 	PR_STRING path;
-	ULONG_PTR module_hash = 0;
+	ULONG module_hash = 0;
 	NTSTATUS status;
 
 	if (_r_fs_exists (&file_name->sr))
@@ -103,7 +103,7 @@ ULONG_PTR _app_getmodulehash (
 
 		if (NT_SUCCESS (status))
 		{
-			module_hash = _r_str_gethash2 (&path->sr, TRUE);
+			module_hash = _r_str_gethash (&path->sr, TRUE);
 
 			if (out_buffer)
 				*out_buffer = path;
@@ -116,7 +116,7 @@ ULONG_PTR _app_getmodulehash (
 	}
 
 	if (!module_hash)
-		module_hash = _r_str_gethash2 (&file_name->sr, TRUE);
+		module_hash = _r_str_gethash (&file_name->sr, TRUE);
 
 	return module_hash;
 }
@@ -146,7 +146,7 @@ VOID _app_addmodule (
 {
 	ITEM_MODULE mod = {0};
 	PR_STRING path;
-	ULONG_PTR module_hash;
+	ULONG module_hash;
 	BOOLEAN is_enabled;
 	NTSTATUS status;
 
@@ -198,14 +198,14 @@ VOID _app_addmodule (
 
 BOOLEAN _app_checkmodule (
 	_In_ PR_STRING file_name,
-	_Out_ PULONG_PTR pmodule_hash
+	_Out_ PULONG out_module_hash
 )
 {
-	ULONG_PTR module_hash;
+	ULONG module_hash;
 
 	module_hash = _app_getmodulehash (file_name, NULL);
 
-	*pmodule_hash = module_hash;
+	*out_module_hash = module_hash;
 
 	if (_r_obj_findhashtable (config.modules, module_hash))
 		return TRUE;
@@ -214,7 +214,7 @@ BOOLEAN _app_checkmodule (
 }
 
 VOID _app_deletemodule (
-	_In_ ULONG_PTR module_hash
+	_In_ ULONG module_hash
 )
 {
 	PITEM_MODULE ptr_module;
@@ -232,7 +232,7 @@ VOID _app_deletemodule (
 
 VOID _app_opendirectory (
 	_In_ HWND hwnd,
-	_In_ ULONG_PTR module_hash
+	_In_ ULONG module_hash
 )
 {
 	PITEM_MODULE ptr_module;
@@ -261,12 +261,12 @@ VOID _app_opendirectory (
 VOID _app_gettooltip (
 	_Out_writes_ (buffer_length) LPWSTR buffer,
 	_In_ ULONG_PTR buffer_length,
-	_In_ LPARAM module_hash
+	_In_ LONG_PTR module_hash
 )
 {
 	PITEM_MODULE ptr_module;
 
-	ptr_module = _r_obj_findhashtable (config.modules, module_hash);
+	ptr_module = _r_obj_findhashtable (config.modules, (ULONG)module_hash);
 
 	if (!ptr_module)
 	{
@@ -290,9 +290,9 @@ VOID _app_gettooltip (
 }
 
 INT CALLBACK _app_listviewcompare_callback (
-	_In_ LPARAM lparam1,
-	_In_ LPARAM lparam2,
-	_In_ LPARAM lparam
+	_In_ LONG_PTR lparam1,
+	_In_ LONG_PTR lparam2,
+	_In_ LONG_PTR lparam
 )
 {
 	R_STRINGREF sr1 = PR_STRINGREF_INIT (L"Windows (");
@@ -394,7 +394,7 @@ VOID _app_listviewsort (
 
 	_r_listview_setcolumnsortindex (hwnd, listview_id, column_id, is_descend ? -1 : 1);
 
-	_r_wnd_sendmessage (hwnd, listview_id, LVM_SORTITEMSEX, (WPARAM)GetDlgItem (hwnd, listview_id), (LPARAM)&_app_listviewcompare_callback);
+	_r_listview_sort (hwnd, listview_id, &_app_listviewcompare_callback, (WPARAM)GetDlgItem (hwnd, listview_id));
 }
 
 VOID _app_refreshstatus (
@@ -417,7 +417,7 @@ VOID _app_refreshstatus (
 
 VOID _app_showdescription (
 	_In_ HWND hwnd,
-	_In_ ULONG_PTR module_hash
+	_In_ ULONG module_hash
 )
 {
 	PITEM_MODULE ptr_module;
@@ -463,7 +463,7 @@ VOID _app_print (
 	PR_STRING facility_string;
 	PR_STRING string;
 	ULONG_PTR enum_key = 0;
-	ULONG_PTR module_hash;
+	ULONG module_hash;
 	LONG severity_code;
 	LONG facility_code;
 	LONG error_code;
@@ -705,7 +705,7 @@ VOID _app_loaddatabase (
 VOID _app_additemtolist (
 	_In_ HWND hwnd,
 	_In_ PR_STRING path,
-	_In_ ULONG_PTR module_hash,
+	_In_ ULONG module_hash,
 	_In_ BOOLEAN is_internal
 )
 {
@@ -723,7 +723,7 @@ INT_PTR CALLBACK SettingsProc (
 	_In_ HWND hwnd,
 	_In_ UINT msg,
 	_In_ WPARAM wparam,
-	_In_ LPARAM lparam
+	_In_ LONG_PTR lparam
 )
 {
 	switch (msg)
@@ -736,7 +736,7 @@ INT_PTR CALLBACK SettingsProc (
 				{
 					PITEM_MODULE ptr_module = NULL;
 					ULONG_PTR enum_key = 0;
-					ULONG_PTR module_hash;
+					ULONG module_hash;
 					ULONG style = LVS_EX_CHECKBOXES | LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP;
 
 					_r_listview_deleteallitems (hwnd, IDC_MODULES);
@@ -787,7 +787,7 @@ INT_PTR CALLBACK SettingsProc (
 					PITEM_MODULE ptr_module;
 					PR_STRING string;
 					HWND hmain;
-					ULONG_PTR module_hash;
+					ULONG module_hash;
 					INT item_count;
 					INT group_id;
 					BOOLEAN is_enabled;
@@ -800,7 +800,7 @@ INT_PTR CALLBACK SettingsProc (
 
 					for (INT i = 0; i < item_count; i++)
 					{
-						module_hash = _r_listview_getitemlparam (hwnd, IDC_MODULES, i);
+						module_hash = (ULONG)_r_listview_getitemlparam (hwnd, IDC_MODULES, i);
 						ptr_module = _r_obj_findhashtable (config.modules, module_hash);
 
 						if (!ptr_module)
@@ -989,7 +989,7 @@ INT_PTR CALLBACK SettingsProc (
 							if (lpnmlv->dwItemType != LVCDI_ITEM)
 								break;
 
-							ptr_module = _r_obj_findhashtable (config.modules, lpnmlv->nmcd.lItemlParam);
+							ptr_module = _r_obj_findhashtable (config.modules, (ULONG)lpnmlv->nmcd.lItemlParam);
 
 							if (!ptr_module)
 								break;
@@ -1021,7 +1021,7 @@ INT_PTR CALLBACK SettingsProc (
 				case LVN_GETINFOTIP:
 				{
 					LPNMLVGETINFOTIPW lpnmlv;
-					LPARAM module_hash;
+					LONG_PTR module_hash;
 
 					lpnmlv = (LPNMLVGETINFOTIPW)lparam;
 
@@ -1069,7 +1069,7 @@ INT_PTR CALLBACK SettingsProc (
 					R_FILE_DIALOG file_dialog;
 					PR_STRING path;
 					PVOID hlib;
-					ULONG_PTR module_hash;
+					ULONG module_hash;
 					NTSTATUS status;
 
 					status = _r_filedialog_initialize (&file_dialog, PR_FILEDIALOG_OPENFILE);
@@ -1160,7 +1160,7 @@ INT_PTR CALLBACK SettingsProc (
 
 				case IDM_EXPLORE:
 				{
-					ULONG_PTR module_hash;
+					ULONG module_hash;
 					INT item_id = INT_ERROR;
 
 					if (!_r_listview_getselectedcount (hwnd, IDC_MODULES))
@@ -1168,7 +1168,7 @@ INT_PTR CALLBACK SettingsProc (
 
 					while ((item_id = _r_listview_getnextselected (hwnd, IDC_MODULES, item_id)) != INT_ERROR)
 					{
-						module_hash = _r_listview_getitemlparam (hwnd, IDC_MODULES, item_id);
+						module_hash = (ULONG)_r_listview_getitemlparam (hwnd, IDC_MODULES, item_id);
 
 						_app_opendirectory (hwnd, module_hash);
 					}
@@ -1223,7 +1223,7 @@ INT_PTR CALLBACK DlgProc (
 	_In_ HWND hwnd,
 	_In_ UINT msg,
 	_In_ WPARAM wparam,
-	_In_ LPARAM lparam
+	_In_ LONG_PTR lparam
 )
 {
 	static R_LAYOUT_MANAGER layout_manager = {0};
@@ -1469,7 +1469,7 @@ INT_PTR CALLBACK DlgProc (
 				case LVN_ITEMCHANGED:
 				{
 					LPNMITEMACTIVATE lpnmlv;
-					ULONG_PTR module_hash;
+					ULONG module_hash;
 
 					if (nmlp->idFrom != IDC_LISTVIEW)
 						break;
@@ -1478,7 +1478,7 @@ INT_PTR CALLBACK DlgProc (
 
 					if (lpnmlv->iItem != INT_ERROR)
 					{
-						module_hash = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnmlv->iItem);
+						module_hash = (ULONG)_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnmlv->iItem);
 
 						_app_showdescription (hwnd, module_hash);
 					}
@@ -1493,7 +1493,7 @@ INT_PTR CALLBACK DlgProc (
 				case LVN_GETINFOTIP:
 				{
 					LPNMLVGETINFOTIPW lpnmlv;
-					LPARAM module_hash;
+					LONG_PTR module_hash;
 
 					if (nmlp->idFrom != IDC_LISTVIEW)
 						break;
@@ -1720,7 +1720,7 @@ INT_PTR CALLBACK DlgProc (
 
 				case IDM_EXPLORE:
 				{
-					ULONG_PTR module_hash;
+					ULONG module_hash;
 					INT item_id;
 
 					item_id = _r_listview_getselecteditem (hwnd, IDC_LISTVIEW);
@@ -1728,7 +1728,7 @@ INT_PTR CALLBACK DlgProc (
 					if (item_id == INT_ERROR)
 						break;
 
-					module_hash = _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, item_id);
+					module_hash = (ULONG)_r_listview_getitemlparam (hwnd, IDC_LISTVIEW, item_id);
 
 					_app_opendirectory (hwnd, module_hash);
 
