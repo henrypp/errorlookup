@@ -1,3 +1,7 @@
+v2.6.2 (x September 2025)
+- added certificate checking of loaded modules
+- updated project sdk
+
 v2.6.1 (7 January 2025)
 - revert back windows 7 & windows 8 support
 - improved dark theme support
