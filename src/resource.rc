@@ -105,6 +105,7 @@ END
 //
 // String resources
 //
+
 STRINGTABLE
 {
 	IDS_LCID "0x0409"
