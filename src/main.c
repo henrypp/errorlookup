@@ -1339,21 +1339,24 @@ INT_PTR CALLBACK DlgProc (
 			if (hmenu)
 			{
 				_r_menu_setitemtext (hmenu, 0, TRUE, _r_locale_getstring (IDS_FILE));
-				_r_menu_setitemtext (hmenu, 1, TRUE, _r_locale_getstring (IDS_SETTINGS));
-				_r_menu_setitemtext (hmenu, 2, TRUE, _r_locale_getstring (IDS_HELP));
+				_r_menu_setitemtext (hmenu, 1, TRUE, _r_locale_getstring (IDS_VIEW));
+				_r_menu_setitemtext (hmenu, 2, TRUE, _r_locale_getstring (IDS_SETTINGS));
+				_r_menu_setitemtext (hmenu, 3, TRUE, _r_locale_getstring (IDS_HELP));
 
 				_r_menu_setitemtextformat (hmenu, IDM_SETTINGS, FALSE, L"%s...\tF2", _r_locale_getstring (IDS_SETTINGS));
 				_r_menu_setitemtextformat (hmenu, IDM_EXIT, FALSE, L"%s\tEsc", _r_locale_getstring (IDS_EXIT));
 				_r_menu_setitemtext (hmenu, IDM_ALWAYSONTOP_CHK, FALSE, _r_locale_getstring (IDS_ALWAYSONTOP_CHK));
 				_r_menu_setitemtext (hmenu, IDM_DARKMODE_CHK, FALSE, _r_locale_getstring (IDS_DARKMODE_CHK));
+				_r_menu_setitemtext (hmenu, IDM_USECERTIFICATES_CHK, FALSE, _r_locale_getstring (IDS_USECERTIFICATES_CHK));
 				_r_menu_setitemtext (hmenu, IDM_INSERTBUFFER_CHK, FALSE, _r_locale_getstring (IDS_INSERTBUFFER_CHK));
 				_r_menu_setitemtext (hmenu, IDM_CHECKUPDATES_CHK, FALSE, _r_locale_getstring (IDS_CHECKUPDATES_CHK));
-				_r_menu_setitemtextformat (GetSubMenu (hmenu, 1), LANG_MENU, TRUE, L"%s (Language)", _r_locale_getstring (IDS_LANGUAGE));
+				_r_menu_setitemtextformat (GetSubMenu (hmenu, LANG_SUBMENU), LANG_MENU, TRUE, L"%s (Language)", _r_locale_getstring (IDS_LANGUAGE));
 				_r_menu_setitemtext (hmenu, IDM_WEBSITE, FALSE, _r_locale_getstring (IDS_WEBSITE));
 				_r_menu_setitemtext (hmenu, IDM_CHECKUPDATES, FALSE, _r_locale_getstring (IDS_CHECKUPDATES));
 				_r_menu_setitemtextformat (hmenu, IDM_ABOUT, FALSE, L"%s\tF1", _r_locale_getstring (IDS_ABOUT));
 
-				_r_locale_enum (GetSubMenu (hmenu, 1), LANG_MENU, IDX_LANGUAGE); // enum localizations
+				// enum localizations
+				_r_locale_enum (GetSubMenu (hmenu, LANG_SUBMENU), LANG_MENU, IDX_LANGUAGE);
 			}
 
 			_r_ctrl_setstringformat (hwnd, IDC_CODE, L"%s:", _r_locale_getstring (IDS_CODE));
@@ -1586,7 +1589,7 @@ INT_PTR CALLBACK DlgProc (
 
 				if (hmenu)
 				{
-					hsubmenu = GetSubMenu (hmenu, 1);
+					hsubmenu = GetSubMenu (hmenu, LANG_SUBMENU);
 
 					if (hsubmenu)
 					{
@@ -1678,6 +1681,18 @@ INT_PTR CALLBACK DlgProc (
 
 					_r_menu_checkitem (GetMenu (hwnd), ctrl_id, 0, MF_BYCOMMAND, new_val);
 					_r_config_setboolean (L"InsertBufferAtStartup", new_val, NULL);
+
+					break;
+				}
+
+				case IDM_USECERTIFICATES_CHK:
+				{
+					BOOLEAN new_val;
+
+					new_val = !_r_config_getboolean (L"IsCertificatesEnabled", TRUE, NULL);
+
+					_r_menu_checkitem (GetMenu (hwnd), ctrl_id, 0, MF_BYCOMMAND, new_val);
+					_r_config_setboolean (L"IsCertificatesEnabled", new_val, NULL);
 
 					break;
 				}
