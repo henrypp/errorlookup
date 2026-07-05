@@ -1,5 +1,5 @@
 // Error Lookup
-// Copyright (c) 2011-2025 Henry++
+// Copyright (c) 2011-2026 Henry++
 
 #pragma once
 
@@ -35,6 +35,6 @@ typedef struct _ITEM_MODULE
 	PR_STRING full_path;
 	PR_STRING description;
 	PR_STRING string;
-	PVOID hlib;
+	HINSTANCE hlib;
 	BOOLEAN is_internal;
 } ITEM_MODULE, *PITEM_MODULE;
