@@ -18,7 +18,7 @@
 
 typedef struct _STATIC_DATA
 {
-	WCHAR info[256];
+	WCHAR info[0x100];
 
 	PR_HASHTABLE modules;
 	PR_HASHTABLE facility;
@@ -26,7 +26,7 @@ typedef struct _STATIC_DATA
 
 	ULONG_PTR count_unload;
 
-	ULONG lcid;
+	LCID lcid;
 } STATIC_DATA, *PSTATIC_DATA;
 
 typedef struct _ITEM_MODULE
