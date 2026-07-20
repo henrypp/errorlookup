@@ -14,9 +14,7 @@ VOID NTAPI _app_dereferencemoduleprocedure (
 	_In_ PVOID entry
 )
 {
-	PITEM_MODULE ptr_item;
-
-	ptr_item = entry;
+	PITEM_MODULE ptr_item = (PITEM_MODULE)entry;
 
 	if (ptr_item->file_name)
 		_r_obj_dereference (ptr_item->file_name);
@@ -79,7 +77,7 @@ PR_STRING _app_getfiledescription (
 
 ULONG _app_getmodulehash (
 	_In_ PR_STRING file_name,
-	_Out_opt_ PR_STRING_PTR out_buffer
+	_Out_opt_ PR_STRING_PTR out_path
 )
 {
 	PR_STRING path;
@@ -88,8 +86,8 @@ ULONG _app_getmodulehash (
 
 	if (_r_fs_isexists (&file_name->sr))
 	{
-		if (out_buffer)
-			*out_buffer = _r_obj_createstring2 (&file_name->sr);
+		if (out_path)
+			*out_path = _r_obj_createstring2 (&file_name->sr);
 	}
 	else
 	{
@@ -99,13 +97,13 @@ ULONG _app_getmodulehash (
 		{
 			module_hash = _r_str_gethash (&path->sr, TRUE);
 
-			if (out_buffer)
-				*out_buffer = path;
+			if (out_path)
+				*out_path = path;
 		}
 		else
 		{
-			if (out_buffer)
-				*out_buffer = _r_obj_createstring2 (&file_name->sr);
+			if (out_path)
+				*out_path = _r_obj_createstring2 (&file_name->sr);
 		}
 	}
 
@@ -120,14 +118,7 @@ VOID _app_addinfo (
 	_Inout_ PR_HASHTABLE hashtable
 )
 {
-	PR_STRING text_value;
-	LONG code;
-
-	code = _r_xml_getattribute_long (xml_library, L"code");
-
-	text_value = _r_xml_getattribute_string (xml_library, L"text");
-
-	_r_obj_addhashtablepointer (hashtable, _r_math_hashinteger_ptr (code), text_value);
+	_r_obj_addhashtablepointer (hashtable, _r_math_hashinteger_ptr (_r_xml_getattribute_long (xml_library, L"code")), _r_xml_getattribute_string (xml_library, L"text"));
 }
 
 VOID _app_addmodule (
@@ -139,32 +130,30 @@ VOID _app_addmodule (
 )
 {
 	ITEM_MODULE module = {0};
-	PR_STRING path;
+	PR_STRING path = NULL;
 	ULONG module_hash;
 	NTSTATUS status;
 
 	module_hash = _app_getmodulehash (file_name, &path);
 
 	// module is already exists
-	if (_r_obj_findhashtable (config.modules, module_hash))
-	{
-		_r_obj_dereference (file_name);
-		_r_obj_dereference (path);
-
-		if (description)
-			_r_obj_dereference (description);
-
-		return;
-	}
+	if (_r_obj_findhashtable (config.modules, module_hash) || !path)
+		goto CleanupExit;
 
 	module.file_name = _r_obj_createstring2 (&file_name->sr);
 
 	if (description)
 		module.description = _r_obj_createstring2 (&description->sr);
 
-	module.full_path = path;
+	module.full_path = _r_obj_reference (path);
 	module.hlib = hlib;
 	module.is_internal = is_internal;
+
+	if (!module.full_path)
+		status = _r_path_search (&module.full_path, NULL, &file_name->sr, NULL);
+
+	if (!module.full_path)
+		goto CleanupExit;
 
 	if (_r_config_getboolean (path->buffer, TRUE, SECTION_MODULE))
 	{
@@ -193,8 +182,12 @@ VOID _app_addmodule (
 
 	_r_obj_addhashtableitem (config.modules, module_hash, &module);
 
+CleanupExit:
+
 	_r_obj_dereference (file_name);
-	_r_obj_dereference (path);
+
+	if (path)
+		_r_obj_dereference (path);
 
 	if (description)
 		_r_obj_dereference (description);
@@ -229,21 +222,20 @@ VOID _app_opendirectory (
 	_In_ ULONG module_hash
 )
 {
-	PITEM_MODULE ptr_module = _r_obj_findhashtable (config.modules, module_hash);
+	PITEM_MODULE ptr_module;
 	NTSTATUS status;
+
+	ptr_module = _r_obj_findhashtable (config.modules, module_hash);
 
 	if (!ptr_module)
 		return;
 
-	if (!ptr_module->full_path)
+	if (!ptr_module->full_path && ptr_module->file_name)
 	{
-		if (ptr_module->file_name)
-		{
-			status = _r_path_search (&ptr_module->full_path, NULL, &ptr_module->file_name->sr, NULL);
+		status = _r_path_search (&ptr_module->full_path, NULL, &ptr_module->file_name->sr, NULL);
 
-			if (!NT_SUCCESS (status))
-				_r_show_errormessage (hwnd, NULL, status, ptr_module->file_name->buffer, ET_NATIVE);
-		}
+		if (!NT_SUCCESS (status))
+			_r_show_errormessage (hwnd, NULL, status, ptr_module->file_name->buffer, ET_NATIVE);
 	}
 
 	if (ptr_module->full_path)
@@ -253,10 +245,12 @@ VOID _app_opendirectory (
 VOID _app_gettooltip (
 	_Out_writes_ (buffer_length) LPWSTR buffer,
 	_In_ ULONG_PTR buffer_length,
-	_In_ LONG_PTR module_hash
+	_In_ LPARAM module_hash
 )
 {
-	PITEM_MODULE ptr_module = _r_obj_findhashtable (config.modules, (ULONG)module_hash);
+	PITEM_MODULE ptr_module;
+
+	ptr_module = _r_obj_findhashtable (config.modules, (ULONG)module_hash);
 
 	if (!ptr_module)
 	{
@@ -289,7 +283,7 @@ INT CALLBACK _app_listviewcompare_callback (
 	PR_STRING item_text_1, item_text_2;
 	WCHAR config_name[0x80];
 	HWND hwnd, hlistview;
-	INT column_id, item1, item2, listview_id, result = 0;;
+	INT column_id, item1, item2, listview_id, result = 0;
 	BOOLEAN is_descend;
 
 	item1 = (INT)(INT_PTR)lparam1;
@@ -347,10 +341,12 @@ VOID _app_listviewsort (
 )
 {
 	WCHAR config_name[0x80];
-	INT column_count = _r_listview_getcolumncount (hwnd, listview_id);
+	INT column_count;
 	BOOLEAN is_descend;
 
-	if (column_count == 0)
+	column_count = _r_listview_getcolumncount (hwnd, listview_id);
+
+	if (!column_count)
 		return;
 
 	_r_str_printf (config_name, RTL_NUMBER_OF (config_name), L"listview\\%04" TEXT (PRIX32), listview_id);
@@ -392,7 +388,7 @@ VOID _app_refreshstatus (
 
 VOID _app_showdescription (
 	_In_ HWND hwnd,
-	_In_ ULONG module_hash
+	_In_opt_ ULONG module_hash
 )
 {
 	PITEM_MODULE ptr_module;
@@ -460,9 +456,9 @@ VOID _app_print (
 	_r_ctrl_setstring (hwnd, IDC_DESCRIPTION_CTL, config.info);
 
 	// print modules
-	while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
+	while (_r_obj_enumhashtable (config.modules, (PVOID_PTR)&ptr_module, &module_hash, &enum_key))
 	{
-		if (!ptr_module->hlib || !ptr_module->full_path || !_r_config_getboolean (ptr_module->full_path->buffer, TRUE, SECTION_MODULE))
+		if (!ptr_module->hlib || _r_obj_isstringempty (ptr_module->full_path) || !_r_config_getboolean (ptr_module->full_path->buffer, TRUE, SECTION_MODULE))
 			continue;
 
 		status = _r_sys_formatmessage (&string, ptr_module->hlib, error_code, config.lcid);
@@ -567,32 +563,33 @@ VOID _app_loaddatabase (
 
 		if (SUCCEEDED (status))
 		{
-			_r_xml_findchildbytagname (&xml_library, L"root");
-
-			if (_r_xml_findchildbytagname (&xml_library, L"module"))
+			if (_r_xml_findchildbytagname (&xml_library, L"root"))
 			{
-				while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
+				if (_r_xml_findchildbytagname (&xml_library, L"module"))
 				{
-					file_value = _r_xml_getattribute_string (&xml_library, L"file");
+					while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
+					{
+						file_value = _r_xml_getattribute_string (&xml_library, L"file");
 
-					if (file_value)
-						_app_addmodule (hwnd, file_value, _r_xml_getattribute_string (&xml_library, L"text"), NULL, TRUE);
+						if (file_value)
+							_app_addmodule (hwnd, file_value, _r_xml_getattribute_string (&xml_library, L"text"), NULL, TRUE);
+					}
 				}
-			}
 
-			if (_r_xml_findchildbytagname (&xml_library, L"facility"))
-			{
-				while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
+				if (_r_xml_findchildbytagname (&xml_library, L"facility"))
 				{
-					_app_addinfo (&xml_library, config.facility);
+					while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
+					{
+						_app_addinfo (&xml_library, config.facility);
+					}
 				}
-			}
 
-			if (_r_xml_findchildbytagname (&xml_library, L"severity"))
-			{
-				while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
+				if (_r_xml_findchildbytagname (&xml_library, L"severity"))
 				{
-					_app_addinfo (&xml_library, config.severity);
+					while (_r_xml_enumchilditemsbytagname (&xml_library, L"item"))
+					{
+						_app_addinfo (&xml_library, config.severity);
+					}
 				}
 			}
 		}
@@ -620,9 +617,7 @@ VOID _app_loaddatabase (
 			_r_str_trimstring (&value_part, &whitespace, 0);
 
 			if (value_part.length > 4 * sizeof (WCHAR))
-			{
 				_app_addmodule (hwnd, _r_obj_createstring2 (&value_part), NULL, NULL, FALSE);
-			}
 		}
 
 		_r_obj_dereference (string);
@@ -677,7 +672,8 @@ INT_PTR CALLBACK SettingsProc (
 
 					while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
 					{
-						_app_additemtolist (hwnd, ptr_module->full_path, module_hash, ptr_module->is_internal);
+						if (ptr_module->full_path)
+							_app_additemtolist (hwnd, ptr_module->full_path, module_hash, ptr_module->is_internal);
 					}
 
 					_app_listviewsort (hwnd, IDC_MODULES, INT_ERROR, FALSE);
@@ -714,13 +710,13 @@ INT_PTR CALLBACK SettingsProc (
 					PR_STRING string;
 					HWND hmain;
 					ULONG module_hash;
-					INT item_count, group_id;
+					INT group_id, item_count;
 					BOOLEAN is_enabled;
 					NTSTATUS status;
 
 					item_count = _r_listview_getitemcount (hwnd, IDC_MODULES);
 
-					if (item_count == 0)
+					if (!item_count)
 						break;
 
 					for (INT i = 0; i < item_count; i++)
@@ -728,7 +724,7 @@ INT_PTR CALLBACK SettingsProc (
 						module_hash = (ULONG)_r_listview_getitemlparam (hwnd, IDC_MODULES, i);
 						ptr_module = _r_obj_findhashtable (config.modules, module_hash);
 
-						if (!ptr_module)
+						if (!ptr_module || !ptr_module->full_path)
 							continue;
 
 						is_enabled = _r_listview_isitemchecked (hwnd, IDC_MODULES, i);
@@ -901,7 +897,7 @@ INT_PTR CALLBACK SettingsProc (
 							if (!ptr_module)
 								break;
 
-							if (_r_listview_isitemchecked (hwnd, IDC_MODULES, (INT)lpnmlv->nmcd.dwItemSpec))
+							if (_r_listview_isitemchecked (hwnd, IDC_MODULES, (INT)(INT_PTR)lpnmlv->nmcd.dwItemSpec))
 							{
 								if (!ptr_module->hlib)
 								{
@@ -957,15 +953,14 @@ INT_PTR CALLBACK SettingsProc (
 			{
 				case IDM_ADD:
 				{
-					COMDLG_FILTERSPEC filters[] = {
-						L"Dll files (*.dll)", L"*.dll",
-						L"All files (*.*)", L"*.*",
-					};
+					COMDLG_FILTERSPEC filters[] = {L"Dll files (*.dll)", L"*.dll", L"All files (*.*)", L"*.*",};
 					R_FILE_DIALOG file_dialog;
 					PR_STRING path;
 					HINSTANCE hlib;
 					ULONG module_hash;
-					NTSTATUS status = _r_filedialog_initialize (&file_dialog, PR_FILEDIALOG_OPENFILE);
+					NTSTATUS status;
+
+					status = _r_filedialog_initialize (&file_dialog, PR_FILEDIALOG_OPENFILE);
 
 					if (SUCCEEDED (status))
 					{
@@ -990,6 +985,7 @@ INT_PTR CALLBACK SettingsProc (
 									if (NT_SUCCESS (status))
 									{
 										_app_addmodule (hwnd, path, NULL, hlib, FALSE);
+
 										_app_additemtolist (hwnd, path, module_hash, FALSE);
 									}
 									else
@@ -1119,10 +1115,10 @@ INT_PTR CALLBACK DlgProc (
 			// configure listview
 			_r_listview_setstyle (hwnd, IDC_LISTVIEW, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP, TRUE);
 
-			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, _r_locale_getstring (IDS_MODULES), 100, LVCFMT_LEFT);
+			_r_listview_addcolumn (hwnd, IDC_LISTVIEW, 0, L"", 100, LVCFMT_LEFT);
 
-			_r_listview_addgroup (hwnd, IDC_LISTVIEW, 0, _r_locale_getstring (IDS_MODULES_INT), 0, LVGS_COLLAPSIBLE, LVGS_COLLAPSIBLE);
-			_r_listview_addgroup (hwnd, IDC_LISTVIEW, 1, _r_locale_getstring (IDS_MODULES_EXT), 0, LVGS_COLLAPSIBLE, LVGS_COLLAPSIBLE);
+			_r_listview_addgroup (hwnd, IDC_LISTVIEW, 0, L"", 0, LVGS_COLLAPSIBLE, LVGS_COLLAPSIBLE);
+			_r_listview_addgroup (hwnd, IDC_LISTVIEW, 1, L"", 0, LVGS_COLLAPSIBLE, LVGS_COLLAPSIBLE);
 
 			// configure controls
 			_r_updown_setrange (hwnd, IDC_CODE_UD, 0, LONG64_MAX);
@@ -1206,6 +1202,9 @@ INT_PTR CALLBACK DlgProc (
 
 			_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, _r_locale_getstring (IDS_MODULES), 0);
 
+			_r_listview_setgroup (hwnd, IDC_LISTVIEW, 0, _r_locale_getstring (IDS_MODULES_INT), 0, 0);
+			_r_listview_setgroup (hwnd, IDC_LISTVIEW, 1, _r_locale_getstring (IDS_MODULES_EXT), 0, 0);
+
 			// localize
 			hmenu = GetMenu (hwnd);
 
@@ -1261,7 +1260,9 @@ INT_PTR CALLBACK DlgProc (
 		case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
-			HDC hdc = BeginPaint (hwnd, &ps);
+			HDC hdc;
+
+			hdc = BeginPaint (hwnd, &ps);
 
 			if (!hdc)
 				break;
@@ -1284,7 +1285,7 @@ INT_PTR CALLBACK DlgProc (
 					LPNMITEMACTIVATE lpnmlv = (LPNMITEMACTIVATE)lparam;
 					HMENU hmenu, hsubmenu;
 
-					if (!nmlp->idFrom || lpnmlv->iItem == INT_ERROR || nmlp->idFrom != IDC_LISTVIEW)
+					if (nmlp->idFrom != IDC_LISTVIEW || lpnmlv->iItem == INT_ERROR)
 						break;
 
 					// localize
@@ -1344,7 +1345,7 @@ INT_PTR CALLBACK DlgProc (
 				{
 					LPNMLVGETINFOTIPW lpnmlv = (LPNMLVGETINFOTIPW)lparam;
 
-					if (nmlp->idFrom != IDC_LISTVIEW)
+					if (nmlp->idFrom != IDC_LISTVIEW || lpnmlv->iItem == INT_ERROR)
 						break;
 
 					_app_gettooltip (lpnmlv->pszText, lpnmlv->cchTextMax, _r_listview_getitemlparam (hwnd, IDC_LISTVIEW, lpnmlv->iItem));
@@ -1388,19 +1389,11 @@ INT_PTR CALLBACK DlgProc (
 
 		case WM_SIZE:
 		{
-			LONG width;
-
 			if (!_r_layout_resize (&layout_manager, wparam))
 				break;
 
-			// resize statusbar parts
-			width = _r_ctrl_getwidth (hwnd, IDC_LISTVIEW);
-
-			if (width == 0)
-				break;
-
 			// resize column width
-			_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, NULL, width);
+			_r_listview_setcolumn (hwnd, IDC_LISTVIEW, 0, NULL, -100);
 
 			break;
 		}
