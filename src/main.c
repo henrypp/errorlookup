@@ -1447,11 +1447,11 @@ INT_PTR CALLBACK DlgProc (
 					{
 						_r_str_trimstring2 (&string->sr, L" \r\n\";", 0);
 
-						pos = _r_ctrl_getselection (hwnd, ctrl_id);
+						pos = _r_edit_getselection (hwnd, ctrl_id);
 
 						_r_ctrl_setstring (hwnd, ctrl_id, string->buffer);
 
-						_r_ctrl_setselection (hwnd, ctrl_id, LOWORD (pos), HIWORD (pos));
+						_r_edit_setselection (hwnd, ctrl_id, LOWORD (pos), HIWORD (pos));
 
 						_r_obj_dereference (string);
 					}
