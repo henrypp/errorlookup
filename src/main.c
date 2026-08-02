@@ -399,7 +399,7 @@ VOID _app_showdescription (
 
 		if (ptr_module)
 		{
-			_r_ctrl_setstringformat (hwnd, IDC_DESCRIPTION_CTL, L"%s\r\n\r\n%s", config.info, _r_obj_getstringorempty (ptr_module->string));
+			_r_ctrl_setstringformat (hwnd, IDC_DESCRIPTION_CTL, L"%s\r\n\r\n%s", config.info, _r_obj_getstringordefault (ptr_module->string, L"n/a"));
 
 			_r_status_settextformat (hwnd, IDC_STATUSBAR, 1, L"%s - %s", _r_obj_getstringorempty (ptr_module->description), _r_obj_getstringorempty (ptr_module->file_name));
 		}
@@ -442,7 +442,8 @@ VOID _app_print (
 
 	// print information
 	_r_str_printf (
-		config.info, RTL_NUMBER_OF (config.info),
+		config.info,
+		RTL_NUMBER_OF (config.info),
 		L"Code (dec.): " FORMAT_DEC L"\r\nCode (hex.): " FORMAT_HEX L"\r\n" \
 		L"\r\nSeverity:\r\n%s (0x%02" TEXT (PRIX32) L")\r\n\r\nFacility:\r\n%s (0x%02" TEXT (PRIX32) L")",
 		error_code,
