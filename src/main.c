@@ -464,7 +464,7 @@ VOID _app_print (
 
 		status = _r_sys_formatmessage (&string, ptr_module->hlib, error_code, config.lcid);
 
-		_r_obj_movereference (&ptr_module->string, string);
+		_r_obj_movereference ((PVOID_PTR)&ptr_module->string, string);
 
 		if (NT_SUCCESS (status))
 		{
@@ -671,7 +671,7 @@ INT_PTR CALLBACK SettingsProc (
 					_r_listview_addgroup (hwnd, IDC_MODULES, 0, _r_locale_getstring (IDS_MODULES_INT), 0, LVGS_COLLAPSIBLE, LVGS_COLLAPSIBLE);
 					_r_listview_addgroup (hwnd, IDC_MODULES, 1, _r_locale_getstring (IDS_MODULES_EXT), 0, LVGS_COLLAPSIBLE, LVGS_COLLAPSIBLE);
 
-					while (_r_obj_enumhashtable (config.modules, &ptr_module, &module_hash, &enum_key))
+					while (_r_obj_enumhashtable (config.modules, (PVOID_PTR)&ptr_module, &module_hash, &enum_key))
 					{
 						if (ptr_module->full_path)
 							_app_additemtolist (hwnd, ptr_module->full_path, module_hash, ptr_module->is_internal);
@@ -805,7 +805,6 @@ INT_PTR CALLBACK SettingsProc (
 
 		case WM_CONTEXTMENU:
 		{
-			LPNMITEMACTIVATE lpnmlv = (LPNMITEMACTIVATE)lparam;
 			HMENU hmenu, hsubmenu;
 			INT group_id, item_id;
 
@@ -954,7 +953,7 @@ INT_PTR CALLBACK SettingsProc (
 			{
 				case IDM_ADD:
 				{
-					COMDLG_FILTERSPEC filters[] = {L"Dll files (*.dll)", L"*.dll", L"All files (*.*)", L"*.*",};
+					COMDLG_FILTERSPEC filters[] = {L"Dll files (*.dll)", L"*.dll", L"All files (*.*)", L"*.*"};
 					R_FILE_DIALOG file_dialog;
 					PR_STRING path;
 					HINSTANCE hlib;
@@ -1122,7 +1121,7 @@ INT_PTR CALLBACK DlgProc (
 			_r_listview_addgroup (hwnd, IDC_LISTVIEW, 1, L"", 0, LVGS_COLLAPSIBLE, LVGS_COLLAPSIBLE);
 
 			// configure controls
-			_r_updown_setrange (hwnd, IDC_CODE_UD, 0, LONG64_MAX);
+			_r_updown_setrange (hwnd, IDC_CODE_UD, LONG64_MIN, LONG64_MAX);
 
 			// set error code text
 			if (_r_config_getboolean (L"InsertBufferAtStartup", FALSE, NULL))
@@ -1134,7 +1133,7 @@ INT_PTR CALLBACK DlgProc (
 					_r_str_trimstring2 (&string->sr, L"\r\n ", 0);
 
 					if (_r_obj_isstringempty2 (string))
-						_r_obj_clearreference (&string);
+						_r_obj_clearreference ((PVOID_PTR)&string);
 				}
 			}
 
